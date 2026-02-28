@@ -1,0 +1,1 @@
+SELECT * FROM users; -- should have auto-created user after signup

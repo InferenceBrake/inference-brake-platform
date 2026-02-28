@@ -1,0 +1,20 @@
+{
+  "name": "inferencebrake",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "@supabase/supabase-js": "^2.95.3",
+    "supabase": "^2.76.7"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.4"
+  },
+  "scripts": {
+    "supabase:restart": "docker rm -f $(docker ps -aq --filter name=supabase) || true && bunx supabase start",
+    "test": "bun run --env-file=tests/.env tests/basicTest.ts",
+    "test:rate": "bun run --env-file=tests/.env tests/rateLimitTest.ts"
+  }
+}

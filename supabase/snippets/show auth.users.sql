@@ -1,0 +1,1 @@
+SELECT * FROM auth.users; -- should show empty or your new user

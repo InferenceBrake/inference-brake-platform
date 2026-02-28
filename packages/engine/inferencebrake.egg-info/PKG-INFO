@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: inferencebrake
+Version: 0.1.0
+Summary: Multi-layer reasoning loop detection engine for LLM agents
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.24.0
+Requires-Dist: scipy>=1.10.0
+Provides-Extra: embeddings
+Requires-Dist: sentence-transformers>=2.2.0; extra == "embeddings"
+Requires-Dist: torch>=2.0.0; extra == "embeddings"
+Provides-Extra: benchmark
+Requires-Dist: matplotlib>=3.7.0; extra == "benchmark"
+Requires-Dist: tabulate>=0.9.0; extra == "benchmark"
+Requires-Dist: tqdm>=4.65.0; extra == "benchmark"
+Provides-Extra: all
+Requires-Dist: inferencebrake[benchmark,embeddings]; extra == "all"
