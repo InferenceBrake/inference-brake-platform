@@ -90,7 +90,7 @@ cd apps/web && bun run build
 
 ```bash
 # Deploy edge function
-cd apps/functions && bunx supabase functions deploy check
+cd supabase/functions && bunx supabase functions deploy check
 
 # Run migrations
 bunx supabase db push
@@ -140,7 +140,15 @@ inferencebrake/
 │
 ├── supabase/                    # Database config
 │   ├── migrations/
-│   └── config.toml
+│   ├── config.toml
+│   └── functions/               # Supabase Edge Functions (Deno)
+│       ├── check/
+│       ├── stripe-checkout/
+│       ├── stripe-webhook/
+│       ├── stripe-cancel/
+│       ├── account-delete/
+│       ├── generate-test-key/
+│       └── health/
 │
 ├── tests/                       # Integration tests (Bun)
 │   ├── basicTest.ts
@@ -156,7 +164,7 @@ inferencebrake/
 
 - `packages/engine/inferencebrake/pipeline.py` - Main detection orchestration
 - `packages/engine/inferencebrake/types.py` - Config and threshold settings
-- `apps/functions/check/index.ts` - Edge function entry point
+- `supabase/functions/check/index.ts` - Edge function entry point
 - `supabase/migrations/` - SQL schema and RPC functions
 - `apps/web/src/routes/+page.svelte` - Landing page
 - `apps/web/src/routes/dashboard/+page.svelte` - User dashboard

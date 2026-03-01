@@ -1,2 +1,20 @@
 [functions.check]
 verify_jwt = false
+
+[functions.stripe-checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.stripe-cancel]
+verify_jwt = false
+
+[functions.account-delete]
+verify_jwt = false
+
+[functions.generate-test-key]
+verify_jwt = false
+
+[functions.health]
+verify_jwt = false

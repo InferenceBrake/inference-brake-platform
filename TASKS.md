@@ -23,10 +23,10 @@ AI agents should:
 ### Authentication & User Management
 
 - [x] Fix Firefox scroll restoration bug (marked with FIXME in app.html)
-- [ ] Add password reset functionality
+- [x] Add password reset functionality
 - [x] Add email verification flow (via Supabase Auth)
 - [x] Add user profile page (dashboard shows email/plan)
-- [ ] Add logout confirmation
+- [x] Add logout confirmation
 
 ### Payments & Billing (Stripe)
 
@@ -45,12 +45,12 @@ AI agents should:
 - [x] Add API key display (show/hide toggle)
 - [x] Add API key usage stats (requests today)
 - [x] Add "Copy API Key" button
-- [ ] Add test mode keys (sandbox - doesn't count against limit)
+- [x] Add test mode keys (sandbox - doesn't count against limit)
 
 ### Dashboard
 
 - [x] Add session detail view (click session → see all steps)
-- [ ] Add loop visualization (show when each detector fired)
+- [x] Add loop visualization (show when each detector fired)
 - [x] Add date range filter for sessions
 - [x] Add export to CSV functionality
 - [x] Add delete session functionality
@@ -59,15 +59,15 @@ AI agents should:
 
 ### API & SDK
 
-- [ ] Verify Node.js SDK works with latest edge function
-- [ ] Add TypeScript types to Node.js SDK
+- [x] Verify Node.js SDK works with latest edge function
+- [x] Add TypeScript types to Node.js SDK
 - [x] Add rate limit headers to API responses (X-RateLimit-Remaining, X-RateLimit-Reset)
 
 ### Testing
 
-- [ ] Add unit tests for edge function
+- [x] Add unit tests for edge function
 - [ ] Add E2E tests for auth flow (register → login → dashboard)
-- [ ] Add E2E tests for API (check endpoint)
+- [x] Add E2E tests for API (check endpoint)
 
 ---
 
@@ -89,7 +89,7 @@ AI agents should:
 
 ### Monitoring
 
-- [ ] Add health check endpoint (/health)
+- [x] Add health check endpoint (/health)
 - [ ] Add error tracking (Sentry integration)
 - [ ] Add analytics dashboard for admin
 - [ ] Add uptime monitoring

@@ -194,5 +194,5 @@ To publish the SDK to PyPI:
 
 ## Monitoring & Observability
 
-- **Local:** Check `apps/functions/check` logs in the terminal.
+- **Local:** Check `supabase/functions/check` logs in the terminal.
 - **Production:** Use the Supabase Dashboard > Edge Functions > Logs.
