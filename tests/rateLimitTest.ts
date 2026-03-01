@@ -40,10 +40,15 @@ async function ensureTestUser() {
 		console.log(`Found existing user: ${TEST_EMAIL}`);
 		API_KEY = existingUser.api_key;
 		
-		// Reset daily limit for testing
+		// Reset daily limit and disable test mode for rate limit testing
 		await supabase
 			.from("users")
-			.update({ checks_today: 0, daily_limit: 5 })
+			.update({ 
+				checks_today: 0, 
+				daily_limit: 5,
+				test_mode: false,
+				test_mode_api_key: null
+			})
 			.eq("id", existingUser.id);
 		
 		return existingUser;
