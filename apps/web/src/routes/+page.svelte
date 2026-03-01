@@ -404,7 +404,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 			<div class="pricing-card featured">
 				<div class="plan-header">
 					<h3>Pro</h3>
-					<div class="plan-price">$5<span>/mo</span></div>
+					<div class="plan-price">$9<span>/mo</span></div>
 					<p>For production use</p>
 				</div>
 				

@@ -28,6 +28,14 @@
 		similarity: number | null;
 		loop_detected: boolean;
 		created_at: string;
+		metadata: {
+			action_repeat_count: number;
+			ngram_overlap: number;
+			semantic_vote: boolean;
+			action_vote: boolean;
+			ngram_vote: boolean;
+			confidence: number;
+		} | null;
 	}>>([]);
 	let dateFrom = $state('');
 	let dateTo = $state('');
@@ -155,7 +163,7 @@
 
 			const { data: steps } = await supabase
 				.from('reasoning_history')
-				.select('step_number, reasoning, similarity, loop_detected, created_at')
+				.select('step_number, reasoning, similarity, loop_detected, created_at, metadata')
 				.eq('session_id', sessionId)
 				.eq('user_id', authUser.id)
 				.order('step_number', { ascending: true });
@@ -529,9 +537,27 @@
 												<span class="loop-flag">Loop Detected</span>
 											{/if}
 											{#if step.similarity !== null}
-												<span class="similarity">Similarity: {(step.similarity * 100).toFixed(1)}%</span>
+												<span class="similarity">{(step.similarity * 100).toFixed(1)}%</span>
 											{/if}
 										</div>
+										{#if step.metadata}
+											<div class="detector-badges">
+												<span class="detector" class:fired={step.metadata.semantic_vote} title="Semantic detector">
+													Semantic {step.metadata.semantic_vote ? 'ON' : 'off'}
+												</span>
+												<span class="detector" class:fired={step.metadata.action_vote} title="Action repeat detector">
+													Action {step.metadata.action_vote ? 'ON' : 'off'}
+												</span>
+												<span class="detector" class:fired={step.metadata.ngram_vote} title="N-gram detector">
+													N-gram {step.metadata.ngram_vote ? 'ON' : 'off'}
+												</span>
+												{#if step.metadata.confidence > 0}
+													<span class="confidence" title="Confidence score">
+														Confidence: {(step.metadata.confidence * 100).toFixed(0)}%
+													</span>
+												{/if}
+											</div>
+										{/if}
 										<div class="step-reasoning">{step.reasoning}</div>
 									</div>
 								{/each}
@@ -1095,6 +1121,7 @@
 		gap: var(--space-md);
 		margin-bottom: var(--space-sm);
 		font-size: 0.85rem;
+		flex-wrap: wrap;
 	}
 
 	.step-number {
@@ -1127,5 +1154,32 @@
 
 	.table-row {
 		cursor: pointer;
+	}
+
+	.detector-badges {
+		display: flex;
+		gap: var(--space-sm);
+		margin-bottom: var(--space-sm);
+		flex-wrap: wrap;
+	}
+
+	.detector {
+		font-size: 0.7rem;
+		padding: 2px 6px;
+		border-radius: var(--radius-sm);
+		background: var(--bg-tertiary);
+		color: var(--text-tertiary);
+		font-weight: 500;
+	}
+
+	.detector.fired {
+		background: rgba(249, 115, 22, 0.2);
+		color: var(--accent);
+	}
+
+	.confidence {
+		font-size: 0.7rem;
+		color: var(--text-tertiary);
+		margin-left: auto;
 	}
 </style>
