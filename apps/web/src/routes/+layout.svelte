@@ -52,8 +52,10 @@
 	});
 	
 	async function handleSignOut() {
+		if (!confirm('Are you sure you want to sign out?')) return;
 		const { supabase } = await import('$lib/supabase');
 		await supabase.auth.signOut();
+		localStorage.removeItem('inferencebrake_api_key');
 		window.location.href = '/';
 	}
 </script>
@@ -87,6 +89,7 @@
 				{#if user}
 					<span class="user-email">{user.email}</span>
 					<a href="/dashboard" class="nav-link">Dashboard</a>
+					<a href="/settings" class="nav-link">Settings</a>
 					<button class="btn btn-secondary" onclick={handleSignOut}>Sign Out</button>
 				{:else}
 					<a href="/login" class="nav-link">Sign In</a>
@@ -114,10 +117,13 @@
 				<div class="footer-col">
 					<h4>Product</h4>
 					<a href="#pricing">Pricing</a>
+					<a href="/dashboard">Dashboard</a>
+					<a href="/settings">Settings</a>
 				</div>
 				
 				<div class="footer-col">
 					<h4>Legal</h4>
+					<a href="/impressum">Impressum</a>
 					<a href="/privacy">Privacy</a>
 					<a href="/terms">Terms</a>
 				</div>
