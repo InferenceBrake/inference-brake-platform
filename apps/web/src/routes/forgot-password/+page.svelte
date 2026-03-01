@@ -1,32 +1,30 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase';
 
 	let email = $state('');
-	let password = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let success = $state(false);
 
-	async function handleLogin() {
+	async function handleResetRequest() {
 		loading = true;
 		error = '';
 
-		const { error: authError } = await supabase.auth.signInWithPassword({
-			email,
-			password,
+		const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
+			redirectTo: `${window.location.origin}/reset-password`,
 		});
 
 		if (authError) {
 			error = authError.message;
 			loading = false;
 		} else {
-			goto('/dashboard');
+			success = true;
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Sign In - InferenceBrake</title>
+	<title>Forgot Password - InferenceBrake</title>
 </svelte:head>
 
 <div class="auth-page">
@@ -36,46 +34,38 @@
 			InferenceBrake
 		</a>
 
-		<h1>Welcome back</h1>
-		<p class="subtitle">Sign in to your account</p>
+		<h1>Reset your password</h1>
+		<p class="subtitle">Enter your email and we'll send you a reset link</p>
 
 		{#if error}
 			<div class="error">{error}</div>
 		{/if}
 
-		<form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
-			<div class="field">
-				<label for="email">Email</label>
-				<input
-					type="email"
-					id="email"
-					bind:value={email}
-					placeholder="you@example.com"
-					required
-				/>
+		{#if success}
+			<div class="success">
+				Check your email for a password reset link. The link will expire in 1 hour.
 			</div>
+		{:else}
+			<form onsubmit={(e) => { e.preventDefault(); handleResetRequest(); }}>
+				<div class="field">
+					<label for="email">Email</label>
+					<input
+						type="email"
+						id="email"
+						bind:value={email}
+						placeholder="you@example.com"
+						required
+					/>
+				</div>
 
-			<div class="field">
-				<label for="password">Password</label>
-				<input
-					type="password"
-					id="password"
-					bind:value={password}
-					placeholder="••••••••"
-					required
-				/>
-			</div>
-
-			<button type="submit" class="btn-primary" disabled={loading}>
-				{loading ? 'Signing in...' : 'Sign In'}
-			</button>
-		</form>
+				<button type="submit" class="btn-primary" disabled={loading}>
+					{loading ? 'Sending...' : 'Send Reset Link'}
+				</button>
+			</form>
+		{/if}
 
 		<p class="footer">
-			Don't have an account? <a href="/register">Sign up</a>
-		</p>
-		<p class="footer">
-			<a href="/forgot-password">Forgot password?</a>
+			Remember your password? <a href="/login">Sign in</a>
 		</p>
 	</div>
 </div>
@@ -129,6 +119,16 @@
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #ef4444;
+		padding: 0.75rem 1rem;
+		border-radius: var(--radius-md);
+		margin-bottom: 1.5rem;
+		font-size: 0.9rem;
+	}
+
+	.success {
+		background: rgba(34, 197, 94, 0.1);
+		border: 1px solid rgba(34, 197, 94, 0.3);
+		color: #22c55e;
 		padding: 0.75rem 1rem;
 		border-radius: var(--radius-md);
 		margin-bottom: 1.5rem;

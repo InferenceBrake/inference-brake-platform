@@ -1,32 +1,63 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { supabase } from '$lib/supabase';
 
-	let email = $state('');
 	let password = $state('');
+	let confirmPassword = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let success = $state(false);
 
-	async function handleLogin() {
+	onMount(async () => {
+		const { data: { session } } = await supabase.auth.getSession();
+		if (!session) {
+			const hashParams = new URLSearchParams(window.location.hash.substring(1));
+			const accessToken = hashParams.get('access_token');
+			const type = hashParams.get('type');
+
+			if (accessToken && type === 'recovery') {
+				const { error: setError } = await supabase.auth.setSession({
+					access_token: accessToken,
+					refresh_token: hashParams.get('refresh_token') || '',
+				});
+				if (setError) {
+					error = setError.message;
+				}
+			}
+		}
+	});
+
+	async function handleReset() {
+		if (password !== confirmPassword) {
+			error = 'Passwords do not match';
+			return;
+		}
+
+		if (password.length < 8) {
+			error = 'Password must be at least 8 characters';
+			return;
+		}
+
 		loading = true;
 		error = '';
 
-		const { error: authError } = await supabase.auth.signInWithPassword({
-			email,
-			password,
-		});
+		const { error: authError } = await supabase.auth.updateUser({ password });
 
 		if (authError) {
 			error = authError.message;
 			loading = false;
 		} else {
-			goto('/dashboard');
+			success = true;
+			setTimeout(() => {
+				goto('/login');
+			}, 2000);
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Sign In - InferenceBrake</title>
+	<title>Reset Password - InferenceBrake</title>
 </svelte:head>
 
 <div class="auth-page">
@@ -36,46 +67,51 @@
 			InferenceBrake
 		</a>
 
-		<h1>Welcome back</h1>
-		<p class="subtitle">Sign in to your account</p>
+		<h1>Create new password</h1>
+		<p class="subtitle">Enter your new password below</p>
 
 		{#if error}
 			<div class="error">{error}</div>
 		{/if}
 
-		<form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
-			<div class="field">
-				<label for="email">Email</label>
-				<input
-					type="email"
-					id="email"
-					bind:value={email}
-					placeholder="you@example.com"
-					required
-				/>
+		{#if success}
+			<div class="success">
+				Password reset successfully! Redirecting to login...
 			</div>
+		{:else}
+			<form onsubmit={(e) => { e.preventDefault(); handleReset(); }}>
+				<div class="field">
+					<label for="password">New Password</label>
+					<input
+						type="password"
+						id="password"
+						bind:value={password}
+						placeholder="••••••••"
+						required
+						minlength="8"
+					/>
+				</div>
 
-			<div class="field">
-				<label for="password">Password</label>
-				<input
-					type="password"
-					id="password"
-					bind:value={password}
-					placeholder="••••••••"
-					required
-				/>
-			</div>
+				<div class="field">
+					<label for="confirmPassword">Confirm Password</label>
+					<input
+						type="password"
+						id="confirmPassword"
+						bind:value={confirmPassword}
+						placeholder="••••••••"
+						required
+						minlength="8"
+					/>
+				</div>
 
-			<button type="submit" class="btn-primary" disabled={loading}>
-				{loading ? 'Signing in...' : 'Sign In'}
-			</button>
-		</form>
+				<button type="submit" class="btn-primary" disabled={loading}>
+					{loading ? 'Resetting...' : 'Reset Password'}
+				</button>
+			</form>
+		{/if}
 
 		<p class="footer">
-			Don't have an account? <a href="/register">Sign up</a>
-		</p>
-		<p class="footer">
-			<a href="/forgot-password">Forgot password?</a>
+			<a href="/login">Back to sign in</a>
 		</p>
 	</div>
 </div>
@@ -129,6 +165,16 @@
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #ef4444;
+		padding: 0.75rem 1rem;
+		border-radius: var(--radius-md);
+		margin-bottom: 1.5rem;
+		font-size: 0.9rem;
+	}
+
+	.success {
+		background: rgba(34, 197, 94, 0.1);
+		border: 1px solid rgba(34, 197, 94, 0.3);
+		color: #22c55e;
 		padding: 0.75rem 1rem;
 		border-radius: var(--radius-md);
 		margin-bottom: 1.5rem;
