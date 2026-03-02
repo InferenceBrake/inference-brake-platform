@@ -1,11 +1,26 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { supabase } from '$lib/supabase';
 
 	let email = $state('');
 	let password = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let queryError = $state('');
+
+	// Check for error query param from callback
+	$effect(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const err = urlParams.get('error');
+		if (err) {
+			if (err === 'email_confirmation_failed') {
+				queryError = 'Email confirmation failed. Please try again or request a new confirmation email.';
+			} else {
+				queryError = err;
+			}
+		}
+	});
 
 	async function handleLogin() {
 		loading = true;
@@ -41,6 +56,10 @@
 
 		{#if error}
 			<div class="error">{error}</div>
+		{/if}
+
+		{#if queryError}
+			<div class="info">{queryError}</div>
 		{/if}
 
 		<form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
@@ -129,6 +148,16 @@
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #ef4444;
+		padding: 0.75rem 1rem;
+		border-radius: var(--radius-md);
+		margin-bottom: 1.5rem;
+		font-size: 0.9rem;
+	}
+
+	.info {
+		background: rgba(59, 130, 246, 0.1);
+		border: 1px solid rgba(59, 130, 246, 0.3);
+		color: #3b82f6;
 		padding: 0.75rem 1rem;
 		border-radius: var(--radius-md);
 		margin-bottom: 1.5rem;

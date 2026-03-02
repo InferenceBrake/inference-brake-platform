@@ -15,6 +15,9 @@
 		const { data, error: authError } = await supabase.auth.signUp({
 			email,
 			password,
+			options: {
+				emailRedirectTo: `${window.location.origin}/auth/callback`,
+			}
 		});
 
 		if (authError) {
@@ -24,29 +27,43 @@
 		}
 
 		if (data.user) {
+			// Check if already confirmed (dev mode without confirmation)
+			const isConfirmed = !!data.user.email_confirmed_at;
+			
 			// Create user record in our users table
+			// Note: user is created even if email not confirmed yet
 			const apiKey = 'ib_' + Math.random().toString(36).substring(2, 34) + Math.random().toString(36).substring(2, 34);
 			
 			const { error: insertError } = await supabase
 				.from('users')
-				.insert({
+				.upsert({
 					id: data.user.id,
 					email: email,
 					api_key: apiKey,
 					plan: 'hobby',
 					daily_limit: 100
-				});
+				}, { onConflict: 'id', ignoreDuplicates: false });
 
-			if (insertError) {
-				error = 'Database error: ' + insertError.message;
-				loading = false;
-				return;
+			if (insertError && !insertError.message.includes('duplicate')) {
+				console.error('User insert error:', insertError);
 			}
 
-			// Auto-login
-			await supabase.auth.signInWithPassword({ email, password });
-			goto('/dashboard');
+			if (isConfirmed) {
+				// Auto-login if already confirmed (dev mode)
+				const { error: signInError } = await supabase.auth.signInWithPassword({ 
+					email, 
+					password 
+				});
+				if (!signInError) {
+					goto('/dashboard');
+					return;
+				}
+			}
+
+			// Show success message about email confirmation
+			success = true;
 		}
+		loading = false;
 	}
 </script>
 
