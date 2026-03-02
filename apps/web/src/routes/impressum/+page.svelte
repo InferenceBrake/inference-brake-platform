@@ -8,38 +8,69 @@
 <div class="legal-page">
 	<div class="legal-content">
 		<h1>Impressum</h1>
-		
-		<p class="last-updated">Last updated: March 2026</p>
 
-		<h2>Information according to § 5 TMG</h2>
+		<p class="last-updated">Legal disclosure pursuant to § 5 TMG (German Telemedia Act)</p>
 
+		<h2>Service Operator</h2>
 		<div class="contact-info">
-			<p><strong>Name:</strong> [Your Name]</p>
-			<p><strong>Address:</strong> [Your Street Address]</p>
-			<p><strong>Postal Code & City:</strong> [Your Postal Code, City]</p>
+			<p><strong>Name:</strong> Vincent Mathis</p>
+			<p><strong>Address:</strong> Loni-Franz-Straße 14</p>
+			<p><strong>Postal Code & City:</strong> 65510 Idstein</p>
 			<p><strong>Country:</strong> Germany</p>
-			<p><strong>Email:</strong> [your@email.com]</p>
-			<p><strong>Phone:</strong> [Your Phone Number]</p>
+			<p><strong>Email:</strong> <a href="mailto:legal@inferencebrake.com">legal@inferencebrake.com</a></p>
 		</div>
 
-		<h2>Commercial Register</h2>
-		<p>This is a sole proprietorship (Einzelunternehmer) registered in Germany.</p>
+		<h2>Business Type</h2>
+		<p>
+			Sole proprietorship (Einzelunternehmer). This business is not registered in a commercial
+			register (Handelsregister).
+		</p>
+		<p>
+			Tax number (Steuernummer): [ADD YOUR STEUERNUMMER BEFORE GOING LIVE]<br />
+			Responsible tax office: Finanzamt Idstein
+		</p>
+		<p>
+			VAT: This business operates under the small business regulation pursuant to § 19 UStG
+			(Kleinunternehmerregelung). VAT is therefore not charged or shown on invoices.
+		</p>
 
 		<h2>Responsible for Content</h2>
-		<p>[Your Name]</p>
-		<p>Contact: [your@email.com]</p>
+		<p>
+			Vincent Mathis, Loni-Franz-Straße 14, 65510 Idstein, Germany<br />
+			(pursuant to § 55 para. 2 RStV)
+		</p>
+
+		<h2>EU Online Dispute Resolution</h2>
+		<p>
+			The European Commission provides a platform for online dispute resolution (ODR):
+			<a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">
+				https://ec.europa.eu/consumers/odr/
+			</a>
+		</p>
+		<p>
+			We are neither obligated nor willing to participate in dispute resolution proceedings
+			before a consumer arbitration board.
+		</p>
 
 		<h2>Disclaimer</h2>
-		<p>The content of this website was created with utmost care. However, I cannot guarantee the accuracy, completeness, or timeliness of the provided information. As a service provider, I am responsible for my own content on these pages according to § 7 para.1 TMG. However, according to §§ 8 to 10 TMG, I am not obligated to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity.</p>
-
-		<p>Obligations to remove or block the use of information under general law remain unaffected. However, liability in this regard is only possible from the point in time at which a concrete infringement of the law becomes known. If I become aware of any such infringements, I will remove the relevant content immediately.</p>
+		<p>
+			The content of this website has been created with care. However, we cannot guarantee
+			the accuracy, completeness, or timeliness of the information provided. As a service
+			provider, we are responsible for our own content on these pages pursuant to § 7 para. 1
+			TMG. However, pursuant to §§ 8 to 10 TMG, we are not obligated to monitor transmitted
+			or stored third-party information or to investigate circumstances indicating illegal
+			activity. Obligations to remove or block content under general law remain unaffected.
+			Liability in this regard is only possible from the point at which a specific legal
+			violation becomes known.
+		</p>
 
 		<h2>Copyright</h2>
-		<p>The content and works created by the site operator on these pages are subject to German copyright law. The reproduction, processing, distribution, or any form of commercialization of such material beyond the scope of the copyright law shall require the prior written consent of its respective author or creator.</p>
-
-		<p>Downloads and copies of this site are only permitted for private, non-commercial use.</p>
-
-		<p>If the content on this site was not created by the operator, the copyrights of third parties are respected. In particular, third-party content will be identified as such. Should you nevertheless become aware of a copyright infringement, please inform me accordingly. If I become aware of any infringements, I will remove such content immediately.</p>
+		<p>
+			Content and works on this website created by the site operator are subject to German
+			copyright law. Reproduction, processing, distribution, or any commercialization of
+			such material beyond the scope of copyright law requires prior written consent.
+			Downloads and copies are permitted for private, non-commercial use only.
+		</p>
 	</div>
 </div>
 
@@ -88,5 +119,14 @@
 	p {
 		line-height: 1.7;
 		color: var(--text-secondary);
+		margin-bottom: 1rem;
+	}
+
+	a {
+		color: var(--accent);
+	}
+
+	a:hover {
+		text-decoration: underline;
 	}
 </style>

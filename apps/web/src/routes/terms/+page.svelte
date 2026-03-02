@@ -8,89 +8,174 @@
 <div class="legal-page">
 	<div class="legal-content">
 		<h1>Terms of Service</h1>
-		
+
 		<p class="last-updated">Last updated: March 2026</p>
 
-		<h2>1. Acceptance of Terms</h2>
-		<p>By accessing and using InferenceBrake ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by these terms, please do not use this Service.</p>
+		<h2>1. Parties and Scope</h2>
+		<p>
+			These Terms of Service govern your use of InferenceBrake, operated by Vincent Mathis,
+			Loni-Franz-Straße 14, 65510 Idstein, Germany ("we", "us", or "our").
+		</p>
+		<p>
+			This service is intended exclusively for businesses, developers, and other commercial
+			users (B2B). It is not intended for consumers as defined under German consumer
+			protection law (§ 13 BGB).
+		</p>
+		<p>
+			By registering an account, you confirm that you are acting in a commercial or
+			professional capacity and agree to these Terms.
+		</p>
 
 		<h2>2. Description of Service</h2>
-		<p>InferenceBrake provides an API service that detects when AI agents get stuck in reasoning loops. The Service includes:</p>
+		<p>InferenceBrake provides an API service for detecting reasoning loops in AI agent systems. The service includes:</p>
 		<ul>
-			<li>Loop detection through multiple detection methods</li>
+			<li>Loop detection via semantic, action-based, and n-gram detectors</li>
 			<li>API access for integrating loop detection into your applications</li>
 			<li>Dashboard for monitoring usage and session history</li>
-			<li>Webhooks for real-time alerts</li>
+			<li>Webhook alerts (Pro plan)</li>
 		</ul>
+		<p>
+			We provide the service on a best-effort basis and do not guarantee any specific
+			detection accuracy or false-positive rate. The service is a monitoring aid,
+			not a safety-critical system.
+		</p>
 
-		<h2>3. User Accounts</h2>
-		<p>To use the Service, you must create an account. You agree to:</p>
+		<h2>3. Plans and Pricing</h2>
+		<p>The following plans are available:</p>
+		<ul>
+			<li><strong>Hobby (free):</strong> 1,000 API checks per day, basic detectors, 7-day session history.</li>
+			<li><strong>Pro ($9/month):</strong> 10,000 API checks per day, all detectors, configurable thresholds, webhook alerts, 90-day history.</li>
+		</ul>
+		<p>
+			We reserve the right to change plan features and pricing with 30 days' notice by email.
+			Existing subscriptions remain at the current price until the end of the paid period.
+		</p>
+
+		<h2>4. Account Registration</h2>
+		<p>To use the service, you must create an account. You agree to:</p>
 		<ul>
 			<li>Provide accurate and complete registration information</li>
-			<li>Maintain the security of your account and API key</li>
-			<li>Promptly notify us of any unauthorized use of your account</li>
-			<li>Be responsible for all activities that occur under your account</li>
+			<li>Keep your account credentials and API key secure</li>
+			<li>Notify us promptly of any unauthorized use of your account</li>
+			<li>Take responsibility for all activity that occurs under your account</li>
 		</ul>
-
-		<h2>4. API Usage and Limits</h2>
-		<p>Your subscription plan includes daily API check limits:</p>
-		<ul>
-			<li><strong>Hobby Plan</strong>: 100 checks per day</li>
-			<li><strong>Pro Plan</strong>: 10,000 checks per day</li>
-		</ul>
-		<p>We reserve the right to suspend or terminate accounts that exceed these limits or abuse the Service.</p>
 
 		<h2>5. Payment Terms</h2>
-		<p>Subscription fees are billed monthly in advance. Payment is processed via Stripe. By providing payment information, you authorize us to charge the applicable fees to your payment method.</p>
-		
-		<p>Subscription fees are non-refundable. You may cancel your subscription at any time through your dashboard.</p>
+		<p>
+			Paid plans are billed monthly in advance via Stripe. By subscribing, you authorize
+			Stripe to charge the applicable fees to your payment method on a recurring basis.
+		</p>
+		<p>
+			All prices are net prices. As a small business operator under § 19 UStG
+			(Kleinunternehmerregelung), we do not charge VAT. No VAT will appear on invoices
+			or Stripe receipts.
+		</p>
+		<p>
+			If a payment fails, we reserve the right to downgrade or suspend access to the
+			paid plan until payment is resolved.
+		</p>
 
-		<h2>6. Data and Privacy</h2>
-		<p>You retain full ownership of your data submitted to the Service. By using the Service, you grant us permission to process your data solely for the purpose of providing the Service.</p>
-		
-		<p>For information about how we handle your data, please refer to our <a href="/privacy">Privacy Policy</a>.</p>
+		<h2>6. Cancellation and Refunds</h2>
+		<p>
+			You may cancel your subscription at any time from your dashboard settings.
+			After cancellation, you retain access until the end of the current billing period.
+			We do not offer partial refunds for unused time.
+		</p>
+		<p>
+			We reserve the right to terminate accounts in violation of these Terms without
+			refund (see Section 8).
+		</p>
 
 		<h2>7. Acceptable Use</h2>
-		<p>You agree not to use the Service to:</p>
+		<p>You may not use the service to:</p>
 		<ul>
+			<li>Make automated API calls without genuine use in an AI agent system (abuse)</li>
+			<li>Submit personal data of third parties as reasoning traces without a lawful basis</li>
+			<li>Reverse engineer, decompile, or circumvent rate limits</li>
+			<li>Resell or sublicense the service without prior written authorization</li>
 			<li>Violate any applicable laws or regulations</li>
-			<li>Infringe upon the rights of any third party</li>
-			<li>Attempt to gain unauthorized access to the Service or its systems</li>
-			<li>Interfere with or disrupt the Service</li>
-			<li>Use the Service for any illegal or unauthorized purpose</li>
-			<li>Resell or redistribute the Service without authorization</li>
 		</ul>
 
-		<h2>8. Intellectual Property</h2>
-		<p>The Service and its original content, features, and functionality are and will remain the exclusive property of InferenceBrake and its licensors. The Service is protected by copyright, trademark, and other laws.</p>
+		<h2>8. Termination</h2>
+		<p>
+			We may suspend or terminate your account immediately and without prior notice
+			if you violate these Terms, abuse the service, or if required by law.
+			In the event of termination for cause, no refund will be issued.
+		</p>
+		<p>
+			You may terminate your account at any time by deleting it from your dashboard settings.
+		</p>
 
-		<h2>9. Limitation of Liability</h2>
-		<p>IN NO EVENT SHALL INFERENCEBRAKE BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM:</p>
-		<ul>
-			<li>YOUR ACCESS TO OR USE OF OR INABILITY TO ACCESS OR USE THE SERVICE</li>
-			<li>ANY CONDUCT OR CONTENT OF ANY THIRD PARTY ON THE SERVICE</li>
-			<li>ANY CONTENT OBTAINED FROM THE SERVICE</li>
-			<li>UNAUTHORIZED ACCESS, USE, OR ALTERATION OF YOUR TRANSMISSIONS OR CONTENT</li>
-		</ul>
+		<h2>9. Availability</h2>
+		<p>
+			We aim for high availability but do not provide a legally binding uptime guarantee (SLA).
+			Planned maintenance will be announced where possible. Outages caused by third-party
+			infrastructure (Supabase, Vercel, Stripe) are outside our control.
+		</p>
 
-		<h2>10. Disclaimer</h2>
-		<p>THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. INFERENCEBRAKE MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, AS TO THE OPERATION OF THE SERVICE, OR THE INFORMATION, CONTENT, OR MATERIALS INCLUDED THEREIN. YOU EXPRESSLY AGREE THAT YOUR USE OF THESE SERVICES, THEIR CONTENT, AND ANY SERVICES OR ITEMS OBTAINED FROM US IS AT YOUR SOLE RISK.</p>
+		<h2>10. Limitation of Liability</h2>
+		<p>
+			We are fully liable for intent (Vorsatz) and gross negligence (grobe Fahrlässigkeit),
+			and for damages arising from injury to life, body, or health.
+		</p>
+		<p>
+			For ordinary negligence, we are only liable for breach of a material contractual
+			obligation (Kardinalpflicht). In such cases, liability is limited to foreseeable,
+			typical damages, and in no event exceeding the amount you paid for the service
+			in the 12 months preceding the claim.
+		</p>
+		<p>
+			We accept no liability for detection errors (false positives or false negatives)
+			and any resulting damage to your AI agent system. We are also not liable for
+			indirect damages, lost profits, or data loss, to the extent permitted by law.
+		</p>
 
-		<h2>11. Termination</h2>
-		<p>We may terminate or suspend your account and access to the Service immediately, without prior notice or liability, for any reason, including breach of these Terms.</p>
-		
-		<p>Upon termination, your right to use the Service will immediately cease. If you wish to terminate your account, you may simply discontinue using the Service or delete your account through the dashboard.</p>
+		<h2>11. Data and Privacy</h2>
+		<p>
+			You retain full ownership of the data you submit to the service. You grant us
+			a limited license to process that data solely to provide the service.
+			We do not use your data to train AI models.
+		</p>
+		<p>
+			For full details on data handling, see our <a href="/privacy">Privacy Policy</a>.
+		</p>
 
-		<h2>12. Governing Law</h2>
-		<p>These Terms shall be governed and construed in accordance with the laws of Germany, without regard to its conflict of law provisions.</p>
+		<h2>12. Intellectual Property</h2>
+		<p>
+			The service, its codebase, design, and all associated content are the exclusive
+			property of the operator or its licensors. Using the service does not grant you
+			any ownership or license rights beyond what is necessary to use the API as described.
+		</p>
 
-		<h2>13. Changes to Terms</h2>
-		<p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will provide notice of any significant changes.</p>
+		<h2>13. Changes to These Terms</h2>
+		<p>
+			We may update these Terms with 30 days' notice by email. If you do not object
+			within 30 days of receiving notice, the updated Terms are considered accepted.
+			The notice will explicitly state your right to object and the consequences of silence.
+		</p>
 
-		<h2>14. Contact Us</h2>
-		<p>If you have any questions about these Terms, please contact us at [your@email.com].</p>
+		<h2>14. Governing Law and Jurisdiction</h2>
+		<p>
+			These Terms are governed exclusively by German law, excluding the UN Convention
+			on Contracts for the International Sale of Goods (CISG).
+		</p>
+		<p>
+			As this service is B2B only, the place of jurisdiction for all disputes arising
+			from this contract is Idstein, Germany.
+		</p>
 
-		<p class="note"><strong>Note:</strong> This terms of service is a template and should be reviewed by a legal professional to ensure compliance with your specific situation and any applicable laws.</p>
+		<h2>15. Severability</h2>
+		<p>
+			If any provision of these Terms is found to be invalid or unenforceable, the
+			remaining provisions remain in full force. The invalid provision will be replaced
+			by one that most closely reflects the original intent.
+		</p>
+
+		<h2>16. Contact</h2>
+		<p>
+			For questions about these Terms, contact us at
+			<a href="mailto:legal@inferencebrake.com">legal@inferencebrake.com</a>.
+		</p>
 	</div>
 </div>
 
@@ -149,12 +234,7 @@
 		text-decoration: underline;
 	}
 
-	.note {
-		margin-top: 2rem;
-		padding: 1rem;
-		background: rgba(249, 115, 22, 0.1);
-		border: 1px solid rgba(249, 115, 22, 0.3);
-		border-radius: var(--radius-md);
-		font-size: 0.9rem;
+	strong {
+		color: var(--text-primary);
 	}
 </style>

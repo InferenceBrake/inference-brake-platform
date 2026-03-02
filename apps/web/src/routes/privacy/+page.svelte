@@ -8,100 +8,156 @@
 <div class="legal-page">
 	<div class="legal-content">
 		<h1>Privacy Policy</h1>
-		
+
 		<p class="last-updated">Last updated: March 2026</p>
 
 		<h2>1. Introduction</h2>
-		<p>InferenceBrake ("we", "us", or "our") operates the InferenceBrake service. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.</p>
-
-		<p>Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the service.</p>
+		<p>
+			InferenceBrake is operated by Vincent Mathis, Loni-Franz-Straße 14, 65510 Idstein,
+			Germany ("we", "us", or "our"). This Privacy Policy explains how we collect, use,
+			and safeguard your data when you use InferenceBrake.
+		</p>
+		<p>
+			We are subject to the EU General Data Protection Regulation (GDPR). The responsible
+			controller within the meaning of the GDPR is the operator listed above.
+		</p>
 
 		<h2>2. Data We Collect</h2>
-		
-		<h3>Personal Data</h3>
-		<p>While using our service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you. Personally identifiable information may include:</p>
+
+		<h3>Account Data</h3>
+		<p>When you register, we collect:</p>
 		<ul>
 			<li>Email address</li>
-			<li>First and last name</li>
-			<li>Usage data (API usage, session data)</li>
+			<li>Password (stored as a bcrypt hash — never readable by us)</li>
+			<li>Account creation date and selected plan</li>
 		</ul>
+		<p>Legal basis: Art. 6(1)(b) GDPR — necessary to perform the contract with you.</p>
 
-		<h3>Agent Session Data</h3>
-		<p>When you use our API to detect loops in AI agent conversations, we process:</p>
+		<h3>API Usage Data</h3>
+		<p>When you use the API, we process:</p>
 		<ul>
-			<li>Conversation steps/messages</li>
-			<li>Agent actions and responses</li>
-			<li>Metadata (session IDs, timestamps)</li>
+			<li>API key (for authentication)</li>
+			<li>Reasoning traces submitted for loop detection</li>
+			<li>Session IDs and request timestamps</li>
+			<li>Daily request counts (for rate limiting)</li>
+			<li>Detection results (whether a loop was detected)</li>
 		</ul>
-		<p>This data is processed solely for the purpose of loop detection and is not used for any other purpose.</p>
+		<p>
+			Reasoning traces are stored and automatically deleted after 7 days (Hobby plan)
+			or 90 days (Pro plan).
+		</p>
+		<p>Legal basis: Art. 6(1)(b) GDPR — necessary to perform the contract with you.</p>
+		<div class="note">
+			<strong>Note:</strong> Do not submit personal data of end users as reasoning traces.
+			InferenceBrake is designed to monitor AI agent outputs, not to process end-user
+			personal information.
+		</div>
 
-		<h2>3. How We Use Your Data</h2>
-		<p>We use the collected data for:</p>
+		<h3>Payment Data</h3>
+		<p>Payments are processed exclusively by Stripe. We only store:</p>
 		<ul>
-			<li>Providing and maintaining our service</li>
-			<li>Notifying you about changes to our service</li>
-			<li>Providing customer support</li>
-			<li>Monitoring the usage of our service</li>
-			<li>Processing payments (via Stripe)</li>
-			<li>Enforcing our terms and conditions</li>
+			<li>Stripe Customer ID</li>
+			<li>Stripe Subscription ID</li>
+			<li>Subscription status and current period end date</li>
 		</ul>
+		<p>
+			Credit card numbers and full payment details are never stored on our servers.
+			They are handled entirely by Stripe.
+		</p>
+		<p>Legal basis: Art. 6(1)(b) GDPR — necessary to perform the contract with you.</p>
+
+		<h3>Server Logs</h3>
+		<p>
+			Our infrastructure providers (Supabase, Vercel) automatically log IP addresses,
+			user agents, and request metadata for security and debugging purposes.
+			These logs are retained for up to 30 days.
+		</p>
+		<p>Legal basis: Art. 6(1)(f) GDPR — legitimate interest in operating secure systems.</p>
+
+		<h2>3. Data Sharing and Processors</h2>
+		<p>We use the following sub-processors who handle data on our behalf:</p>
+		<ul>
+			<li>
+				<strong>Supabase Inc.</strong> — Database, authentication, and edge functions.
+				Data is processed in EU data centers (AWS Frankfurt).
+				<a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+			</li>
+			<li>
+				<strong>Stripe Inc.</strong> — Payment processing and subscription management.
+				Data transfer to the US is based on the EU-US Data Privacy Framework (Art. 45 GDPR).
+				<a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+			</li>
+			<li>
+				<strong>Vercel Inc.</strong> — Frontend hosting.
+				Data transfer to the US is based on Standard Contractual Clauses (Art. 46 GDPR).
+				<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+			</li>
+		</ul>
+		<p>We do not sell your data to third parties. We do not use your data to train AI models.</p>
 
 		<h2>4. Data Retention</h2>
-		<p>We will retain your personal data only for as long as is necessary for the purposes set out in this Privacy Policy. We will retain and use your personal data to the extent necessary to comply with our legal obligations (for example, if we are required to retain your data to comply with applicable laws), resolve disputes, and enforce our legal agreements and policies.</p>
-		
-		<p>Your agent session data is retained according to your plan:</p>
+		<p>
+			Reasoning traces and session data are deleted automatically according to your plan
+			(7 or 90 days). When you delete your account, all personal data is deleted within
+			30 days, except where we are required to retain it by law.
+		</p>
+		<p>
+			Billing records and invoices are retained for 10 years to comply with German
+			tax law (§ 147 AO). Stripe-side payment data is subject to Stripe's own
+			retention policy.
+		</p>
+
+		<h2>5. Your Rights (GDPR)</h2>
+		<p>If you are in the EEA, you have the following rights:</p>
 		<ul>
-			<li>Hobby plan: 7 days</li>
-			<li>Pro plan: 90 days</li>
+			<li><strong>Right to access</strong> (Art. 15): Request a copy of your data.</li>
+			<li><strong>Right to rectification</strong> (Art. 16): Correct inaccurate data.</li>
+			<li><strong>Right to erasure</strong> (Art. 17): Request deletion of your data.</li>
+			<li><strong>Right to restriction</strong> (Art. 18): Restrict how we process your data.</li>
+			<li><strong>Right to data portability</strong> (Art. 20): Receive your data in a machine-readable format.</li>
+			<li><strong>Right to object</strong> (Art. 21): Object to processing based on legitimate interests.</li>
 		</ul>
+		<p>
+			To exercise any of these rights, contact us at
+			<a href="mailto:legal@inferencebrake.com">legal@inferencebrake.com</a>.
+			We will respond within 30 days.
+		</p>
+		<p>
+			You also have the right to lodge a complaint with the supervisory authority in
+			Hesse, Germany:
+			<a href="https://www.datenschutz.hessen.de" target="_blank" rel="noopener noreferrer">
+				Der Hessische Beauftragte für Datenschutz und Informationsfreiheit (HBDI)
+			</a>
+		</p>
 
-		<h2>5. Data Sharing</h2>
-		<p>We may share your data with:</p>
-		<ul>
-			<li><strong>Supabase</strong> (Database & Authentication): We use Supabase for data storage and user authentication. Data is processed in compliance with GDPR.</li>
-			<li><strong>Stripe</strong> (Payment Processing): Payment information is processed directly by Stripe. We do not store your credit card information.</li>
-			<li><strong>Vercel</strong> (Hosting): Our web application is hosted on Vercel, which processes necessary technical data.</li>
-		</ul>
+		<h2>6. Cookies</h2>
+		<p>
+			InferenceBrake uses only technically necessary cookies for authentication
+			(Supabase Auth session token). These are required for the service to function
+			and do not require consent under § 25(2) TDDDG / Art. 5(3) ePrivacy Directive.
+		</p>
+		<p>We do not use tracking, advertising, or analytics cookies.</p>
 
-		<h2>6. Data Security</h2>
-		<p>We use appropriate technical and organizational security measures to protect your personal data. However, no method of transmission over the Internet or electronic storage is 100% secure, and we cannot guarantee absolute security.</p>
+		<h2>7. Data Security</h2>
+		<p>
+			All connections are TLS-encrypted. Passwords are hashed with bcrypt. API keys
+			are generated with 64 bytes of cryptographic randomness. We recommend storing
+			your API key securely and rotating it if you believe it has been compromised
+			(available in your dashboard settings).
+		</p>
 
-		<h2>7. Your Rights (GDPR)</h2>
-		<p>If you are a resident of the European Economic Area (EEA), you have certain data protection rights:</p>
-		<ul>
-			<li><strong>Right to Access</strong>: You have the right to request copies of your personal data.</li>
-			<li><strong>Right to Rectification</strong>: You can request that we correct any information you believe is inaccurate.</li>
-			<li><strong>Right to Erasure</strong>: You can request that we erase your personal data ("right to be forgotten").</li>
-			<li><strong>Right to Restrict Processing</strong>: You can request that we restrict the processing of your data.</li>
-			<li><strong>Right to Data Portability</strong>: You can request that we transfer your data to another organization.</li>
-			<li><strong>Right to Object</strong>: You can object to our processing of your data.</li>
-		</ul>
-		<p>To exercise any of these rights, please contact us at [your@email.com].</p>
+		<h2>8. Changes to This Policy</h2>
+		<p>
+			We may update this Privacy Policy from time to time. For significant changes,
+			we will notify registered users by email. The date at the top of this page
+			reflects the most recent update.
+		</p>
 
-		<h2>8. Cookies</h2>
-		<p>We use essential cookies for authentication and session management. These are necessary for the proper functioning of our service and do not require your consent under GDPR (they are "technically necessary").</p>
-
-		<h2>9. Third-Party Services</h2>
-		<p>We may use third-party Service Providers to monitor and analyze the use of our Service:</p>
-		<ul>
-			<li><strong>Supabase</strong>: <a href="https://supabase.com/privacy">Privacy Policy</a></li>
-			<li><strong>Stripe</strong>: <a href="https://stripe.com/privacy">Privacy Policy</a></li>
-			<li><strong>Vercel</strong>: <a href="https://vercel.com/legal/privacy-policy">Privacy Policy</a></li>
-		</ul>
-
-		<h2>10. Children's Privacy</h2>
-		<p>Our service is not intended for use by children under the age of 13. We do not knowingly collect personally identifiable information from children under 13.</p>
-
-		<h2>11. Changes to This Privacy Policy</h2>
-		<p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "last updated" date.</p>
-
-		<h2>12. Contact Us</h2>
-		<p>If you have any questions about this Privacy Policy, please contact us:</p>
-		<ul>
-			<li>By email: [your@email.com]</li>
-		</ul>
-
-		<p class="note"><strong>Note:</strong> This privacy policy is a template and should be reviewed by a legal professional to ensure compliance with your specific situation and any applicable laws.</p>
+		<h2>9. Contact</h2>
+		<p>
+			For any privacy-related questions or to exercise your rights:
+			<a href="mailto:legal@inferencebrake.com">legal@inferencebrake.com</a>
+		</p>
 	</div>
 </div>
 
@@ -167,12 +223,19 @@
 		text-decoration: underline;
 	}
 
+	strong {
+		color: var(--text-primary);
+	}
+
 	.note {
-		margin-top: 2rem;
+		margin-top: 0.5rem;
 		padding: 1rem;
 		background: rgba(249, 115, 22, 0.1);
 		border: 1px solid rgba(249, 115, 22, 0.3);
 		border-radius: var(--radius-md);
 		font-size: 0.9rem;
+		color: var(--text-secondary);
+		line-height: 1.7;
+		margin-bottom: 1rem;
 	}
 </style>
