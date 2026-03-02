@@ -71,10 +71,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // If no Stripe key, return demo mode
+    const isDemoMode = Deno.env.get("DEMO_MODE") === "true";
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      // Demo mode - just update the user's plan
+
+    // If no Stripe key and not in demo mode, reject upgrade
+    if (!stripeKey && !isDemoMode) {
+      return new Response(JSON.stringify({ error: "Payments not configured. Please contact support." }), {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Demo mode - only allow if explicitly enabled
+    if (!stripeKey && isDemoMode) {
       await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${user.id}`, {
         method: "PATCH",
         headers: {

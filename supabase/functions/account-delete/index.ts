@@ -67,6 +67,14 @@ Deno.serve(async (req) => {
       },
     });
 
+    const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${userId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${supabaseKey}`,
+        "apikey": supabaseKey,
+      },
+    });
+
     return new Response(JSON.stringify({
       success: true,
       message: "Account deleted successfully",
