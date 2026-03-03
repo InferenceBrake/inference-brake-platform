@@ -84,13 +84,13 @@ AI agents should:
 
 - [ ] Benchmark edge function cold start time
 - [ ] Add caching for embeddings (skip if recent session)
-- [ ] Optimize SQL queries (add composite indexes)
+- [x] Optimize SQL queries (add composite indexes)
 - [ ] Benchmark vs competitors (Portkey, Helicone)
 
 ### Monitoring
 
 - [x] Add health check endpoint (/health)
-- [ ] Add error tracking (Sentry integration)
+- [x] Add error tracking (Sentry integration)
 - [ ] Add analytics dashboard for admin
 - [ ] Add uptime monitoring
 
