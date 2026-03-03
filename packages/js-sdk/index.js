@@ -84,6 +84,100 @@ class CircuitBreakerError extends InferenceBrakeError {
   }
 }
 
+class OfflineQueue {
+  constructor(options = {}) {
+    this.maxSize = options.maxSize || 100;
+    this.queue = [];
+    this.persistFn = options.persistFn;
+    this.restoreFn = options.restoreFn;
+    
+    if (this.restoreFn) {
+      this.restore();
+    }
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => this.flush());
+    }
+  }
+
+  isOnline() {
+    if (typeof navigator !== 'undefined') {
+      return navigator.onLine;
+    }
+    return true;
+  }
+
+  enqueue(request) {
+    if (!this.isOnline()) {
+      if (this.queue.length >= this.maxSize) {
+        throw new InferenceBrakeError('Offline queue full');
+      }
+      this.queue.push({
+        ...request,
+        timestamp: Date.now(),
+      });
+      this.persist();
+      return true;
+    }
+    return false;
+  }
+
+  dequeue() {
+    return this.queue.shift();
+  }
+
+  clear() {
+    this.queue = [];
+    this.persist();
+  }
+
+  persist() {
+    if (this.persistFn && this.queue.length > 0) {
+      try {
+        this.persistFn(this.queue);
+      } catch (e) {
+        console.warn('Failed to persist queue:', e);
+      }
+    }
+  }
+
+  restore() {
+    if (this.restoreFn) {
+      try {
+        const saved = this.restoreFn();
+        if (Array.isArray(saved)) {
+          this.queue = saved.filter(item => 
+            Date.now() - item.timestamp < 3600000 // 1 hour max
+          );
+        }
+      } catch (e) {
+        console.warn('Failed to restore queue:', e);
+      }
+    }
+  }
+
+  async flush() {
+    if (!this.isOnline() || this.queue.length === 0) {
+      return;
+    }
+
+    const items = [...this.queue];
+    this.queue = [];
+
+    for (const item of items) {
+      try {
+        await item.execute();
+      } catch (e) {
+        console.warn('Failed to flush queued request:', e);
+      }
+    }
+  }
+
+  get size() {
+    return this.queue.length;
+  }
+}
+
 class CircuitBreaker {
   constructor(options = {}) {
     this.failureThreshold = options.failureThreshold || 5;
@@ -178,6 +272,53 @@ class InferenceBrake {
       failureThreshold: circuitBreakerThreshold,
       resetTimeout: circuitBreakerTimeout,
     });
+    
+    this.offlineQueue = new OfflineQueue({
+      maxSize: 100,
+      persistFn: (queue) => {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('inferencebrake_queue', JSON.stringify(queue));
+        }
+      },
+      restoreFn: () => {
+        if (typeof localStorage !== 'undefined') {
+          const saved = localStorage.getItem('inferencebrake_queue');
+          return saved ? JSON.parse(saved) : [];
+        }
+        return [];
+      },
+    });
+  }
+
+  /**
+   * Check if currently online
+   * @returns {boolean}
+   */
+  isOnline() {
+    return this.offlineQueue.isOnline();
+  }
+
+  /**
+   * Get queued requests count
+   * @returns {number}
+   */
+  getQueueSize() {
+    return this.offlineQueue.size;
+  }
+
+  /**
+   * Flush offline queue
+   * @returns {Promise<void>}
+   */
+  async flushQueue() {
+    return this.offlineQueue.flush();
+  }
+
+  /**
+   * Clear offline queue
+   */
+  clearQueue() {
+    this.offlineQueue.clear();
   }
 
   /**
@@ -410,6 +551,7 @@ module.exports = {
   AuthenticationError,
   RateLimitError,
   CircuitBreakerError,
+  OfflineQueue,
   inferencebrakeMonitor,
 };
 
