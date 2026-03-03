@@ -352,6 +352,45 @@ status.message         # human-readable message
 status.should_stop     # convenience property
 ```
 
+### JavaScript/Node.js SDK
+
+```javascript
+const { InferenceBrake } = require('inferencebrake');
+
+const guard = new InferenceBrake({
+  apiKey: 'ib_your_key',
+  supabaseUrl: 'https://xxx.supabase.co',
+  
+  // Resilience options (all optional)
+  timeout: 10000,              // Request timeout in ms (default: 10000)
+  maxRetries: 3,                // Max retry attempts (default: 3)
+  retryDelay: 1000,             // Initial retry delay in ms (default: 1000)
+  retryBackoff: 2,              // Exponential backoff multiplier (default: 2)
+  circuitBreakerThreshold: 5,   // Failures before opening circuit (default: 5)
+  circuitBreakerTimeout: 30000, // Circuit reset timeout in ms (default: 30000)
+});
+
+// Check single step
+const status = await guard.check(
+  'reasoning text',
+  'session-1'
+);
+
+if (status.shouldStop) {
+  console.log('Loop detected!', status.message);
+}
+
+// Check offline queue status
+console.log('Queued requests:', guard.getQueueSize());
+console.log('Online:', guard.isOnline());
+```
+
+**SDK Features:**
+- Automatic retry with exponential backoff
+- Circuit breaker pattern for fault tolerance
+- Offline detection and request queueing
+- Configurable timeouts
+
 ---
 
 ## Development
@@ -380,15 +419,48 @@ supabase functions serve check --no-verify-jwt
 ### Environment Variables
 
 ```bash
-# apps/web/.env
-PUBLIC_SUPABASE_URL=http://localhost:54321
-PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+# apps/web/.env (use VITE_ prefix for client-side vars)
+VITE_PUBLIC_SUPABASE_URL=http://localhost:54321
+VITE_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Optional: Sentry error tracking
+SENTRY_ORG=your-org
+SENTRY_PROJECT=your-project
+VITE_PUBLIC_SENTRY_DSN=https://xxx@sentry.io/xxx
 ```
 
 ---
 
 ## Project Structure
 
+```
+inferencebrake/
+├── apps/
+│   ├── web/                    # SvelteKit frontend (Vercel)
+│   │   ├── src/
+│   │   │   └── routes/
+│   │   └── package.json
+│
+├── packages/
+│   ├── engine/                 # Python detection engine
+│   │   └── inferencebrake/
+│   ├── python-sdk/            # PyPI package
+│   └── js-sdk/                # NPM package (index.js, index.d.ts)
+│
+├── supabase/
+│   ├── migrations/
+│   ├── config.toml
+│   └── functions/             # Supabase Edge Functions
+│       ├── check/
+│       ├── stripe-checkout/
+│       ├── stripe-webhook/
+│       ├── stripe-cancel/
+│       ├── account-delete/
+│       ├── generate-test-key/
+│       └── health/
+│
+├── tests/                     # Integration tests (Bun)
+└── benchmarks/                # Benchmarking suite
 ```
 inferencebrake/
 ├── apps/
@@ -422,16 +494,19 @@ inferencebrake/
 
 ## Roadmap
 
-### ✅ Completed
+### Completed
 
 - [x] Core loop detection (7 detectors)
 - [x] Supabase Edge Function
 - [x] Python SDK
-- [x] Node.js SDK
+- [x] Node.js SDK with retry/circuit-breaker
 - [x] SvelteKit landing page
 - [x] User authentication (signup/login)
 - [x] Dashboard with session history
 - [x] SQL migrations & RPC functions
+- [x] Health check endpoint
+- [x] Error tracking (Sentry)
+- [x] Offline queue support
 
 ### In Progress
 
