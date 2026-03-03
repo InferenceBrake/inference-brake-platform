@@ -77,6 +77,64 @@ class RateLimitError extends InferenceBrakeError {
   }
 }
 
+class CircuitBreakerError extends InferenceBrakeError {
+  constructor(message = 'Circuit breaker open') {
+    super(message);
+    this.name = 'CircuitBreakerError';
+  }
+}
+
+class CircuitBreaker {
+  constructor(options = {}) {
+    this.failureThreshold = options.failureThreshold || 5;
+    this.successThreshold = options.successThreshold || 2;
+    this.timeout = options.timeout || 30000;
+    this.resetTimeout = options.resetTimeout || 30000;
+    
+    this.state = 'CLOSED';
+    this.failures = 0;
+    this.successes = 0;
+    this.nextAttempt = Date.now();
+  }
+
+  get isOpen() {
+    return this.state === 'OPEN';
+  }
+
+  recordSuccess() {
+    this.failures = 0;
+    if (this.state === 'HALF_OPEN') {
+      this.successes++;
+      if (this.successes >= this.successThreshold) {
+        this.state = 'CLOSED';
+        this.successes = 0;
+      }
+    }
+  }
+
+  recordFailure() {
+    this.failures++;
+    this.successes = 0;
+    
+    if (this.failures >= this.failureThreshold) {
+      this.state = 'OPEN';
+      this.nextAttempt = Date.now() + this.resetTimeout;
+    }
+  }
+
+  canAttempt() {
+    if (this.state === 'OPEN') {
+      if (Date.now() >= this.nextAttempt) {
+        this.state = 'HALF_OPEN';
+        this.failures = 0;
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+}
+
 class InferenceBrake {
   /**
    * Create an InferenceBrake client
@@ -97,6 +155,8 @@ class InferenceBrake {
     maxRetries = 3,
     retryDelay = 1000,
     retryBackoff = 2,
+    circuitBreakerThreshold = 5,
+    circuitBreakerTimeout = 30000,
   }) {
     this.apiKey = apiKey;
     this.supabaseUrl = supabaseUrl || process.env.INFERENCEBRAKE_URL;
@@ -113,6 +173,11 @@ class InferenceBrake {
     this.maxRetries = maxRetries;
     this.retryDelay = retryDelay;
     this.retryBackoff = retryBackoff;
+    
+    this.circuitBreaker = new CircuitBreaker({
+      failureThreshold: circuitBreakerThreshold,
+      resetTimeout: circuitBreakerTimeout,
+    });
   }
 
   /**
@@ -145,26 +210,36 @@ class InferenceBrake {
   }
 
   /**
-   * Execute request with retry logic
+   * Execute request with retry logic and circuit breaker
    * @param {Function} requestFn - Function that returns a promise
    * @returns {Promise<any>}
    */
   async executeWithRetry(requestFn) {
+    if (!this.circuitBreaker.canAttempt()) {
+      throw new CircuitBreakerError(
+        `Circuit breaker open. Retry after ${Math.ceil((this.circuitBreaker.nextAttempt - Date.now()) / 1000)}s`
+      );
+    }
+    
     let lastError;
     
     for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
       try {
-        return await requestFn();
+        const result = await requestFn();
+        this.circuitBreaker.recordSuccess();
+        return result;
       } catch (error) {
         lastError = error;
         
         // Don't retry if max retries reached
         if (attempt >= this.maxRetries) {
+          this.circuitBreaker.recordFailure();
           break;
         }
         
         // Don't retry on non-retryable errors
         if (!this.isRetryable(error) || !(error instanceof InferenceBrakeError)) {
+          this.circuitBreaker.recordFailure();
           throw error;
         }
         
@@ -174,6 +249,7 @@ class InferenceBrake {
       }
     }
     
+    this.circuitBreaker.recordFailure();
     throw lastError;
   }
 
@@ -333,6 +409,7 @@ module.exports = {
   InferenceBrakeError,
   AuthenticationError,
   RateLimitError,
+  CircuitBreakerError,
   inferencebrakeMonitor,
 };
 

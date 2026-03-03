@@ -33,6 +33,12 @@ export interface InferenceBrakeOptions {
   maxRetries?: number;
   retryDelay?: number;
   retryBackoff?: number;
+  circuitBreakerThreshold?: number;
+  circuitBreakerTimeout?: number;
+}
+
+export class CircuitBreakerError extends InferenceBrakeError {
+  constructor(message?: string);
 }
 
 export interface SessionHistoryStep {
