@@ -30,6 +30,9 @@ export interface InferenceBrakeOptions {
   supabaseUrl?: string;
   timeout?: number;
   autoStop?: boolean;
+  maxRetries?: number;
+  retryDelay?: number;
+  retryBackoff?: number;
 }
 
 export interface SessionHistoryStep {

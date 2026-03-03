@@ -85,8 +85,19 @@ class InferenceBrake {
    * @param {string} [options.supabaseUrl] - Your Supabase URL (or set INFERENCEBRAKE_URL env)
    * @param {number} [options.timeout=10000] - Request timeout in ms
    * @param {boolean} [options.autoStop=false] - Throw on loop detected
+   * @param {number} [options.maxRetries=3] - Max retry attempts
+   * @param {number} [options.retryDelay=1000] - Initial retry delay in ms
+   * @param {number} [options.retryBackoff=2] - Exponential backoff multiplier
    */
-  constructor({ apiKey, supabaseUrl, timeout = 10000, autoStop = false }) {
+  constructor({ 
+    apiKey, 
+    supabaseUrl, 
+    timeout = 10000, 
+    autoStop = false,
+    maxRetries = 3,
+    retryDelay = 1000,
+    retryBackoff = 2,
+  }) {
     this.apiKey = apiKey;
     this.supabaseUrl = supabaseUrl || process.env.INFERENCEBRAKE_URL;
     
@@ -99,6 +110,71 @@ class InferenceBrake {
     this.baseUrl = `${this.supabaseUrl}/functions/v1`;
     this.timeout = timeout;
     this.autoStop = autoStop;
+    this.maxRetries = maxRetries;
+    this.retryDelay = retryDelay;
+    this.retryBackoff = retryBackoff;
+  }
+
+  /**
+   * Calculate delay with exponential backoff
+   * @param {number} attempt - Current attempt number (0-indexed)
+   * @returns {number} - Delay in ms
+   */
+  getRetryDelay(attempt) {
+    return this.retryDelay * Math.pow(this.retryBackoff, attempt);
+  }
+
+  /**
+   * Check if error is retryable
+   * @param {Error} error - The error to check
+   * @returns {boolean}
+   */
+  isRetryable(error) {
+    if (error instanceof RateLimitError) {
+      const match = error.message.match(/retry after (\d+)/i);
+      if (match) {
+        this.retryDelay = parseInt(match[1], 10) * 1000;
+        return true;
+      }
+    }
+    // Retry on network errors, timeouts, 5xx errors
+    return error.message.includes('timeout') || 
+           error.message.includes('network') ||
+           error.message.includes('ECONNREFUSED') ||
+           error.message.includes('ETIMEDOUT');
+  }
+
+  /**
+   * Execute request with retry logic
+   * @param {Function} requestFn - Function that returns a promise
+   * @returns {Promise<any>}
+   */
+  async executeWithRetry(requestFn) {
+    let lastError;
+    
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      try {
+        return await requestFn();
+      } catch (error) {
+        lastError = error;
+        
+        // Don't retry if max retries reached
+        if (attempt >= this.maxRetries) {
+          break;
+        }
+        
+        // Don't retry on non-retryable errors
+        if (!this.isRetryable(error) || !(error instanceof InferenceBrakeError)) {
+          throw error;
+        }
+        
+        const delay = this.getRetryDelay(attempt);
+        console.log(`InferenceBrake: Retry attempt ${attempt + 1}/${this.maxRetries} after ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    throw lastError;
   }
 
   /**
@@ -109,18 +185,18 @@ class InferenceBrake {
    * @returns {Promise<CheckStatus>}
    */
   async check(reasoning, sessionId, threshold) {
-    const url = `${this.baseUrl}/check`;
-    
-    const payload = {
-      reasoning,
-      session_id: sessionId,
-    };
-    
-    if (threshold !== undefined) {
-      payload.threshold = threshold;
-    }
+    return this.executeWithRetry(async () => {
+      const url = `${this.baseUrl}/check`;
+      
+      const payload = {
+        reasoning,
+        session_id: sessionId,
+      };
+      
+      if (threshold !== undefined) {
+        payload.threshold = threshold;
+      }
 
-    try {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -136,8 +212,10 @@ class InferenceBrake {
       }
 
       if (response.status === 429) {
+        const data = await response.json().catch(() => ({}));
+        const retryAfter = response.headers.get('retry-after');
         throw new RateLimitError(
-          'Rate limit exceeded. Upgrade at inferencebrake.dev/pricing'
+          `Rate limit exceeded. Upgrade at inferencebrake.dev/pricing${retryAfter ? `. Retry after ${retryAfter}s` : ''}`
         );
       }
 
@@ -156,13 +234,7 @@ class InferenceBrake {
       }
 
       return status;
-
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        throw new InferenceBrakeError('Request timeout');
-      }
-      throw error;
-    }
+    });
   }
 
   /**

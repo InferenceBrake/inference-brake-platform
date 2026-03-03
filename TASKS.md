@@ -75,8 +75,8 @@ AI agents should:
 
 ### Reliability
 
-- [ ] Add retry logic to SDKs (exponential backoff)
-- [ ] Add timeout handling (default 10s, configurable)
+- [x] Add retry logic to SDKs (exponential backoff)
+- [x] Add timeout handling (default 10s, configurable)
 - [ ] Add circuit breaker pattern for API calls
 - [ ] Add offline detection and queueing
 
