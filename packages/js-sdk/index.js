@@ -276,14 +276,18 @@ class InferenceBrake {
     this.offlineQueue = new OfflineQueue({
       maxSize: 100,
       persistFn: (queue) => {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('inferencebrake_queue', JSON.stringify(queue));
+        if (typeof localStorage !== 'undefined' && localStorage) {
+          try {
+            localStorage.setItem('inferencebrake_queue', JSON.stringify(queue));
+          } catch (e) {}
         }
       },
       restoreFn: () => {
-        if (typeof localStorage !== 'undefined') {
-          const saved = localStorage.getItem('inferencebrake_queue');
-          return saved ? JSON.parse(saved) : [];
+        if (typeof localStorage !== 'undefined' && localStorage) {
+          try {
+            const saved = localStorage.getItem('inferencebrake_queue');
+            return saved ? JSON.parse(saved) : [];
+          } catch (e) {}
         }
         return [];
       },
