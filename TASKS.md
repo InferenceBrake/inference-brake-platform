@@ -96,9 +96,9 @@ AI agents should:
 
 ### Data
 
-- [ ] Add data retention policies (auto-delete old sessions)
-- [ ] Add GDPR export functionality
-- [ ] Add account deletion (with confirmation)
+- [x] Add data retention policies (auto-delete old sessions)
+- [x] Add GDPR export functionality
+- [x] Add account deletion (with confirmation)
 
 ---
 
