@@ -127,6 +127,29 @@ async function runTestModeApiTest() {
 	console.log("Test mode response:", response.data.test_mode);
 }
 
+async function runDataExportTest() {
+	console.log("\n=== TEST: Data Export ===\n");
+
+	const response = await supabase.functions.invoke("data-export", {
+		headers: {
+			Authorization: `Bearer ${API_KEY}`,
+		},
+	});
+
+	if (response.error) {
+		assert(false, `Data export failed: ${response.error}`);
+		return;
+	}
+
+	assert(response.data?.exported_at !== undefined, "Should have exported_at timestamp");
+	assert(response.data?.user !== undefined, "Should have user data");
+	assert(response.data?.reasoning_history !== undefined, "Should have reasoning_history");
+	assert(Array.isArray(response.data?.reasoning_history), "Reasoning history should be an array");
+
+	console.log("Data export successful");
+	console.log("Records:", response.data.total_records);
+}
+
 async function runHealthCheckProductionTest() {
 	console.log("\n=== TEST: Health Check Production ===\n");
 
@@ -156,6 +179,7 @@ async function main() {
 	await runHealthCheckTest();
 	await runGenerateTestKeyTest();
 	await runTestModeApiTest();
+	await runDataExportTest();
 	await runHealthCheckProductionTest();
 
 	console.log("\n" + "=".repeat(50));
