@@ -21,3 +21,6 @@ verify_jwt = false
 
 [functions.data-export]
 verify_jwt = false
+
+[functions.slack-alert]
+verify_jwt = false

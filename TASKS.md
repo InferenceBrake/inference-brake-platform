@@ -106,14 +106,14 @@ AI agents should:
 
 ### Framework Integrations
 
-- [ ] Add LangChain callback handler
-- [ ] Add CrewAI integration example
+- [x] Add LangChain callback handler
+- [x] Add CrewAI integration example
 - [ ] Add LlamaIndex integration
 - [ ] Add AutoGen integration example
 
 ### Platform Integrations
 
-- [ ] Add Slack webhook alerts
+- [x] Add Slack webhook alerts
 - [ ] Add Discord webhook alerts
 - [ ] Add PagerDuty integration
 - [ ] Add Zapier/NMake webhook support
