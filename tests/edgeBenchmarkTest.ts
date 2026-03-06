@@ -14,8 +14,8 @@ import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const SUPABASE_URL = process.env.SUPABASE_URL || "http://127.0.0.1:54321";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || REDACTED"  ";
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 interface BenchmarkTrace {
 	id: string;

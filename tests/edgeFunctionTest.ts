@@ -153,7 +153,11 @@ async function runDataExportTest() {
 async function runHealthCheckProductionTest() {
 	console.log("\n=== TEST: Health Check Production ===\n");
 
-	const prodUrl = "https://ocnjiyiqeifllbyqohks.supabase.co";
+	const prodUrl = process.env.SUPABASE_URL;
+	if (!prodUrl) {
+		console.log("Production URL not set - skipping production test");
+		return;
+	}
 	
 	try {
 		const response = await fetch(`${prodUrl}/functions/v1/health`, {
