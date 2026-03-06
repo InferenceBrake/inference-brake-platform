@@ -51,7 +51,7 @@ async function getTestApiKey(): Promise<string> {
 }
 
 async function loadTraces(limit?: number): Promise<BenchmarkTrace[]> {
-	const dataDir = join(process.cwd(), "packages", "engine", "benchmark_data");
+	const dataDir = join(process.cwd(), "benchmark_data");
 	
 	try {
 		const raw = readFileSync(join(dataDir, "all_traces.json"), "utf-8");
