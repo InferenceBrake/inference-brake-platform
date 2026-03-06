@@ -235,7 +235,16 @@ class NgramDetector(BaseDetector):
         Detects when the sentence template is the same but fillers change.
         E.g.: "I should check the weather" -> "I should check the news"
               "Let me search for X" -> "Let me search for Y"
+        
+        Threshold raised to 0.5 with minimum 6 steps to reduce false positives
+        on short traces with similar structure.
         """
+
+        # Minimum step guard: only run structural pattern matching after 6 steps
+        # to avoid false positives on short traces
+        total_history_steps = len(history)
+        if total_history_steps < 6:
+            return self._safe_signal(f"History too short for structural check ({total_history_steps} < 6)")
 
         def _to_template(text: str) -> str:
             """Replace content words with placeholders, keep function words."""
@@ -331,17 +340,18 @@ class NgramDetector(BaseDetector):
             return self._safe_signal()
 
         match_ratio = template_matches / total_comparisons
-        if match_ratio >= 0.3:
+        # Threshold raised from 0.3 to 0.5 to reduce false positives
+        if match_ratio >= 0.5:
             return DetectionSignal(
                 detector_name=self.name,
                 verdict=DetectorVerdict.LOOP_DETECTED,
                 loop_type=LoopType.PARAPHRASE_LOOP,
-                confidence=min(match_ratio * 1.5, 1.0),
+                confidence=min(match_ratio * 1.2, 1.0),
                 score=match_ratio,
-                threshold_used=0.3,
+                threshold_used=0.5,
                 detail=f"Structural repetition: {template_matches} template matches across steps",
             )
-        elif match_ratio >= 0.15:
+        elif match_ratio >= 0.25:
             return DetectionSignal(
                 detector_name=self.name,
                 verdict=DetectorVerdict.WARNING,

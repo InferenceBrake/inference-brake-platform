@@ -267,6 +267,61 @@ def standardize_trace(raw_data: dict) -> Optional[BenchmarkTrace]:
         return standardize_swebench_verified(raw_data)
     elif source == "synthetic":
         return standardize_synthetic(raw_data)
+    elif source and source.startswith("generated_"):
+        return standardize_generated(raw_data)
     else:
         print(f"Warning: Unknown source '{source}'")
         return None
+
+
+def from_generated_trace(gen) -> BenchmarkTrace:
+    """Convert a GeneratedTrace (with pre-computed embeddings) to BenchmarkTrace."""
+    steps = []
+    for i, (text, emb) in enumerate(zip(gen.steps, gen.embeddings)):
+        step = BenchmarkStep(
+            reasoning=text,
+            action=gen.actions[i][0] if gen.actions[i] else None,
+            step_number=i,
+            metadata={"embedding": emb},
+        )
+        steps.append(step)
+
+    return BenchmarkTrace(
+        id=gen.trace_id,
+        source=f"generated_{gen.category}",
+        steps=steps,
+        label="loop" if gen.is_looping else "no_loop",
+        loop_type=None,
+        success=not gen.is_looping,
+        metadata={
+            "category": gen.category,
+            "subcategory": gen.subcategory,
+            "loop_onset_step": gen.loop_onset_step,
+            "step_labels": gen.labels,
+        },
+    )
+
+
+def standardize_generated(raw_data: dict) -> BenchmarkTrace:
+    """Convert generated trace format to BenchmarkTrace (for pre-computed embeddings)."""
+    steps = []
+    for i, s in enumerate(raw_data.get("steps", [])):
+        embedding = s.get("metadata", {}).get("embedding")
+        step = BenchmarkStep(
+            reasoning=s.get("reasoning", ""),
+            action=s.get("action"),
+            observation=s.get("observation"),
+            step_number=i,
+            metadata={"embedding": embedding} if embedding else {},
+        )
+        steps.append(step)
+
+    return BenchmarkTrace(
+        id=raw_data.get("id", ""),
+        source=raw_data.get("source", ""),
+        steps=steps,
+        label=raw_data.get("label"),
+        loop_type=None,
+        success=raw_data.get("success"),
+        metadata=raw_data.get("metadata", {}),
+    )

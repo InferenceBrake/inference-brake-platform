@@ -508,21 +508,60 @@ class BenchmarkDataCollector:
 
         all_traces = []
 
-        # 1. Synthetic data (High quality ground truth) - PUT FIRST
-        # Increased count to 500 to ensure good coverage in limited runs
-        all_traces.extend(self.generate_synthetic_loops(500))
+        # 1. Synthetic data from generators/traces.py (with pre-computed embeddings)
+        # This is the high-quality balanced dataset
+        from benchmarks.generators.traces import generate_benchmark_dataset
+        
+        print("\n[GEN] Generating balanced benchmark dataset...")
+        generated_traces = generate_benchmark_dataset(traces_per_category=50, seed=42)
+        
+        # Convert GeneratedTrace to dict format for compatibility
+        for gen_trace in generated_traces:
+            steps = []
+            for i, (text, emb) in enumerate(zip(gen_trace.steps, gen_trace.embeddings)):
+                steps.append({
+                    "reasoning": text,
+                    "action": gen_trace.actions[i][0] if gen_trace.actions[i] else None,
+                    "observation": None,
+                    "metadata": {"embedding": emb},
+                })
+            
+            all_traces.append({
+                "id": gen_trace.trace_id,
+                "source": f"generated_{gen_trace.category}",
+                "steps": steps,
+                "label": "loop" if gen_trace.is_looping else "no_loop",
+                "loop_type": None,
+                "success": not gen_trace.is_looping,
+                "metadata": {
+                    "category": gen_trace.category,
+                    "subcategory": gen_trace.subcategory,
+                    "loop_onset_step": gen_trace.loop_onset_step,
+                    "step_labels": gen_trace.labels,
+                },
+            })
+        
+        print(f"   [OK] Generated {len(generated_traces)} traces from generators/traces.py")
 
-        # 2. Real datasets (keep only usable ones)
-        # TRAIL has actual execution traces with error annotations (most valuable)
+        # 2. Additional synthetic loop traces (templates 1-7 for text-only detectors)
+        all_traces.extend(self.generate_synthetic_loops(300))
+
+        # 3. TRAIL traces - filter to only traces with >= 5 steps
+        # These are real agent traces with actual execution patterns
+        # TRAIL errors = hallucination, NOT loops - treat as healthy
         trail_traces = self.collect_trail()
-        all_traces.extend(trail_traces)
+        filtered_trail = []
+        for t in trail_traces:
+            step_count = t.get("metadata", {}).get("step_count", len(t.get("steps", [])))
+            if step_count >= 5:
+                # Treat TRAIL traces as healthy - they show hallucination patterns, not loops
+                t["label"] = "no_loop"
+                t["success"] = True
+                t["metadata"]["note"] = "TRAIL with >=5 steps treated as healthy (hallucination, not loops)"
+                filtered_trail.append(t)
         
-        # WebArena and AgentRewardBench don't have execution traces (skip)
-        # all_traces.extend(self.collect_webarena_verified())
-        # all_traces.extend(self.collect_agent_reward_bench())
-        
-        # SWE-bench has problem statements, we create synthetic coding workflows
-        all_traces.extend(self.collect_swebench_verified())
+        print(f"   [FILTER] TRAIL: {len(trail_traces)} total, {len(filtered_trail)} with >=5 steps")
+        all_traces.extend(filtered_trail)
 
         # Save combined
         self.save(all_traces, "all_traces.json")
@@ -532,21 +571,17 @@ class BenchmarkDataCollector:
         print("=" * 60)
         print(f"Total traces: {len(all_traces)}")
         print(f"\nBreakdown by source:")
-        print(
-            f"   - Synthetic:            {sum(1 for t in all_traces if t.get('source') == 'synthetic')}"
-        )
-        print(
-            f"   - TRAIL:                {sum(1 for t in all_traces if t.get('source') == 'trail')}"
-        )
-        print(
-            f"   - WebArena:             {sum(1 for t in all_traces if t.get('source') == 'webarena_verified')}"
-        )
-        print(
-            f"   - AgentRewardBench:     {sum(1 for t in all_traces if t.get('source') == 'agent_reward_bench')}"
-        )
-        print(
-            f"   - SWE-bench:            {sum(1 for t in all_traces if t.get('source') == 'swebench_verified')}"
-        )
+        
+        # Count by source
+        source_counts = {}
+        for t in all_traces:
+            src = t.get("source", "unknown")
+            if src.startswith("generated_"):
+                src = "generated"
+            source_counts[src] = source_counts.get(src, 0) + 1
+        
+        for src, count in sorted(source_counts.items()):
+            print(f"   - {src}: {count}")
         print("=" * 60)
 
         return all_traces

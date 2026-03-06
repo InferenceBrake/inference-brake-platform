@@ -281,13 +281,15 @@ class BenchmarkRunner:
             if step.action:
                 actions = [step.action]
 
-            # Run pipeline
-            # Note: We rely on the pipeline's internal embedding generation
-            # since we passed embedding_fn to constructor
+            # Extract pre-computed embedding from step metadata if available
+            precomputed_emb = step.metadata.get("embedding") if step.metadata else None
+
+            # Run pipeline - use pre-computed embedding if available
             result = self.pipeline.check(
                 session_id=trace.id,
                 reasoning=step.reasoning,
                 actions=actions,
+                embedding=precomputed_emb,
             )
             
             latency = (time.perf_counter() - t0) * 1000
