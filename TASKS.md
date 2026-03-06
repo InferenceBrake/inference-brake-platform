@@ -66,6 +66,7 @@ AI agents should:
 ### Testing
 
 - [x] Add unit tests for edge function
+- [x] Add edge function benchmark test
 - [ ] Add E2E tests for auth flow (register → login → dashboard)
 - [x] Add E2E tests for API (check endpoint)
 
@@ -258,5 +259,5 @@ When completing a task, document:
 
 ---
 
-*Last Updated: 2026-02-26*
-*Version: 0.2.0*
+*Last Updated: 2026-03-05*
+*Version: 0.2.1*

@@ -17,6 +17,7 @@
     "supabase:deploy": "bunx supabase functions deploy check && bunx supabase functions deploy stripe-checkout && bunx supabase functions deploy stripe-webhook && bunx supabase functions deploy stripe-cancel && bunx supabase functions deploy account-delete && bunx supabase functions deploy generate-test-key && bunx supabase functions deploy health",
     "test": "bun run --env-file=tests/.env tests/basicTest.ts",
     "test:rate": "bun run --env-file=tests/.env tests/rateLimitTest.ts",
-    "test:edge": "bun run --env-file=tests/.env tests/edgeFunctionTest.ts"
+    "test:edge": "bun run --env-file=tests/.env tests/edgeFunctionTest.ts",
+    "test:edge-benchmark": "bun run --env-file=tests/.env tests/edgeBenchmarkTest.ts"
   }
 }

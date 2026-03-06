@@ -181,27 +181,27 @@ See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for running benchmarks.
 ### LangChain
 
 ```python
-from inferencebrake import InferenceBrakeCallback
+from inferencebrake import InferenceBrakeCallbackHandler
 
-callback = InferenceBrakeCallback(
+handler = InferenceBrakeCallbackHandler(
     api_key="ib_key",
     supabase_url="https://xxx.supabase.co"
 )
 
-agent = initialize_agent(tools, llm, callbacks=[callback])
+agent = initialize_agent(tools, llm, callbacks=[handler])
 ```
 
 ### CrewAI
 
 ```python
-from inferencebrake import InferenceBrake
+from inferencebrake import create_crewai_callback
 
-guard = InferenceBrake(api_key="ib_key", supabase_url="...")
+callback = create_crewai_callback(
+    api_key="ib_key",
+    supabase_url="https://xxx.supabase.co"
+)
 
-def after_task(task):
-    status = guard.check(task.output, session_id=crew.id)
-    if status.should_stop:
-        crew.stop()
+agent.callbacks = [callback]
 ```
 
 ### REST API (Any Language)

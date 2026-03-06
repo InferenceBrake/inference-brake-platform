@@ -104,9 +104,9 @@ let activeTab = $state("python");
 					Runaway AI agents rapidly consume API credits through loops and inefficient retries.
 				</p>
 				
-				<p class="hero-desc">
-					Open-source detection system using 7 complementary methods - from embedding similarity to information theory. Runs on Supabase free tier.
-				</p>
+			<p class="hero-desc">
+				Open-source detection system with 5 production detectors and 2 more in development - from embedding similarity to information theory. Runs on Supabase free tier.
+			</p>
 				
 				<div class="hero-cta">
 					<a href="#pricing" class="btn btn-primary">Get Started</a>
@@ -194,7 +194,7 @@ let activeTab = $state("python");
 				<h3>Compression (NCD)</h3>
 				<p>Information-theoretic similarity via Normalized Compression Distance. Derived from Kolmogorov complexity - zero API cost.</p>
 				<div class="card-footer">
-					<span class="detector-badge future">Future</span>
+					<span class="detector-badge free">Implemented</span>
 					<span class="paper-tag">Li et al. 2004</span>
 				</div>
 			</a>
@@ -204,7 +204,7 @@ let activeTab = $state("python");
 				<h3>Edit Distance Decay</h3>
 				<p>Directly implements the Mirror Loop paper's delta_I metric. A 55% edit distance decline signals an agent converging on a fixed point.</p>
 				<div class="card-footer">
-					<span class="detector-badge future">Future</span>
+					<span class="detector-badge free">Implemented</span>
 					<span class="paper-tag">Mirror Loop 2025</span>
 				</div>
 			</a>
@@ -214,7 +214,7 @@ let activeTab = $state("python");
 				<h3>CUSUM Drift</h3>
 				<p>Cumulative embedding drift detection. 89% of Long-CoT failures show prefix-dominant deadlocks - CUSUM catches the trajectory early.</p>
 				<div class="card-footer">
-					<span class="detector-badge future">Future</span>
+					<span class="detector-badge coming">Coming to API</span>
 					<span class="paper-tag">Duan et al. 2026</span>
 				</div>
 			</a>
@@ -222,9 +222,9 @@ let activeTab = $state("python");
 			<a class="detector-card" href="https://arxiv.org/abs/2602.08520" target="_blank" rel="noopener noreferrer">
 				<svg class="detector-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
 				<h3>Entropy Collapse</h3>
-				<p>Vocabulary diversity monitoring. Token-level entropy as a control signal - when output distribution collapses, the loop has set in.</p>
+				<p>Text-level vocabulary diversity monitoring. When output vocabulary collapses across steps, the loop has set in.</p>
 				<div class="card-footer">
-					<span class="detector-badge future">Future</span>
+					<span class="detector-badge coming">Coming to API</span>
 					<span class="paper-tag">Sun 2026</span>
 				</div>
 			</a>
@@ -386,7 +386,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 					</li>
 					<li>
 						<span class="check">✓</span>
-						3 basic detectors (default voting)
+						5 detectors (default voting)
 					</li>
 					<li>
 						<span class="check">✓</span>
@@ -415,7 +415,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 					</li>
 					<li>
 						<span class="check">✓</span>
-						<span class="feature-highlight">All Detectors (customizable)</span>
+						<span class="feature-highlight">3 detectors + early access to new ones</span>
 					</li>
 					<li>
 						<span class="check">✓</span>
@@ -702,6 +702,11 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 	.detector-badge.future {
 		background: rgba(115, 115, 115, 0.15);
 		color: #737373;
+	}
+
+	.detector-badge.coming {
+		background: rgba(96, 165, 250, 0.15);
+		color: #60a5fa;
 	}
 	
 	.card-footer {

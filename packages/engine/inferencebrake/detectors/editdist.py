@@ -79,14 +79,47 @@ def _levenshtein_distance(s1: str, s2: str) -> int:
     return previous_row[-1]
 
 
+def _levenshtein_distance_words(words_a: list[str], words_b: list[str]) -> int:
+    """
+    Word-level Levenshtein distance. Treats each word as an atomic unit.
+
+    Used for long texts where character-level DP is too expensive.
+    """
+    if len(words_a) < len(words_b):
+        return _levenshtein_distance_words(words_b, words_a)
+
+    if len(words_b) == 0:
+        return len(words_a)
+
+    previous_row = list(range(len(words_b) + 1))
+
+    for i, w1 in enumerate(words_a):
+        current_row = [i + 1]
+        for j, w2 in enumerate(words_b):
+            insertions = previous_row[j + 1] + 1
+            deletions = current_row[j] + 1
+            substitutions = previous_row[j] + (w1 != w2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+
+    return previous_row[-1]
+
+
 def _normalized_edit_distance(text_a: str, text_b: str) -> float:
     """
-    Normalized edit distance ∈ [0, 1].
+    Normalized edit distance in [0, 1].
 
     0.0 = identical texts
     1.0 = maximally different (no characters in common)
 
     This is the "delta I" metric from the Mirror Loop paper.
+
+    For short texts (<= 3000 chars): character-level Levenshtein,
+    normalized by max character length.
+
+    For long texts (> 3000 chars): word-level Levenshtein (each word
+    is an atomic unit), normalized by max word count. This keeps the
+    normalization consistent with the distance metric used.
     """
     if not text_a and not text_b:
         return 0.0
@@ -94,14 +127,14 @@ def _normalized_edit_distance(text_a: str, text_b: str) -> float:
     if max_len == 0:
         return 0.0
 
-    # For very long texts, use word-level edit distance for performance
-    # (character-level Levenshtein is O(n*m) and gets slow past ~3000 chars)
+    # For very long texts, use word-level edit distance for performance.
+    # Character-level Levenshtein is O(n*m) and gets slow past ~3000 chars.
     if max_len > 3000:
         words_a = text_a.split()
         words_b = text_b.split()
-        # Convert words to space-separated string for Levenshtein
-        dist = _levenshtein_distance(' '.join(words_a), ' '.join(words_b))
-        return min(dist / max(len(words_a), len(words_b), 1), 1.0)
+        dist = _levenshtein_distance_words(words_a, words_b)
+        max_words = max(len(words_a), len(words_b), 1)
+        return min(dist / max_words, 1.0)
 
     dist = _levenshtein_distance(text_a, text_b)
     return dist / max_len

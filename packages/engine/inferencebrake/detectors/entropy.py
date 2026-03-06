@@ -5,13 +5,28 @@ Detects loops by monitoring the "information content" of each
 reasoning step. When entropy collapses (agent becomes very
 repetitive/predictable), it signals a loop.
 
+IMPORTANT LIMITATION:
+    The referenced papers (Sun 2026, Conformal Thinking) define
+    "token-level entropy" as the logprob distribution over the LLM's
+    vocabulary at generation time. That signal requires access to the
+    model's output distribution (logprobs from the API).
+
+    This detector receives already-generated text as a string. It
+    approximates entropy via vocabulary diversity, sentence structure
+    variation, and information density. This is a weaker signal than
+    true generation entropy, and the accuracy figures from the papers
+    (e.g., Sun's 60.7% -> 84.0%) do NOT apply to this text-based
+    approximation.
+
+    The detector is still useful as a complementary signal for
+    detecting repetitive/low-information output, but should not be
+    relied on as a primary detector.
+
 Related work:
     - Reinforcement Inference (Sun, 2026, arXiv:2602.08520):
-      Token-level entropy as a control signal. When entropy exceeds
-      threshold, re-attempt reasoning. 60.7% -> 84.0% accuracy.
+      Token-level entropy as a control signal. Requires logprobs.
     - Conformal Thinking (Wang et al., 2026, arXiv:2602.03814):
       Distribution-free risk control for reasoning budgets.
-      Lower threshold preemptively stops on unsolvable instances.
     - Kaiser et al. (2026, arXiv:2602.09805): Deterministic
       trace-quality measures (grounding, repetition, prompt-copying)
       separate degenerate looping from verbose-but-engaged reasoning.
