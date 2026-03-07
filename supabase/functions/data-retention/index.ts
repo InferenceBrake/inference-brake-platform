@@ -6,7 +6,15 @@ const supabase = createClient(
 	Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
+const cronSecret = Deno.env.get("CRON_SECRET");
+
 Deno.serve(async (req) => {
+	// Accept both x-cron-secret (custom) and x-cron-job (Supabase standard)
+	const incomingSecret = req.headers.get("x-cron-secret") || req.headers.get("x-cron-job");
+	if (!cronSecret || incomingSecret !== cronSecret) {
+		return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+	}
+
 	const corsHeaders = {
 		"Access-Control-Allow-Origin": "*",
 		"Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",

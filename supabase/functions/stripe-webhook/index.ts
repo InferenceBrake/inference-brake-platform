@@ -78,15 +78,15 @@ Deno.serve(async (req) => {
       .join('');
 
     let cryptoOk = false;
-    try {
-      if (expectedSignature.length === receivedSignature.length) {
-        cryptoOk = crypto.subtle.timingSafeEqual(
-          encoder.encode(expectedSignature),
-          encoder.encode(receivedSignature)
-        );
-      }
-    } catch {
+    // Replace the try/catch timingSafeEqual block with:
+    if (expectedSignature.length !== receivedSignature.length) {
       cryptoOk = false;
+    } else {
+      let diff = 0;
+      for (let i = 0; i < expectedSignature.length; i++) {
+        diff |= expectedSignature.charCodeAt(i) ^ receivedSignature.charCodeAt(i);
+      }
+      cryptoOk = diff === 0;
     }
 
     if (!cryptoOk) {
