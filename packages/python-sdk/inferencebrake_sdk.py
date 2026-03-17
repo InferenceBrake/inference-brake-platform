@@ -232,25 +232,26 @@ class InferenceBrake:
     def get_session_history(
         self,
         session_id: str,
-        limit: int = 50
-    ) -> List[Dict[str, Any]]:
+        limit: int = 50,
+        offset: int = 0
+    ) -> Dict[str, Any]:
         """
         Get reasoning history for a session.
         
         Args:
             session_id: Session identifier
             limit: Max number of steps to return
+            offset: Number of steps to skip
         
         Returns:
-            List of reasoning steps with metadata
+            Dict with session_id, steps, total, limit, offset
         """
-        # Note: This would require additional endpoint in Supabase Edge Function
         url = f"{self.base_url}/session/{session_id}"
         
         try:
             response = self._session.get(
                 url,
-                params={"limit": limit},
+                params={"limit": limit, "offset": offset},
                 timeout=self.timeout
             )
             
