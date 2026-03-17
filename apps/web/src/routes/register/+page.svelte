@@ -30,18 +30,15 @@
 			// Check if already confirmed (dev mode without confirmation)
 			const isConfirmed = !!data.user.email_confirmed_at;
 			
-			// Create user record in our users table
-			// Note: user is created even if email not confirmed yet
-			const apiKey = 'ib_' + Math.random().toString(36).substring(2, 34) + Math.random().toString(36).substring(2, 34);
-			
+			// The DB trigger (handle_new_user) auto-creates the user with api_key
+			// Just update plan/daily_limit if needed
 			const { error: insertError } = await supabase
 				.from('users')
 				.upsert({
 					id: data.user.id,
 					email: email,
-					api_key: apiKey,
 					plan: 'hobby',
-					daily_limit: 100
+					daily_limit: 10000
 				}, { onConflict: 'id', ignoreDuplicates: false });
 
 			if (insertError && !insertError.message.includes('duplicate')) {

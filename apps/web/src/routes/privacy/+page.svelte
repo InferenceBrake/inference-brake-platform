@@ -54,6 +54,10 @@
 		</div>
 
 		<h3>Payment Data</h3>
+		<div class="note">
+			<strong>Note:</strong> Payments are not currently active. Paid plans will be
+			introduced in the future.
+		</div>
 		<p>Payments are processed exclusively by Stripe. We only store:</p>
 		<ul>
 			<li>Stripe Customer ID</li>

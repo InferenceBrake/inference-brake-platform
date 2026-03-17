@@ -11,6 +11,11 @@
 
 		<p class="last-updated">Last updated: March 2026</p>
 
+		<div class="note">
+			<strong>Beta Status:</strong> The service is currently in free beta. Paid plans
+			are not yet available.
+		</div>
+
 		<h2>1. Parties and Scope</h2>
 		<p>
 			These Terms of Service govern your use of InferenceBrake, operated by Vincent Mathis,
@@ -236,5 +241,16 @@
 
 	strong {
 		color: var(--text-primary);
+	}
+
+	.note {
+		margin-bottom: 1.5rem;
+		padding: 1rem;
+		background: rgba(249, 115, 22, 0.1);
+		border: 1px solid rgba(249, 115, 22, 0.3);
+		border-radius: var(--radius-md);
+		font-size: 0.9rem;
+		color: var(--text-secondary);
+		line-height: 1.7;
 	}
 </style>

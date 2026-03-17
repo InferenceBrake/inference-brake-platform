@@ -41,7 +41,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const testKey = 'ib_test_' + Math.random().toString(36).substring(2, 34) + Math.random().toString(36).substring(2, 34);
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
+    const testKey = 'ib_test_' + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
 
     await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${user.id}`, {
       method: "PATCH",
