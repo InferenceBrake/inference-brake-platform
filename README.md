@@ -237,13 +237,15 @@ curl -X POST https://yourproject.supabase.co/functions/v1/check \
 
 ## Pricing
 
+**Open Beta: Free during beta testing**
+
 | Plan | Price | Checks/Day | Features |
 |------|-------|------------|----------|
-| **Hobby** | **$0** | 100 | Free embeddings, 7-day history |
-| **Pro** | $9/mo | 10,000 | Webhooks, 90-day history, dashboard |
-| **Enterprise** | Coming Soon | Custom | Priority support |
+| **Beta** | **$0** | 10,000 | All 5 detectors, 90-day history, test mode |
+| **Pro** | Coming Soon | TBD | Higher limits, webhooks, priority support |
+| **Enterprise** | Coming Soon | Custom | Self-hosted, team features |
 
-**All plans use Supabase's free gte-small model (no OpenAI costs!)**
+All plans use Supabase's free gte-small model (no embedding costs!)
 
 ---
 
@@ -496,30 +498,32 @@ inferencebrake/
 
 ### Completed
 
-- [x] Core loop detection (7 detectors)
+- [x] Core loop detection (5 detectors: semantic, action, n-gram, edit distance, compression)
 - [x] Supabase Edge Function
-- [x] Python SDK
-- [x] Node.js SDK with retry/circuit-breaker
+- [x] Python SDK with LangChain & CrewAI integrations
+- [x] Node.js SDK with retry/circuit-breaker/offline queue
 - [x] SvelteKit landing page
 - [x] User authentication (signup/login)
 - [x] Dashboard with session history
 - [x] SQL migrations & RPC functions
 - [x] Health check endpoint
 - [x] Error tracking (Sentry)
-- [x] Offline queue support
+- [x] Test mode API keys
+- [x] Data retention policies
+- [x] GDPR data export
+- [x] Slack webhook alerts
+- [x] Waitlist for beta users
 
 ### In Progress
 
-- [ ] Live demo page
-- [ ] Webhook alerts
-- [ ] User settings (thresholds, sensitivity)
+- [ ] Beta launch & user feedback
+- [ ] Threshold customization UI
 
 ### Planned
 
+- [ ] Pro plan with payments (Stripe)
+- [ ] Webhook configuration UI
 - [ ] Self-hosted deployment guide
-- [ ] LangChain integration
-- [ ] CrewAI integration
-- [ ] Team features
 
 ---
 
@@ -572,8 +576,8 @@ Inspired by:
 ## Get Started
 
 ```bash
-# 1. Sign up for Supabase (free tier)
-# 2. Deploy edge function (1 command)
+# 1. Sign up at https://inferencebrake.dev (free during beta)
+# 2. Get your API key from the dashboard
 # 3. Install SDK
 pip install inferencebrake
 
@@ -582,6 +586,6 @@ from inferencebrake import InferenceBrake
 guard = InferenceBrake(api_key="ib_key", supabase_url="...")
 ```
 
-**No credit card required. Free forever for hobby projects.**
+**No credit card required. 10,000 checks/day during beta.**
 
 [Get Started Free](https://inferencebrake.dev) · [View Demo](https://inferencebrake.dev/demo) · [Read Docs](https://docs.inferencebrake.dev)

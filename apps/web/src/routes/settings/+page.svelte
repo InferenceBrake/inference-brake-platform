@@ -53,79 +53,6 @@
 		}
 	}
 
-	async function changePlan(newPlan: string) {
-		if (!confirm(`Change plan to ${newPlan.toUpperCase()}?`)) return;
-		
-		processing = true;
-		message = '';
-		
-		try {
-			const { supabase } = await import('$lib/supabase');
-			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
-			
-			if (!storedApiKey) {
-				throw new Error('No API key found');
-			}
-			
-			const response = await supabase.functions.invoke('stripe-checkout', {
-				body: { plan: newPlan },
-				headers: {
-					Authorization: `Bearer ${storedApiKey}`
-				}
-			});
-			
-			if (response.data?.url) {
-				window.location.href = response.data.url;
-			} else if (response.data?.demo || response.data?.success) {
-				userPlan = newPlan;
-				userDailyLimit = newPlan === 'pro' ? 10000 : 1000;
-				showMessage('Plan updated successfully!', 'success');
-			} else if (response.error) {
-				throw new Error(response.error);
-			}
-		} catch (e: any) {
-			showMessage(e.message || 'Failed to change plan', 'error');
-		} finally {
-			processing = false;
-		}
-	}
-
-	async function cancelSubscription() {
-		if (!confirm('Are you sure you want to cancel your subscription? You will be moved to the free Hobby plan.')) return;
-		if (!confirm('This action cannot be undone. Continue?')) return;
-		
-		processing = true;
-		message = '';
-		
-		try {
-			const { supabase } = await import('$lib/supabase');
-			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
-			
-			if (!storedApiKey) {
-				throw new Error('No API key found');
-			}
-			
-			const response = await supabase.functions.invoke('stripe-cancel', {
-				headers: {
-					Authorization: `Bearer ${storedApiKey}`
-				}
-			});
-			
-			if (response.error) {
-				throw new Error(response.error);
-			}
-			
-			userPlan = 'hobby';
-			userDailyLimit = 1000;
-			subscriptionStatus = 'canceled';
-			showMessage('Subscription canceled. You are now on the Hobby plan.', 'success');
-		} catch (e: any) {
-			showMessage(e.message || 'Failed to cancel subscription', 'error');
-		} finally {
-			processing = false;
-		}
-	}
-
 	async function deleteAccount() {
 		if (!confirm('Are you sure you want to delete your account? This will permanently remove all your data including session history and usage metrics.')) return;
 		if (!confirm('This action is IRREVERSIBLE. All your data will be lost forever. Continue?')) return;
@@ -311,58 +238,25 @@
 				</section>
 
 				<section class="settings-card">
-					<h2>Subscription</h2>
-					<p class="card-description">Manage your plan and billing</p>
+					<h2>Plan</h2>
+					<p class="card-description">Your current plan during beta</p>
 					
 					<div class="current-plan">
 						<div class="plan-info">
-							<span class="plan-name" class:pro={userPlan === 'pro'}>
-								{userPlan.charAt(0).toUpperCase() + userPlan.slice(1)}
+							<span class="plan-name">
+								Free Beta
 							</span>
-							<span class="plan-price">
-								{userPlan === 'pro' ? '$9/mo' : 'Free'}
-							</span>
+							<span class="beta-badge">Open Beta</span>
 						</div>
 						<div class="plan-details">
 							<span>{userDailyLimit.toLocaleString()} checks/day</span>
-							{#if subscriptionPeriodEnd && subscriptionStatus === 'active'}
-								<span class="period-end">Renews: {formatDate(subscriptionPeriodEnd)}</span>
-							{/if}
+							<span class="period-end">All features included</span>
 						</div>
 					</div>
 
-					<div class="plan-options">
-						{#if userPlan !== 'pro'}
-							<button 
-								class="btn btn-primary" 
-								onclick={() => changePlan('pro')}
-								disabled={processing}
-							>
-								{processing ? 'Processing...' : 'Upgrade to Pro'}
-							</button>
-						{:else}
-							<button 
-								class="btn btn-secondary" 
-								onclick={() => changePlan('hobby')}
-								disabled={processing}
-							>
-								Downgrade to Hobby
-							</button>
-						{/if}
+					<div class="beta-notice">
+						<p>Pro plan coming later. Get notified when it launches.</p>
 					</div>
-
-					{#if subscriptionStatus === 'active' && userPlan === 'pro'}
-						<div class="cancel-section">
-							<button 
-								class="btn btn-danger-outline" 
-								onclick={cancelSubscription}
-								disabled={processing}
-							>
-								Cancel Subscription
-							</button>
-							<p class="cancel-hint">You will be moved to the free Hobby plan.</p>
-						</div>
-					{/if}
 				</section>
 
 				<section class="settings-card danger-zone">
@@ -576,6 +470,31 @@
 
 	.period-end {
 		color: var(--text-tertiary);
+	}
+
+	.beta-badge {
+		display: inline-block;
+		background: var(--gradient-accent);
+		color: white;
+		padding: 0.2rem 0.6rem;
+		font-size: 0.7rem;
+		font-weight: 600;
+		border-radius: var(--radius-full);
+		text-transform: uppercase;
+	}
+
+	.beta-notice {
+		background: var(--bg-primary);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		padding: var(--space-md);
+		margin-top: var(--space-md);
+	}
+
+	.beta-notice p {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+		margin: 0;
 	}
 
 	.plan-options {

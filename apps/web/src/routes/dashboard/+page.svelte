@@ -17,9 +17,12 @@
 	let loading = $state(true);
 	let userEmail = $state('');
 	let userPlan = $state('hobby');
-	let userDailyLimit = $state(1000);
+	let userDailyLimit = $state(10000);
 	let checksToday = $state(0);
 	let apiKey = $state('');
+	let waitlistEmail = $state('');
+	let waitlistSubmitting = $state(false);
+	let waitlistMessage = $state('');
 	let showApiKey = $state(false);
 	let selectedSession = $state<string | null>(null);
 	let sessionSteps = $state<Array<{
@@ -57,7 +60,7 @@
 			
 			if (userData) {
 				checksToday = userData.checks_today || 0;
-				userDailyLimit = userData.daily_limit || 1000;
+				userDailyLimit = userData.daily_limit || 10000;
 			}
 		}, 3000);
 		
@@ -87,7 +90,7 @@
 			if (userData) {
 				apiKey = userData.api_key || '';
 				userPlan = userData.plan || 'hobby';
-				userDailyLimit = userData.daily_limit || 1000;
+				userDailyLimit = userData.daily_limit || 10000;
 				checksToday = userData.checks_today || 0;
 				
 				// Store API key for SDK use
@@ -237,6 +240,38 @@
 			console.error('Failed to regenerate API key:', e);
 		}
 	}
+
+	async function submitWaitlist() {
+		if (!waitlistEmail || !waitlistEmail.includes('@')) {
+			waitlistMessage = 'Please enter a valid email';
+			return;
+		}
+		
+		waitlistSubmitting = true;
+		waitlistMessage = '';
+		
+		try {
+			const { supabase } = await import('$lib/supabase');
+			const { error } = await supabase
+				.from('waitlist')
+				.insert({ email: waitlistEmail });
+			
+			if (error) {
+				if (error.code === '23505') {
+					waitlistMessage = 'You are already on the waitlist!';
+				} else {
+					waitlistMessage = 'Failed to join waitlist. Please try again.';
+				}
+			} else {
+				waitlistMessage = 'Thanks! We will notify you when Pro launches.';
+				waitlistEmail = '';
+			}
+		} catch (e) {
+			waitlistMessage = 'Failed to join waitlist. Please try again.';
+		} finally {
+			waitlistSubmitting = false;
+		}
+	}
 	
 	async function upgradePlan(plan: string) {
 		try {
@@ -357,25 +392,32 @@
 			</div>
 			
 			{#if userPlan !== 'pro'}
-				{#if checksToday >= userDailyLimit}
-					<div class="limit-alert">
-						<span class="alert-icon">!</span>
-						<div class="limit-alert-content">
-							<span>You've reached your daily limit of {userDailyLimit} checks.</span>
-							<span>Upgrade to Pro for unlimited access.</span>
+				<div class="waitlist-prompt">
+					<div class="waitlist-content">
+						<span class="waitlist-title">Pro plan coming soon</span>
+						<span class="waitlist-desc">Get notified when it launches and get early access.</span>
+					</div>
+					<div class="waitlist-form">
+						<input 
+							type="email" 
+							bind:value={waitlistEmail} 
+							placeholder="your@email.com"
+							disabled={waitlistSubmitting}
+						/>
+						<button 
+							class="btn btn-primary" 
+							onclick={submitWaitlist}
+							disabled={waitlistSubmitting}
+						>
+							{waitlistSubmitting ? 'Joining...' : 'Notify me'}
+						</button>
+					</div>
+					{#if waitlistMessage}
+						<div class="waitlist-message" class:error={!waitlistMessage.includes('Thanks')}>
+							{waitlistMessage}
 						</div>
-						<button class="btn btn-primary upgrade-btn" onclick={() => upgradePlan('pro')}>
-							Upgrade to Pro ($9/mo)
-						</button>
-					</div>
-				{:else if checksToday >= userDailyLimit * 0.8}
-					<div class="upgrade-prompt">
-						<span>Running low on checks? Upgrade to Pro for 10,000 checks/day.</span>
-						<button class="btn btn-secondary upgrade-btn" onclick={() => upgradePlan('pro')}>
-							Upgrade to Pro
-						</button>
-					</div>
-				{/if}
+					{/if}
+				</div>
 			{/if}
 		</section>
 		
@@ -724,28 +766,57 @@
 		flex-shrink: 0;
 	}
 
-	.upgrade-prompt {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--space-md);
+	.waitlist-prompt {
 		background: var(--bg-secondary);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
-		padding: var(--space-md) var(--space-lg);
+		padding: var(--space-lg);
+	}
+
+	.waitlist-content {
+		margin-bottom: var(--space-md);
+	}
+
+	.waitlist-title {
+		display: block;
+		font-weight: 600;
+		color: var(--text-primary);
+		margin-bottom: var(--space-xs);
+	}
+
+	.waitlist-desc {
 		font-size: 0.85rem;
 		color: var(--text-secondary);
 	}
 
-	.upgrade-prompt > span {
-		flex: 1;
+	.waitlist-form {
+		display: flex;
+		gap: var(--space-sm);
 	}
 
-	.upgrade-prompt .upgrade-btn {
-		font-size: 0.8rem;
-		padding: 0.5rem 1rem;
-		width: auto;
-		flex-shrink: 0;
+	.waitlist-form input {
+		flex: 1;
+		padding: var(--space-sm) var(--space-md);
+		background: var(--bg-primary);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		color: var(--text-primary);
+		font-size: 0.9rem;
+	}
+
+	.waitlist-form input:focus {
+		outline: none;
+		border-color: var(--accent);
+	}
+
+	.waitlist-message {
+		margin-top: var(--space-sm);
+		font-size: 0.85rem;
+		color: var(--success);
+	}
+
+	.waitlist-message.error {
+		color: var(--danger);
 	}
 
 	.btn.danger {

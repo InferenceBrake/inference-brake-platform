@@ -94,7 +94,8 @@ Deno.serve(async (req) => {
 
 		// 2. RATE LIMIT (check before increment to avoid phantom counts)
 		let currentChecks = user.checks_today || 0;
-		const dailyLimit = user.daily_limit || 1000;
+		// Beta mode: generous free tier - 10k checks/day
+		const dailyLimit = user.daily_limit || 10000;
 
 		if (!isTestMode) {
 			if (user.subscription_status === "past_due") {

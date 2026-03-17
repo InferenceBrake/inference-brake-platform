@@ -85,6 +85,43 @@ function processStep() {
 
 // Code tabs
 let activeTab = $state("python");
+
+// Beta waitlist
+let betaEmail = $state('');
+let betaSubmitting = $state(false);
+let betaMessage = $state('');
+
+async function joinBeta() {
+	if (!betaEmail || !betaEmail.includes('@')) {
+		betaMessage = 'Please enter a valid email';
+		return;
+	}
+	
+	betaSubmitting = true;
+	betaMessage = '';
+	
+	try {
+		const { supabase } = await import('$lib/supabase');
+		const { error } = await supabase
+			.from('waitlist')
+			.insert({ email: betaEmail });
+		
+		if (error) {
+			if (error.code === '23505') {
+				betaMessage = 'You are already on the list!';
+			} else {
+				betaMessage = 'Failed to join. Please try again.';
+			}
+		} else {
+			betaMessage = 'Welcome to the beta! Check your email to get started.';
+			betaEmail = '';
+		}
+	} catch (e) {
+		betaMessage = 'Failed to join. Please try again.';
+	} finally {
+		betaSubmitting = false;
+	}
+}
 </script>
 
 <svelte:head>
@@ -367,105 +404,46 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 <section id="pricing" class="pricing-section">
 	<div class="container">
 		<div class="section-header">
-			<h2>Simple, Transparent Pricing</h2>
-			<p>Start free. Upgrade when you need more detection power.</p>
+			<h2>Free During Beta</h2>
+			<p>All features, no credit card required.</p>
 		</div>
 		
-		<div class="pricing-grid">
-			<div class="pricing-card">
-				<div class="plan-header">
-					<h3>Free</h3>
-					<div class="plan-price">$0<span>/mo</span></div>
-					<p>For hobby projects & testing</p>
-				</div>
-				
-				<ul class="plan-features">
-					<li>
-						<span class="check">✓</span>
-						1,000 checks/day
-					</li>
-					<li>
-						<span class="check">✓</span>
-						5 detectors (default voting)
-					</li>
-					<li>
-						<span class="check">✓</span>
-						7-day history
-					</li>
-					<li>
-						<span class="check">✓</span>
-						GitHub issues
-					</li>
-				</ul>
-				
-				<a href="#" class="btn btn-secondary" style="width: 100%">Get Started</a>
+		<div class="beta-card">
+			<div class="beta-badge">Open Beta</div>
+			<h3>10,000 checks/day</h3>
+			<p class="beta-desc">Full access to all 5 detectors during our public beta. No limits, no credit card, no catch.</p>
+			
+			<ul class="beta-features">
+				<li><span class="check">✓</span> All 5 production detectors</li>
+				<li><span class="check">✓</span> Adjustable voting thresholds</li>
+				<li><span class="check">✓</span> 90-day history</li>
+				<li><span class="check">✓</span> Email support</li>
+			</ul>
+			
+			<div class="beta-signup">
+				<input 
+					type="email" 
+					bind:value={betaEmail} 
+					placeholder="Enter your email"
+					disabled={betaSubmitting}
+				/>
+				<button class="btn btn-primary" onclick={joinBeta} disabled={betaSubmitting}>
+					{betaSubmitting ? 'Joining...' : 'Get Started Free'}
+				</button>
 			</div>
 			
-			<div class="pricing-card featured">
-				<div class="plan-header">
-					<h3>Pro</h3>
-					<div class="plan-price">$9<span>/mo</span></div>
-					<p>For production use</p>
+			{#if betaMessage}
+				<div class="beta-message" class:error={!betaMessage.includes('Welcome')}>
+					{betaMessage}
 				</div>
-				
-				<ul class="plan-features">
-					<li>
-						<span class="check">✓</span>
-						10,000 checks/day
-					</li>
-					<li>
-						<span class="check">✓</span>
-						<span class="feature-highlight">3 detectors + early access to new ones</span>
-					</li>
-					<li>
-						<span class="check">✓</span>
-						Adjust voting thresholds per detector
-					</li>
-					<li>
-						<span class="check">✓</span>
-						Auto-loop resolution hooks
-					</li>
-					<li>
-						<span class="check">✓</span>
-						90-day history
-					</li>
-					<li>
-						<span class="check">✓</span>
-						Webhook alerts
-					</li>
-				</ul>
-				
-				<a href="#" class="btn btn-primary" style="width: 100%">Get Started</a>
-			</div>
-			
-			<div class="pricing-card">
-				<div class="plan-header coming">
-					<h3>Enterprise</h3>
-					<div class="plan-price coming">Future release</div>
-					<p>For larger deployments</p>
-				</div>
-				
-				<ul class="plan-features">
-					<li>
-						<span class="check coming">✓</span>
-						Unlimited checks
-					</li>
-					<li>
-						<span class="check coming">✓</span>
-						Self-hosted option
-					</li>
-					<li>
-						<span class="check coming">✓</span>
-						Team features
-					</li>
-					<li>
-						<span class="check coming">✓</span>
-						SSO
-					</li>
-				</ul>
-				
-				<!-- <a href="#" class="btn btn-secondary" style="width: 100%; opacity: 0.5">Coming Soon</a> -->
-			</div>
+			{/if}
+		</div>
+		
+		<div class="pro-notice">
+			<span>Pro plan coming later with higher limits and early access to new detectors.</span>
+			<a href="#pricing" onclick={() => document.getElementById('beta-signup')?.scrollIntoView({behavior: 'smooth'})}>
+				Get notified →
+			</a>
 		</div>
 	</div>
 </section>
@@ -1004,6 +982,101 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 	.feature-highlight {
 		color: var(--accent);
 		font-weight: 600;
+	}
+	
+	/* Beta Card */
+	.beta-card {
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-xl);
+		padding: 3rem 2rem;
+		max-width: 500px;
+		margin: 0 auto;
+		text-align: center;
+	}
+	
+	.beta-badge {
+		display: inline-block;
+		background: var(--gradient-accent);
+		color: white;
+		padding: 0.35rem 1rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		border-radius: var(--radius-full);
+		text-transform: uppercase;
+		margin-bottom: 1.5rem;
+	}
+	
+	.beta-card h3 {
+		font-size: 2.5rem;
+		font-weight: 800;
+		margin-bottom: 0.5rem;
+	}
+	
+	.beta-desc {
+		font-size: 1.1rem;
+		color: var(--text-secondary);
+		margin-bottom: 2rem;
+	}
+	
+	.beta-features {
+		list-style: none;
+		margin-bottom: 2rem;
+		text-align: left;
+		display: inline-block;
+	}
+	
+	.beta-features li {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.5rem 0;
+		font-size: 0.95rem;
+		color: var(--text-secondary);
+	}
+	
+	.beta-signup {
+		display: flex;
+		gap: 0.5rem;
+		max-width: 400px;
+		margin: 0 auto 1rem;
+	}
+	
+	.beta-signup input {
+		flex: 1;
+		padding: 0.75rem 1rem;
+		background: var(--bg-primary);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		color: var(--text-primary);
+		font-size: 0.95rem;
+	}
+	
+	.beta-signup input:focus {
+		outline: none;
+		border-color: var(--accent);
+	}
+	
+	.beta-message {
+		font-size: 0.9rem;
+		color: var(--success);
+	}
+	
+	.beta-message.error {
+		color: var(--danger);
+	}
+	
+	.pro-notice {
+		text-align: center;
+		margin-top: 2rem;
+		font-size: 0.9rem;
+		color: var(--text-tertiary);
+	}
+	
+	.pro-notice a {
+		color: var(--accent);
+		text-decoration: none;
+		margin-left: 0.5rem;
 	}
 	
 	@media (max-width: 1024px) {

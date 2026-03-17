@@ -29,6 +29,15 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Beta mode: payments not yet enabled
+  return new Response(JSON.stringify({ 
+    error: "Payments not yet enabled. Join the waitlist to be notified when Pro launches.",
+    beta: true
+  }), {
+    status: 503,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
   try {
     const authHeader = req.headers.get("Authorization");
     const apiKey = authHeader?.replace("Bearer ", "");

@@ -30,13 +30,16 @@ AI agents should:
 
 ### Payments & Billing (Stripe)
 
+**Status: Disabled during beta**
+
 - [x] Create Stripe account (setup required)
 - [x] Add Stripe fields to users table (stripe_customer_id, stripe_subscription_id, plan, subscription_status)
 - [x] Create Stripe products (Hobby $0, Pro $9)
 - [x] Implement subscription checkout (Stripe Checkout Session) - demo mode works without Stripe
 - [x] Add Stripe webhook edge function (handle invoice.paid, customer.subscription.deleted, etc.)
-- [x] Add daily_limit based on plan (hobby: 100, pro: 10000)
+- [x] Add daily_limit based on plan (beta: 10000, pro: 10000)
 - [x] Add rate limiting check before processing requests
+- [ ] Enable Stripe payments when Pro plan launches
 
 ### API Key Management
 
@@ -259,5 +262,5 @@ When completing a task, document:
 
 ---
 
-*Last Updated: 2026-03-05*
-*Version: 0.2.1*
+*Last Updated: 2026-03-17*
+*Version: 0.3.0 - Beta*
