@@ -26,12 +26,7 @@
 			register (Handelsregister).
 		</p>
 		<p>
-			Tax number (Steuernummer): [ADD YOUR STEUERNUMMER BEFORE GOING LIVE]<br />
-			Responsible tax office: Finanzamt Idstein
-		</p>
-		<p>
-			VAT: This business operates under the small business regulation pursuant to § 19 UStG
-			(Kleinunternehmerregelung). VAT is therefore not charged or shown on invoices.
+			<!-- Tax and VAT info will be added when going live with payments -->
 		</p>
 
 		<h2>Responsible for Content</h2>
