@@ -123,7 +123,7 @@
 		</ul>
 		<p>
 			To exercise any of these rights, contact us at
-			<a href="mailto:legal@inferencebrake.com">legal@inferencebrake.com</a>.
+			<a href="mailto:inferencebrake@gmail.com">inferencebrake@gmail.com</a>.
 			We will respond within 30 days.
 		</p>
 		<p>
@@ -160,7 +160,7 @@
 		<h2>9. Contact</h2>
 		<p>
 			For any privacy-related questions or to exercise your rights:
-			<a href="mailto:legal@inferencebrake.com">legal@inferencebrake.com</a>
+			<a href="mailto:inferencebrake@gmail.com">inferencebrake@gmail.com</a>
 		</p>
 	</div>
 </div>
