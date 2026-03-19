@@ -29,21 +29,9 @@
 		if (data.user) {
 			// Check if already confirmed (dev mode without confirmation)
 			const isConfirmed = !!data.user.email_confirmed_at;
-			
-			// The DB trigger (handle_new_user) auto-creates the user with api_key
-			// Just update plan/daily_limit if needed
-			const { error: insertError } = await supabase
-				.from('users')
-				.upsert({
-					id: data.user.id,
-					email: email,
-					plan: 'hobby',
-					daily_limit: 10000
-				}, { onConflict: 'id', ignoreDuplicates: false });
 
-			if (insertError && !insertError.message.includes('duplicate')) {
-				console.error('User insert error:', insertError);
-			}
+			// The DB trigger (handle_new_user) auto-creates the user with api_key, plan, and daily_limit
+			// No client-side upsert needed - RLS blocks unauthenticated writes
 
 			if (isConfirmed) {
 				// Auto-login if already confirmed (dev mode)
