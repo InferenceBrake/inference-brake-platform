@@ -125,6 +125,28 @@
 		}
 	}
 
+	async function resetPassword() {
+		processing = true;
+		message = '';
+
+		try {
+			const { supabase } = await import('$lib/supabase');
+			const { error: resetError } = await supabase.auth.resetPasswordForEmail(userEmail, {
+				redirectTo: `${window.location.origin}/reset-password`,
+			});
+
+			if (resetError) {
+				throw new Error(resetError.message);
+			}
+
+			showMessage('Password reset email sent. Check your inbox.', 'success');
+		} catch (e: any) {
+			showMessage(e.message || 'Failed to send reset email', 'error');
+		} finally {
+			processing = false;
+		}
+	}
+
 	async function copyApiKey() {
 		await navigator.clipboard.writeText(apiKey);
 		showMessage('API key copied to clipboard', 'success');
@@ -258,6 +280,25 @@
 
 					<div class="beta-notice">
 						<p>Pro plan coming later. Get notified when it launches.</p>
+					</div>
+				</section>
+
+				<section class="settings-card">
+					<h2>Security</h2>
+					<p class="card-description">Manage your account security</p>
+
+					<div class="reset-password">
+						<div class="reset-info">
+							<strong>Reset Password</strong>
+							<p>Send a password reset link to {userEmail}</p>
+						</div>
+						<button
+							class="btn btn-secondary"
+							onclick={resetPassword}
+							disabled={processing}
+						>
+							{processing ? 'Sending...' : 'Send Reset Email'}
+						</button>
 					</div>
 				</section>
 
@@ -512,6 +553,28 @@
 		font-size: 0.8rem;
 		color: var(--text-tertiary);
 		margin-top: var(--space-sm);
+	}
+
+	.reset-password {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--space-lg);
+	}
+
+	.reset-info {
+		flex: 1;
+	}
+
+	.reset-info strong {
+		display: block;
+		margin-bottom: var(--space-xs);
+	}
+
+	.reset-info p {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+		margin: 0;
 	}
 
 	.danger-zone {
