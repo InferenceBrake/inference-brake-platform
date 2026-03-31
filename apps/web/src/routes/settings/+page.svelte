@@ -210,7 +210,8 @@
 					<p class="hint">Keep this key secret. It provides full access to your account.</p>
 				</section>
 
-				<section class="settings-card">
+				<!-- Hidden during beta - re-enable when paid plans launch
+			<section class="settings-card">
 					<h2>Test Mode API Key</h2>
 					<p class="card-description">Use this key for testing - requests won't count against your daily limit</p>
 					
@@ -236,6 +237,7 @@
 						</button>
 					{/if}
 				</section>
+			-->
 
 				<section class="settings-card">
 					<h2>Plan</h2>
