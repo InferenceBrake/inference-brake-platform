@@ -6,12 +6,40 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+	if (req.method === "OPTIONS") {
+		return new Response("ok", { headers: corsHeaders });
+	}
 
-  try {
-    const { session_id, reasoning, similarity, detectors, action, webhook_url, message } = await req.json();
+	const authHeader = req.headers.get("Authorization");
+	const apiKey = authHeader?.replace("Bearer ", "");
+
+	if (!apiKey) {
+		return new Response(JSON.stringify({ error: "Missing API key" }), {
+			status: 401,
+			headers: { ...corsHeaders, "Content-Type": "application/json" },
+		});
+	}
+
+	const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+	const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+	const userRes = await fetch(`${supabaseUrl}/rest/v1/users?api_key=eq.${apiKey}&select=id`, {
+		headers: {
+			"apikey": supabaseKey,
+			"Authorization": `Bearer ${supabaseKey}`,
+		},
+	});
+
+	const users = await userRes.json();
+	if (!users || users.length === 0) {
+		return new Response(JSON.stringify({ error: "Invalid API key" }), {
+			status: 401,
+			headers: { ...corsHeaders, "Content-Type": "application/json" },
+		});
+	}
+
+	try {
+		const { session_id, reasoning, similarity, detectors, action, webhook_url, message } = await req.json();
 
     if (!webhook_url) {
       return new Response(JSON.stringify({ error: "Missing webhook_url" }), {
