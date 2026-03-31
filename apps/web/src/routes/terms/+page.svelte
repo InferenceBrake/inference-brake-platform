@@ -179,7 +179,7 @@
 		<h2>16. Contact</h2>
 		<p>
 			For questions about these Terms, contact us at
-			<a href="mailto:inferencebrake@gmail.com">inferencebrake@gmail.com</a>.
+			<a href="mailto:admin@vincentmathis.xyz">admin@vincentmathis.xyz</a>.
 		</p>
 	</div>
 </div>

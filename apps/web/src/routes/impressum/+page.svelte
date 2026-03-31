@@ -17,7 +17,7 @@
 			<p><strong>Address:</strong> Loni-Franz-Straße 14</p>
 			<p><strong>Postal Code & City:</strong> 65510 Idstein</p>
 			<p><strong>Country:</strong> Germany</p>
-			<p><strong>Email:</strong> <a href="mailto:inferencebrake@gmail.com">inferencebrake@gmail.com</a></p>
+			<p><strong>Email:</strong> <a href="mailto:admin@vincentmathis.xyz">admin@vincentmathis.xyz</a></p>
 		</div>
 
 		<h2>Business Type</h2>
