@@ -32,7 +32,8 @@
 			
 			userEmail = authUser.email || '';
 			
-			const { data: userData } = await supabase
+			// Try direct query first (subject to RLS)
+			const { data: userData, error: queryError } = await supabase
 				.from('users')
 				.select('api_key, test_mode_api_key, plan, daily_limit, subscription_status, subscription_current_period_end')
 				.eq('id', authUser.id)
@@ -45,6 +46,14 @@
 				userDailyLimit = userData.daily_limit || 1000;
 				subscriptionStatus = userData.subscription_status || 'active';
 				subscriptionPeriodEnd = userData.subscription_current_period_end;
+			}
+
+			// If key is missing, try the RPC fallback (SECURITY DEFINER)
+			if (!apiKey) {
+				const { data: keyData, error: rpcError } = await supabase.rpc('get_my_api_key');
+				if (keyData && !rpcError) {
+					apiKey = keyData;
+				}
 			}
 		} catch (e) {
 			console.error('Failed to load settings:', e);
@@ -157,6 +166,27 @@
 		showMessage('Test API key copied to clipboard', 'success');
 	}
 
+	async function regenerateKey() {
+		processing = true;
+		message = '';
+
+		try {
+			const { supabase } = await import('$lib/supabase');
+			const { data, error } = await supabase.rpc('get_my_api_key');
+			if (data && !error) {
+				apiKey = data;
+				showApiKey = true;
+				showMessage('New API key generated', 'success');
+			} else {
+				showMessage(error?.message || 'Failed to generate key', 'error');
+			}
+		} catch (e: any) {
+			showMessage(e.message || 'Failed to generate key', 'error');
+		} finally {
+			processing = false;
+		}
+	}
+
 	function showMessage(msg: string, type: 'success' | 'error') {
 		message = msg;
 		messageType = type;
@@ -219,17 +249,29 @@
 				<section class="settings-card">
 					<h2>API Key</h2>
 					<p class="card-description">Your API key for integrating InferenceBrake</p>
-					
-					<div class="api-key-display">
-						<code>{showApiKey ? apiKey : apiKey.slice(0, 12) + '...' + apiKey.slice(-4)}</code>
-						<button class="btn btn-secondary btn-sm" onclick={() => showApiKey = !showApiKey}>
-							{showApiKey ? 'Hide' : 'Show'}
-						</button>
-						<button class="btn btn-secondary btn-sm" onclick={copyApiKey}>
-							Copy
-						</button>
-					</div>
-					<p class="hint">Keep this key secret. It provides full access to your account.</p>
+
+					{#if apiKey}
+						<div class="api-key-display">
+							<code>{showApiKey ? apiKey : apiKey.slice(0, 12) + '...' + apiKey.slice(-4)}</code>
+							<button class="btn btn-secondary btn-sm" onclick={() => showApiKey = !showApiKey}>
+								{showApiKey ? 'Hide' : 'Show'}
+							</button>
+							<button class="btn btn-secondary btn-sm" onclick={copyApiKey}>
+								Copy
+							</button>
+							<button class="btn btn-secondary btn-sm" onclick={regenerateKey} disabled={processing}>
+								{processing ? 'Generating...' : 'Regenerate'}
+							</button>
+						</div>
+						<p class="hint">Keep this key secret. It provides full access to your account.</p>
+					{:else}
+						<div class="api-key-empty">
+							<p>No API key found for your account.</p>
+							<button class="btn btn-secondary btn-sm" onclick={regenerateKey} disabled={processing}>
+								{processing ? 'Generating...' : 'Generate API Key'}
+							</button>
+						</div>
+					{/if}
 				</section>
 
 				<!-- Hidden during beta - re-enable when paid plans launch
@@ -452,6 +494,19 @@
 		gap: var(--space-sm);
 		align-items: center;
 		margin-bottom: var(--space-sm);
+	}
+
+	.api-key-empty {
+		display: flex;
+		align-items: center;
+		gap: var(--space-md);
+		margin-bottom: var(--space-sm);
+	}
+
+	.api-key-empty p {
+		color: var(--text-tertiary);
+		font-size: 0.9rem;
+		margin: 0;
 	}
 
 	.api-key-display code {
