@@ -82,6 +82,7 @@
 					<a href="#pricing" class="nav-link">Pricing</a>
 				{:else}
 					<a href="/" class="nav-link">Home</a>
+					<a href="/docs" class="nav-link">Docs</a>
 				{/if}
 			</div>
 			
@@ -117,6 +118,7 @@
 				<div class="footer-col">
 					<h4>Product</h4>
 					<a href="#pricing">Pricing</a>
+					<a href="/docs">Docs</a>
 					<a href="/dashboard">Dashboard</a>
 					<a href="/settings">Settings</a>
 				</div>
