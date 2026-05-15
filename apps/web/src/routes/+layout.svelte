@@ -30,12 +30,6 @@
 	});
 	
 	onMount(async () => {
-		// Check for stored API key (dev mode)
-		const apiKey = localStorage.getItem('inferencebrake_api_key');
-		if (apiKey) {
-			user = { email: 'Developer Mode' };
-		}
-		
 		try {
 			const { supabase } = await import('$lib/supabase');
 			const { data: { session } } = await supabase.auth.getSession();
@@ -44,6 +38,9 @@
 			}
 					
 			supabase.auth.onAuthStateChange((_event, session) => {
+				if (!session?.user) {
+					localStorage.removeItem('inferencebrake_api_key');
+				}
 				user = session?.user ? { email: session.user.email || '' } : null;
 			});
 		} catch (e) {
@@ -54,7 +51,11 @@
 	async function handleSignOut() {
 		if (!confirm('Are you sure you want to sign out?')) return;
 		const { supabase } = await import('$lib/supabase');
-		await supabase.auth.signOut();
+		try {
+			await supabase.auth.signOut();
+		} catch (e) {
+			console.error('Sign out error:', e);
+		}
 		localStorage.removeItem('inferencebrake_api_key');
 		window.location.href = '/';
 	}
