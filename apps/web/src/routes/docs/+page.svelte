@@ -36,10 +36,7 @@
 		npm: 'npm install inferencebrake',
 		pythonBasic: `from inferencebrake import InferenceBrake
 
-guard = InferenceBrake(
-    api_key="ib_your_key",
-    supabase_url="https://yourproject.supabase.co"
-)
+guard = InferenceBrake(api_key="ib_your_key")
 
 for step in agent.run():
     status = guard.check(
@@ -60,16 +57,12 @@ for step in agent.run():
 )`,
 		pythonConfig: `guard = InferenceBrake(
     api_key="ib_your_key",
-    supabase_url="https://yourproject.supabase.co",
     timeout=10,
     auto_stop=False
 )`,
 		jsBasic: `const { InferenceBrake } = require('inferencebrake');
 
-const guard = new InferenceBrake({
-    apiKey: 'ib_your_key',
-    supabaseUrl: 'https://yourproject.supabase.co'
-});
+const guard = new InferenceBrake({ apiKey: 'ib_your_key' });
 
 const status = await guard.check(
     'reasoning text',
@@ -81,7 +74,6 @@ if (status.shouldStop) {
 }`,
 		jsConfig: `const guard = new InferenceBrake({
     apiKey: 'ib_your_key',
-    supabaseUrl: 'https://yourproject.supabase.co',
     timeout: 10000,
     maxRetries: 3,
     retryDelay: 1000,
@@ -91,16 +83,13 @@ if (status.shouldStop) {
 });`,
 		jsMonitor: `const { inferencebrakeMonitor } = require('inferencebrake');
 
-const monitor = inferencebrakeMonitor({
-    apiKey: 'ib_your_key',
-    supabaseUrl: 'https://yourproject.supabase.co'
-});
+const monitor = inferencebrakeMonitor({ apiKey: 'ib_your_key' });
 
 const status = await monitor.check(reasoning);
 
 monitor.reset('new-session-id');`,
-		curlHealth: `curl https://yourproject.supabase.co/functions/v1/health`,
-		curlCheck: `curl -X POST https://yourproject.supabase.co/functions/v1/check \\
+		curlHealth: `curl https://ocnjiyiqeifllbyqohks.supabase.co/functions/v1/health`,
+		curlCheck: `curl -X POST https://ocnjiyiqeifllbyqohks.supabase.co/functions/v1/check \\
   -H "Authorization: Bearer ib_your_key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -131,33 +120,23 @@ monitor.reset('new-session-id');`,
 }`,
 		langchain: `from inferencebrake import InferenceBrakeCallback
 
-callback = InferenceBrakeCallback(
-    api_key="ib_your_key",
-    supabase_url="https://yourproject.supabase.co"
-)
+callback = InferenceBrakeCallback(api_key="ib_your_key")
 
 agent = initialize_agent(tools, llm, callbacks=[callback])`,
 		crewai: `from inferencebrake import InferenceBrakeCallback
 
-callback = InferenceBrakeCallback(
-    api_key="ib_your_key",
-    supabase_url="https://yourproject.supabase.co"
-)
+callback = InferenceBrakeCallback(api_key="ib_your_key")
 
 agent.callbacks = [callback]`,
 		decorator: `from inferencebrake import inferencebrake_monitor
 
-@inferencebrake_monitor(
-    api_key="ib_your_key",
-    supabase_url="https://yourproject.supabase.co"
-)
+@inferencebrake_monitor(api_key="ib_your_key")
 def agent_step(reasoning: str):
     return result`,
 		jsMonitorFull: `const { inferencebrakeMonitor } = require('inferencebrake');
 
 const monitor = inferencebrakeMonitor({
     apiKey: 'ib_your_key',
-    supabaseUrl: 'https://yourproject.supabase.co',
     sessionId: 'my-agent'
 });
 
@@ -199,7 +178,6 @@ if (status.shouldStop) {
 				<ol class="steps-list">
 					<li><strong>Sign up</strong> at <a href="https://inferencebrake.dev">inferencebrake.dev</a></li>
 					<li><strong>Get your API key</strong> from the Dashboard</li>
-					<li><strong>Deploy the edge function</strong> to your Supabase project</li>
 				</ol>
 			</div>
 		</section>

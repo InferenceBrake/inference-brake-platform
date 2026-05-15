@@ -18,6 +18,8 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 import os
 
+DEFAULT_SUPABASE_URL = "https://ocnjiyiqeifllbyqohks.supabase.co"
+
 
 @dataclass
 class CheckStatus:
@@ -100,20 +102,14 @@ class InferenceBrake:
         
         Args:
             api_key: Your InferenceBrake API key (get one at inferencebrake.dev)
-            supabase_url: Your Supabase project URL (if self-hosting)
+            supabase_url: Custom API base URL for self-hosting (defaults to InferenceBrake cloud)
             timeout: Request timeout in seconds (default: 10)
             auto_stop: If True, raise exception when loop is detected
         """
         self.api_key = api_key
         
-        # Allow custom Supabase URL or use environment variable
-        self.supabase_url = supabase_url or os.getenv('INFERENCEBRake_URL')
-        
-        if not self.supabase_url:
-            raise InferenceBrakeError(
-                "Supabase URL required. Either pass supabase_url parameter "
-                "or set INFERENCEBRake_URL environment variable"
-            )
+        # Default to production unless overridden
+        self.supabase_url = supabase_url or os.getenv('INFERENCEBRAKE_URL') or DEFAULT_SUPABASE_URL
         
         # Construct edge function URL
         self.base_url = f"{self.supabase_url}/functions/v1"
@@ -281,17 +277,14 @@ class InferenceBrake:
 
 def inferencebrake_monitor(
     api_key: str,
-    supabase_url: str,
+    supabase_url: Optional[str] = None,
     session_id: Optional[str] = None
 ):
     """
     Decorator to automatically monitor agent functions for loops.
     
     Example:
-        >>> @inferencebrake_monitor(
-        ...     api_key="ib_your_key",
-        ...     supabase_url="https://xxx.supabase.co"
-        ... )
+        >>> @inferencebrake_monitor(api_key="ib_your_key")
         ... def agent_step(reasoning: str):
         ...     # Your agent logic here
         ...     return result
@@ -331,10 +324,7 @@ class InferenceBrakeCallback:
         >>> from langchain.callbacks import CallbackManager
         >>> from inferencebrake import InferenceBrakeCallback
         >>> 
-        >>> callback = InferenceBrakeCallback(
-        ...     api_key="ib_your_key",
-        ...     supabase_url="https://xxx.supabase.co"
-        ... )
+        >>> callback = InferenceBrakeCallback(api_key="ib_your_key")
         >>> manager = CallbackManager([callback])
         >>> 
         >>> agent = initialize_agent(tools, llm, callbacks=manager)
@@ -343,7 +333,7 @@ class InferenceBrakeCallback:
     def __init__(
         self,
         api_key: str,
-        supabase_url: str,
+        supabase_url: Optional[str] = None,
         session_id: Optional[str] = None
     ):
         self.guard = InferenceBrake(api_key=api_key, supabase_url=supabase_url)
@@ -422,10 +412,9 @@ def cli():
 
 if __name__ == "__main__":
     # Example usage
-    SUPABASE_URL = "https://yourproject.supabase.co"
     API_KEY = "ib_your_api_key_here"
     
-    guard = InferenceBrake(api_key=API_KEY, supabase_url=SUPABASE_URL)
+    guard = InferenceBrake(api_key=API_KEY)
     
     # Simulate agent loop
     session_id = "example-session"

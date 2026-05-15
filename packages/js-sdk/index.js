@@ -16,6 +16,8 @@
  *   }
  */
 
+const DEFAULT_SUPABASE_URL = 'https://ocnjiyiqeifllbyqohks.supabase.co';
+
 class CheckStatus {
   constructor(data) {
     this.action = data.action;           // "KILL" or "PROCEED"
@@ -234,7 +236,7 @@ class InferenceBrake {
    * Create an InferenceBrake client
    * @param {Object} options
    * @param {string} options.apiKey - Your InferenceBrake API key
-   * @param {string} [options.supabaseUrl] - Your Supabase URL (or set INFERENCEBRAKE_URL env)
+   * @param {string} [options.supabaseUrl] - Custom API base URL (defaults to InferenceBrake cloud)
    * @param {number} [options.timeout=10000] - Request timeout in ms
    * @param {boolean} [options.autoStop=false] - Throw on loop detected
    * @param {number} [options.maxRetries=3] - Max retry attempts
@@ -253,13 +255,7 @@ class InferenceBrake {
     circuitBreakerTimeout = 30000,
   }) {
     this.apiKey = apiKey;
-    this.supabaseUrl = supabaseUrl || process.env.INFERENCEBRAKE_URL;
-    
-    if (!this.supabaseUrl) {
-      throw new InferenceBrakeError(
-        'Supabase URL required. Pass supabaseUrl or set INFERENCEBRAKE_URL env variable.'
-      );
-    }
+    this.supabaseUrl = supabaseUrl || process.env.INFERENCEBRAKE_URL || DEFAULT_SUPABASE_URL;
 
     this.baseUrl = `${this.supabaseUrl}/functions/v1`;
     this.timeout = timeout;
@@ -508,7 +504,7 @@ class InferenceBrake {
  * Create a middleware/decorator for agent functions
  * @param {Object} options
  * @param {string} options.apiKey
- * @param {string} options.supabaseUrl
+ * @param {string} [options.supabaseUrl] - Custom API base URL (defaults to InferenceBrake cloud)
  * @param {string} [options.sessionId]
  */
 function inferencebrakeMonitor({ apiKey, supabaseUrl, sessionId }) {
