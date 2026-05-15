@@ -35,7 +35,7 @@
 			error = authError.message;
 			loading = false;
 		} else {
-			goto('/dashboard');
+			goto('/onboarding');
 		}
 	}
 </script>

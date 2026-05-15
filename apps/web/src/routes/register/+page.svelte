@@ -40,7 +40,7 @@
 					password 
 				});
 				if (!signInError) {
-					goto('/dashboard');
+					goto('/onboarding');
 					return;
 				}
 			}

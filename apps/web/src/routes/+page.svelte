@@ -571,18 +571,6 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 		}
 	}
 	
-	.stat-value {
-		display: block;
-		font-size: 2rem;
-		font-weight: 700;
-		color: var(--text-primary);
-	}
-	
-	.stat-label {
-		font-size: 0.85rem;
-		color: var(--text-tertiary);
-	}
-	
 	/* Section Headers */
 	.section-header {
 		text-align: center;
@@ -597,19 +585,6 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 		font-size: 1.1rem;
 	}
 
-	.reddit-link {
-		margin-top: 1rem;
-	}
-
-	.reddit-link a {
-		color: var(--accent);
-		text-decoration: underline;
-	}
-
-	.reddit-link a:hover {
-		opacity: 0.8;
-	}
-	
 	/* Detection Section */
 	.detection-section {
 		padding: 6rem 0;
@@ -670,11 +645,6 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 	.detector-badge.free {
 		background: rgba(34, 197, 94, 0.15);
 		color: #22c55e;
-	}
-	
-	.detector-badge.pro {
-		background: rgba(249, 115, 22, 0.15);
-		color: #f97316;
 	}
 	
 	.detector-badge.future {
@@ -861,128 +831,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 	
 	.k { color: #f97316; }
 	.s { color: #22c55e; }
-	.f { color: #60a5fa; }
 	.c { color: var(--text-tertiary); }
-	.n { color: #a78bfa; }
-	
-	/* Pricing Section */
-	.pricing-section {
-		padding: 6rem 0;
-	}
-	
-	.pricing-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 2rem;
-		align-items: stretch;
-	}
-	
-	.pricing-card {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-xl);
-		padding: 2rem;
-		transition: all 0.3s;
-		display: flex;
-		flex-direction: column;
-	}
-	
-	.pricing-card .btn {
-		margin-top: auto;
-	}
-	
-	.pricing-card:hover {
-		border-color: var(--border-hover);
-	}
-	
-	.pricing-card.featured {
-		background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(249, 115, 22, 0.02) 100%);
-		border-color: var(--accent);
-		position: relative;
-	}
-	
-	.featured-badge {
-		position: absolute;
-		top: -12px;
-		left: 50%;
-		transform: translateX(-50%);
-		background: var(--gradient-accent);
-		color: white;
-		padding: 0.35rem 1rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		border-radius: var(--radius-full);
-		text-transform: uppercase;
-	}
-	
-	.plan-header {
-		text-align: center;
-		margin-bottom: 2rem;
-	}
-
-	.plan-header.coming {
-		color: #737373;
-	}
-	
-	.plan-header h3 {
-		font-size: 1.25rem;
-		margin-bottom: 0.5rem;
-	}
-	
-	.plan-price {
-		font-size: 3rem;
-		font-weight: 800;
-		line-height: 1;
-		min-height: 3.5rem;
-	}
-	
-	.plan-price.coming {
-		font-size: 2.5rem;
-	}
-	
-	.plan-price span {
-		font-size: 1rem;
-		color: var(--text-tertiary);
-		font-weight: 400;
-	}
-	
-	.plan-header p {
-		font-size: 0.9rem;
-		color: var(--text-tertiary);
-	}
-	
-	.plan-features {
-		list-style: none;
-		margin-bottom: 2rem;
-	}
-	
-	.plan-features li {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.75rem 0;
-		border-bottom: 1px solid var(--border);
-		font-size: 0.9rem;
-		color: var(--text-secondary);
-	}
-	
-	.plan-features li:last-child {
-		border-bottom: none;
-	}
-	
-	.check {
-		color: var(--accent);
-		font-weight: 600;
-	}
-
-	.check.coming {
-		color: #737373;
-	}
-	
-	.feature-highlight {
-		color: var(--accent);
-		font-weight: 600;
-	}
 	
 	/* Beta Card */
 	.beta-card {
@@ -1082,12 +931,6 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 	@media (max-width: 1024px) {
 		.detectors-grid {
 			grid-template-columns: repeat(2, 1fr);
-		}
-		
-		.pricing-grid {
-			grid-template-columns: 1fr;
-			max-width: 400px;
-			margin: 0 auto;
 		}
 	}
 	

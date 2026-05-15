@@ -29,7 +29,7 @@
 
 				if (data.session) {
 					status = 'success';
-					setTimeout(() => goto('/dashboard'), 1500);
+					setTimeout(() => goto('/onboarding'), 1500);
 					return;
 				}
 			}
@@ -38,7 +38,7 @@
 			
 			if (session) {
 				status = 'success';
-				setTimeout(() => goto('/dashboard'), 1500);
+				setTimeout(() => goto('/onboarding'), 1500);
 			} else {
 				status = 'error';
 				errorMessage = 'No session found';
