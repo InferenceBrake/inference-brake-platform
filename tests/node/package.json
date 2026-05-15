@@ -1,0 +1,12 @@
+{
+  "name": "inferencebrake-test",
+  "version": "0.1.0",
+  "description": "InferenceBrake SDK test — follows the docs examples",
+  "type": "module",
+  "scripts": {
+    "test": "bun run test_docs.mjs"
+  },
+  "dependencies": {
+    "inferencebrake": "file:../../packages/js-sdk"
+  }
+}

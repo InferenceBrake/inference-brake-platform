@@ -1,0 +1,11 @@
+[project]
+name = "inferencebrake-test"
+version = "0.1.0"
+description = "InferenceBrake SDK test — follows the docs examples"
+requires-python = ">=3.10"
+dependencies = [
+    "inferencebrake",
+]
+
+[tool.uv.sources]
+inferencebrake = { path = "../../packages/python-sdk", editable = true }
