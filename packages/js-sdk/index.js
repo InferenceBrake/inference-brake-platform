@@ -478,7 +478,7 @@ class InferenceBrake {
    * @param {number} [limit=50] - Max steps to return
    */
   async getSessionHistory(sessionId, limit = 50) {
-    const url = `${this.baseUrl}/session/${sessionId}?limit=${limit}`;
+    const url = `${this.baseUrl}/session-history?session_id=${sessionId}&limit=${limit}`;
     
     const response = await fetch(url, {
       method: 'GET',

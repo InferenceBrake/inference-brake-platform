@@ -242,12 +242,12 @@ class InferenceBrake:
         Returns:
             Dict with session_id, steps, total, limit, offset
         """
-        url = f"{self.base_url}/session/{session_id}"
+        url = f"{self.base_url}/session-history"
         
         try:
             response = self._session.get(
                 url,
-                params={"limit": limit, "offset": offset},
+                params={"session_id": session_id, "limit": limit, "offset": offset},
                 timeout=self.timeout
             )
             

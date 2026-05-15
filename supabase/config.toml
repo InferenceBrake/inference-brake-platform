@@ -27,3 +27,6 @@ verify_jwt = false
 
 [functions.get-api-key]
 verify_jwt = false
+
+[functions.session-history]
+verify_jwt = false

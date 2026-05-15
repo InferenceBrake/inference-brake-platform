@@ -24,11 +24,24 @@ def test_basic():
 
     for i, text in enumerate(reasoning_steps, 1):
         status = guard.check(reasoning=text, session_id="test-basic")
-        print(f"  Step {i}: action={status.action}, similarity={status.similarity:.2%}, status={status.status}")
+        dets = ", ".join(f"{k}:{v}" for k, v in status.detectors.items()) if status.detectors else "none"
+        print(f"  Step {i}: action={status.action}, sim={status.similarity:.2%}, conf={status.confidence:.2f}, status={status.status}")
+        print(f"         detectors: [{dets}]")
 
         if status.should_stop:
             print(f"  Loop detected: {status.message}")
             break
+
+    # Print session history if available
+    try:
+        history = guard.get_session_history(session_id="test-basic", limit=10)
+        steps = history.get("steps", [])
+        print(f"\n  Session steps stored: {history.get('total', 0)}")
+        for step in steps:
+            det = step.get("loop_detected", False)
+            print(f"    Step {step.get('step_number')}: loop={det}, sim={step.get('similarity', 0):.2%}")
+    except Exception as e:
+        print(f"\n  Session history error: {e}")
 
     return guard
 
