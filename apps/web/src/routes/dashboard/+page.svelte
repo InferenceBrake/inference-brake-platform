@@ -98,6 +98,15 @@
 					localStorage.setItem('inferencebrake_api_key', userData.api_key);
 				}
 			}
+
+			// Fallback: fetch API key via edge function if direct query returned nothing
+			if (!apiKey) {
+				const { data: fnData } = await supabase.functions.invoke('get-api-key');
+				if (fnData?.api_key) {
+					apiKey = fnData.api_key;
+					localStorage.setItem('inferencebrake_api_key', fnData.api_key);
+				}
+			}
 			
 			// Fetch user's reasoning history
 			let query = supabase
