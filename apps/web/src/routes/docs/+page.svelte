@@ -1,5 +1,7 @@
 <script lang="ts">
 	import '../../app.css';
+	import hljs from 'highlight.js';
+	import 'highlight.js/styles/github-dark-dimmed.css';
 
 	let activeSection = $state('quickstart');
 	let copyFeedback = $state<string | null>(null);
@@ -24,6 +26,10 @@
 		copyFeedback = label;
 		setTimeout(() => copyFeedback = null, 2000);
 	}
+
+	$effect(() => {
+		hljs.highlightAll();
+	});
 
 	const codes = {
 		pip: 'pip install inferencebrake',
@@ -209,7 +215,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'pip install' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.pip}</code></pre>
+				<pre><code class="language-bash">{codes.pip}</code></pre>
 			</div>
 
 			<h3>Basic Usage</h3>
@@ -220,7 +226,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'basic usage' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.pythonBasic}</code></pre>
+				<pre><code class="language-python">{codes.pythonBasic}</code></pre>
 			</div>
 
 			<h3>Batch Check</h3>
@@ -231,7 +237,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'batch' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.pythonBatch}</code></pre>
+				<pre><code class="language-python">{codes.pythonBatch}</code></pre>
 			</div>
 
 			<h3>Session History</h3>
@@ -242,7 +248,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'history' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.pythonHistory}</code></pre>
+				<pre><code class="language-python">{codes.pythonHistory}</code></pre>
 			</div>
 
 			<h3>Configuration</h3>
@@ -253,7 +259,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'config' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.pythonConfig}</code></pre>
+				<pre><code class="language-python">{codes.pythonConfig}</code></pre>
 			</div>
 		</section>
 
@@ -268,7 +274,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'npm' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.npm}</code></pre>
+				<pre><code class="language-bash">{codes.npm}</code></pre>
 			</div>
 
 			<h3>Basic Usage</h3>
@@ -279,7 +285,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'js basic' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.jsBasic}</code></pre>
+				<pre><code class="language-javascript">{codes.jsBasic}</code></pre>
 			</div>
 
 			<h3>Resilience Configuration</h3>
@@ -290,7 +296,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'js config' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.jsConfig}</code></pre>
+				<pre><code class="language-javascript">{codes.jsConfig}</code></pre>
 			</div>
 
 			<h3>Monitor Helper</h3>
@@ -301,7 +307,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'js monitor' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.jsMonitor}</code></pre>
+				<pre><code class="language-javascript">{codes.jsMonitor}</code></pre>
 			</div>
 		</section>
 
@@ -317,7 +323,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'health' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.curlHealth}</code></pre>
+				<pre><code class="language-bash">{codes.curlHealth}</code></pre>
 			</div>
 
 			<h3>Check Reasoning</h3>
@@ -328,7 +334,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'curl' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.curlCheck}</code></pre>
+				<pre><code class="language-bash">{codes.curlCheck}</code></pre>
 			</div>
 
 			<h3>Response</h3>
@@ -339,7 +345,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'response' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.responseJson}</code></pre>
+				<pre><code class="language-json">{codes.responseJson}</code></pre>
 			</div>
 		</section>
 
@@ -432,7 +438,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'langchain' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.langchain}</code></pre>
+				<pre><code class="language-python">{codes.langchain}</code></pre>
 			</div>
 
 			<h3>CrewAI (Python)</h3>
@@ -443,7 +449,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'crewai' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.crewai}</code></pre>
+				<pre><code class="language-python">{codes.crewai}</code></pre>
 			</div>
 
 			<h3>Python Decorator</h3>
@@ -454,7 +460,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'decorator' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.decorator}</code></pre>
+				<pre><code class="language-python">{codes.decorator}</code></pre>
 			</div>
 
 			<h3>JavaScript Monitor</h3>
@@ -465,7 +471,7 @@ if (status.shouldStop) {
 						{copyFeedback === 'js monitor full' ? 'Copied' : 'Copy'}
 					</button>
 				</div>
-				<pre><code>{codes.jsMonitorFull}</code></pre>
+				<pre><code class="language-javascript">{codes.jsMonitorFull}</code></pre>
 			</div>
 		</section>
 	</main>
@@ -633,13 +639,13 @@ if (status.shouldStop) {
 		padding: 1rem;
 		margin: 0;
 		overflow-x: auto;
+		background: transparent;
 	}
 
 	.code-block code {
 		font-family: var(--font-mono);
 		font-size: 0.85rem;
 		line-height: 1.5;
-		color: #e4e4e7;
 		white-space: pre;
 	}
 

@@ -23,6 +23,7 @@
 	},
 	"dependencies": {
 		"@sentry/sveltekit": "^8.51.0",
-		"@supabase/supabase-js": "^2.97.0"
+		"@supabase/supabase-js": "^2.97.0",
+		"highlight.js": "^11.11.1"
 	}
 }
