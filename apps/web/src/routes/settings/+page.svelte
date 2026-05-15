@@ -33,7 +33,7 @@
 			userEmail = authUser.email || '';
 			
 			// Try direct query first (subject to RLS)
-			const { data: userData, error: queryError } = await supabase
+			const { data: userData } = await supabase
 				.from('users')
 				.select('api_key, test_mode_api_key, plan, daily_limit, subscription_status, subscription_current_period_end')
 				.eq('id', authUser.id)
@@ -48,11 +48,11 @@
 				subscriptionPeriodEnd = userData.subscription_current_period_end;
 			}
 
-			// If key is missing, try the RPC fallback (SECURITY DEFINER)
+			// If key is missing, fall back to edge function (bypasses RLS)
 			if (!apiKey) {
-				const { data: keyData, error: rpcError } = await supabase.rpc('get_my_api_key');
-				if (keyData && !rpcError) {
-					apiKey = keyData;
+				const { data: fnData, error: fnError } = await supabase.functions.invoke('get-api-key');
+				if (fnData?.api_key && !fnError) {
+					apiKey = fnData.api_key;
 				}
 			}
 		} catch (e) {
@@ -172,13 +172,13 @@
 
 		try {
 			const { supabase } = await import('$lib/supabase');
-			const { data, error } = await supabase.rpc('get_my_api_key');
-			if (data && !error) {
-				apiKey = data;
+			const { data: fnData, error: fnError } = await supabase.functions.invoke('get-api-key');
+			if (fnData?.api_key && !fnError) {
+				apiKey = fnData.api_key;
 				showApiKey = true;
 				showMessage('New API key generated', 'success');
 			} else {
-				showMessage(error?.message || 'Failed to generate key', 'error');
+				showMessage(fnError?.message || 'Failed to generate key', 'error');
 			}
 		} catch (e: any) {
 			showMessage(e.message || 'Failed to generate key', 'error');
