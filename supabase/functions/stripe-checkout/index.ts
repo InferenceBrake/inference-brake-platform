@@ -1,179 +1,160 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { PLANS, isPlanId, planPriceId } from "../_shared/plans.ts";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-interface PlanConfig {
-  priceId: string;
-  name: string;
-  dailyLimit: number;
-}
-
-const PLANS: Record<string, PlanConfig> = {
-  hobby: {
-    priceId: "",
-    name: "Hobby",
-    dailyLimit: 1000,
-  },
-  pro: {
-    priceId: Deno.env.get("STRIPE_PRO_PRICE_ID") || "price_pro",
-    name: "Pro",
-    dailyLimit: 10000,
-  },
+	"Access-Control-Allow-Origin": "*",
+	"Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+	if (req.method === "OPTIONS") {
+		return new Response("ok", { headers: corsHeaders });
+	}
 
-  // Beta mode: payments not yet enabled
-  return new Response(JSON.stringify({ 
-    error: "Payments not yet enabled. Join the waitlist to be notified when Pro launches.",
-    beta: true
-  }), {
-    status: 503,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+	try {
+		const authHeader = req.headers.get("Authorization");
+		const apiKey = authHeader?.replace("Bearer ", "");
 
-  try {
-    const authHeader = req.headers.get("Authorization");
-    const apiKey = authHeader?.replace("Bearer ", "");
-    
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Missing API key" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+		if (!apiKey) {
+			return json({ error: "Missing API key" }, 401);
+		}
 
-    // Get user from API key
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
-    const userRes = await fetch(`${supabaseUrl}/rest/v1/users?api_key=eq.${apiKey}&select=*`, {
-      headers: {
-        "apikey": supabaseKey,
-        "Authorization": `Bearer ${supabaseKey}`,
-      },
-    });
-    
-    const users = await userRes.json();
-    const user = users[0];
-    
-    if (!user) {
-      return new Response(JSON.stringify({ error: "Invalid API key" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+		const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+		const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const { plan } = await req.json();
-    const planConfig = PLANS[plan];
-    
-    if (!planConfig) {
-      return new Response(JSON.stringify({ error: "Invalid plan" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+		const userRes = await fetch(
+			`${supabaseUrl}/rest/v1/users?api_key=eq.${apiKey}&select=*`,
+			{
+				headers: {
+					apikey: supabaseKey,
+					Authorization: `Bearer ${supabaseKey}`,
+				},
+			},
+		);
 
-    const isDemoMode = Deno.env.get("DEMO_MODE") === "true";
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+		const users = await userRes.json();
+		const user = users[0];
 
-    // If no Stripe key and not in demo mode, reject upgrade
-    if (!stripeKey && !isDemoMode) {
-      return new Response(JSON.stringify({ error: "Payments not configured. Please contact support." }), {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+		if (!user) {
+			return json({ error: "Invalid API key" }, 401);
+		}
 
-    // Demo mode - only allow if explicitly enabled
-    if (!stripeKey && isDemoMode) {
-      await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${user.id}`, {
-        method: "PATCH",
-        headers: {
-          "apikey": supabaseKey,
-          "Authorization": `Bearer ${supabaseKey}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal",
-        },
-        body: JSON.stringify({
-          plan: plan,
-          daily_limit: planConfig.dailyLimit,
-          subscription_status: "active",
-        }),
-      });
-      
-      return new Response(JSON.stringify({
-        success: true,
-        demo: true,
-        message: "Demo mode - plan updated without payment",
-        plan: plan,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+		const { plan } = await req.json();
 
-    // Create Stripe checkout session
-    const stripeUrl = "https://api.stripe.com/v1/checkout/sessions";
-    const params = new URLSearchParams();
-    params.append("mode", "subscription");
-    params.append("customer_email", user.email);
-    params.append("success_url", `${Deno.env.get("PUBLIC_SITE_URL") || "http://localhost:5173"}/dashboard?success=true`);
-    params.append("cancel_url", `${Deno.env.get("PUBLIC_SITE_URL") || "http://localhost:5173"}/dashboard?canceled=true`);
-    params.append("line_items[0][price]", planConfig.priceId);
-    params.append("line_items[0][quantity]", "1");
-    params.append("metadata[user_id]", user.id);
-    params.append("metadata[plan]", plan);
+		if (!isPlanId(plan)) {
+			return json({ error: "Invalid plan" }, 400);
+		}
 
-    const stripeRes = await fetch(stripeUrl, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${stripeKey}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: params,
-    });
+		const planConfig = PLANS[plan];
+		const isDemoMode = Deno.env.get("DEMO_MODE") === "true";
+		const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
 
-    const session = await stripeRes.json();
+		// Free plan has no checkout flow.
+		if (planConfig.priceUsd === 0) {
+			return json({ error: "The Free plan does not require checkout." }, 400);
+		}
 
-    if (session.error) {
-      return new Response(JSON.stringify({ error: session.error.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+		if (!stripeKey && !isDemoMode) {
+			return json(
+				{ error: "Payments not configured. Set STRIPE_SECRET_KEY." },
+				503,
+			);
+		}
 
-    // Store Stripe customer ID if provided
-    if (session.customer) {
-      await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${user.id}`, {
-        method: "PATCH",
-        headers: {
-          "apikey": supabaseKey,
-          "Authorization": `Bearer ${supabaseKey}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal",
-        },
-        body: JSON.stringify({
-          stripe_customer_id: session.customer,
-        }),
-      });
-    }
+		// Demo mode - only when explicitly enabled, and only without a real key.
+		if (!stripeKey && isDemoMode) {
+			await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${user.id}`, {
+				method: "PATCH",
+				headers: {
+					apikey: supabaseKey,
+					Authorization: `Bearer ${supabaseKey}`,
+					"Content-Type": "application/json",
+					Prefer: "return=minimal",
+				},
+				body: JSON.stringify({
+					plan,
+					daily_limit: planConfig.dailyLimit,
+					subscription_status: "active",
+				}),
+			});
 
-    return new Response(JSON.stringify({
-      url: session.url,
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+			return json({
+				success: true,
+				demo: true,
+				message: "Demo mode - plan updated without payment",
+				plan,
+			});
+		}
 
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+		const priceId = planPriceId(plan);
+		if (!priceId) {
+			return json(
+				{
+					error:
+						`No Stripe price configured for the ${planConfig.name} plan. ` +
+						`Set ${planConfig.priceEnv}.`,
+				},
+				503,
+			);
+		}
+
+		const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "http://localhost:5173";
+		const params = new URLSearchParams();
+		params.append("mode", "subscription");
+		params.append("success_url", `${siteUrl}/dashboard?success=true`);
+		params.append("cancel_url", `${siteUrl}/dashboard?canceled=true`);
+		params.append("line_items[0][price]", priceId);
+		params.append("line_items[0][quantity]", "1");
+		params.append("metadata[user_id]", user.id);
+		params.append("metadata[plan]", plan);
+		params.append("subscription_data[metadata][user_id]", user.id);
+		params.append("subscription_data[metadata][plan]", plan);
+
+		// Reuse the existing Stripe customer when available so upgrades and the
+		// billing portal share one customer record.
+		if (user.stripe_customer_id) {
+			params.append("customer", user.stripe_customer_id);
+		} else {
+			params.append("customer_email", user.email);
+		}
+
+		const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${stripeKey}`,
+				"Content-Type": "application/x-www-form-urlencoded",
+			},
+			body: params,
+		});
+
+		const session = await stripeRes.json();
+
+		if (session.error) {
+			return json({ error: session.error.message }, 400);
+		}
+
+		if (session.customer && session.customer !== user.stripe_customer_id) {
+			await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${user.id}`, {
+				method: "PATCH",
+				headers: {
+					apikey: supabaseKey,
+					Authorization: `Bearer ${supabaseKey}`,
+					"Content-Type": "application/json",
+					Prefer: "return=minimal",
+				},
+				body: JSON.stringify({ stripe_customer_id: session.customer }),
+			});
+		}
+
+		return json({ url: session.url });
+	} catch (err) {
+		return json({ error: err instanceof Error ? err.message : String(err) }, 500);
+	}
 });
+
+function json(body: unknown, status = 200): Response {
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: { ...corsHeaders, "Content-Type": "application/json" },
+	});
+}

@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { PLANS, FREE_PLAN } from "../_shared/plans.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,15 +10,6 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
-
-  // Beta mode: payments not yet enabled
-  return new Response(JSON.stringify({ 
-    error: "Payments not yet enabled during beta.",
-    beta: true
-  }), {
-    status: 503,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -68,8 +60,8 @@ Deno.serve(async (req) => {
           "Prefer": "return=minimal",
         },
         body: JSON.stringify({
-          plan: "hobby",
-          daily_limit: 1000,
+          plan: FREE_PLAN,
+          daily_limit: PLANS[FREE_PLAN].dailyLimit,
           subscription_status: "canceled",
           stripe_subscription_id: null,
         }),
@@ -127,7 +119,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

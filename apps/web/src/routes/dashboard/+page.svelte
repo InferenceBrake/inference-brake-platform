@@ -12,17 +12,18 @@
 	}>>([]);
 	let stats = $state({
 		total_checks: 0,
-		loops_detected: 0
+		loops_detected: 0,
+		dollars_saved: 0
 	});
 	let loading = $state(true);
 	let userEmail = $state('');
 	let userPlan = $state('hobby');
 	let userDailyLimit = $state(10000);
 	let checksToday = $state(0);
+	let subscriptionStatus = $state('inactive');
+	let upgradeProcessing = $state<string | null>(null);
+	let billingMessage = $state('');
 	let apiKey = $state('');
-	let waitlistEmail = $state('');
-	let waitlistSubmitting = $state(false);
-	let waitlistMessage = $state('');
 	let showApiKey = $state(false);
 	let selectedSession = $state<string | null>(null);
 	let sessionSteps = $state<Array<{
@@ -44,6 +45,13 @@
 	let dateTo = $state('');
 
 	onMount(() => {
+		const params = new URLSearchParams(window.location.search);
+		if (params.get('success') === 'true') {
+			billingMessage = 'Subscription activated. Your plan will update shortly.';
+		} else if (params.get('canceled') === 'true') {
+			billingMessage = 'Checkout canceled. No changes were made.';
+		}
+
 		loadData();
 		
 		// Poll for usage updates every 3 seconds
@@ -83,7 +91,7 @@
 			// Get user's full data from our users table
 			const { data: userData } = await supabase
 				.from('users')
-				.select('api_key, plan, daily_limit, checks_today, onboarding_completed')
+				.select('api_key, plan, daily_limit, checks_today, onboarding_completed, subscription_status')
 				.eq('id', authUser.id)
 				.single();
 			
@@ -92,6 +100,7 @@
 				userPlan = userData.plan || 'hobby';
 				userDailyLimit = userData.daily_limit || 10000;
 				checksToday = userData.checks_today || 0;
+				subscriptionStatus = userData.subscription_status || 'inactive';
 				
 				// Store API key for SDK use
 				if (userData.api_key) {
@@ -156,14 +165,17 @@
 
 			const { data: metricsData } = await supabase
 				.from('metrics')
-				.select('loop_detected')
+				.select('loop_detected, estimated_cost_saved')
 				.eq('user_id', authUser.id);
 			
 			if (metricsData) {
-				const loopsDetected = (metricsData as Array<{ loop_detected: boolean }>).filter(m => m.loop_detected).length;
+				const rows = metricsData as Array<{ loop_detected: boolean; estimated_cost_saved: number | null }>;
+				const loopsDetected = rows.filter(m => m.loop_detected).length;
+				const dollarsSaved = rows.reduce((sum, m) => sum + (m.estimated_cost_saved || 0), 0);
 				stats = {
-					total_checks: metricsData.length,
-					loops_detected: loopsDetected
+					total_checks: rows.length,
+					loops_detected: loopsDetected,
+					dollars_saved: dollarsSaved
 				};
 			}
 		} catch (e) {
@@ -256,46 +268,16 @@
 		}
 	}
 
-	async function submitWaitlist() {
-		if (!waitlistEmail || !waitlistEmail.includes('@')) {
-			waitlistMessage = 'Please enter a valid email';
-			return;
-		}
-		
-		waitlistSubmitting = true;
-		waitlistMessage = '';
-		
-		try {
-			const { supabase } = await import('$lib/supabase');
-			const { error } = await supabase
-				.from('waitlist')
-				.insert({ email: waitlistEmail });
-			
-			if (error) {
-				if (error.code === '23505') {
-					waitlistMessage = 'You are already on the waitlist!';
-				} else {
-					waitlistMessage = 'Failed to join waitlist. Please try again.';
-				}
-			} else {
-				waitlistMessage = 'Thanks! We will notify you when Pro launches.';
-				waitlistEmail = '';
-			}
-		} catch (e) {
-			waitlistMessage = 'Failed to join waitlist. Please try again.';
-		} finally {
-			waitlistSubmitting = false;
-		}
-	}
-	
 	async function upgradePlan(plan: string) {
+		upgradeProcessing = plan;
+		billingMessage = '';
 		try {
 			const { supabase } = await import('$lib/supabase');
 			
 			// Get stored API key
 			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
 			if (!storedApiKey) {
-				alert('No API key found. Please refresh the page.');
+				billingMessage = 'No API key found. Please refresh the page.';
 				return;
 			}
 			
@@ -309,15 +291,45 @@
 			if (response.data?.url) {
 				window.location.href = response.data.url;
 			} else if (response.data?.demo) {
-				alert('Demo mode - plan updated!');
+				billingMessage = 'Demo mode - plan updated.';
 				userPlan = plan;
-				userDailyLimit = plan === 'pro' ? 10000 : 1000;
-			} else if (response.error) {
-				alert('Error: ' + response.error);
+				userDailyLimit = plan === 'pro' ? 16666 : plan === 'growth' ? 3333 : 1000;
+			} else {
+				billingMessage = response.data?.error || response.error?.message || 'Failed to start checkout.';
 			}
 		} catch (e) {
-			console.error('Failed to upgrade:', e);
-			alert('Failed to upgrade: ' + e);
+			billingMessage = 'Failed to start checkout: ' + e;
+		} finally {
+			upgradeProcessing = null;
+		}
+	}
+
+	async function manageBilling() {
+		upgradeProcessing = 'portal';
+		billingMessage = '';
+		try {
+			const { supabase } = await import('$lib/supabase');
+			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
+			if (!storedApiKey) {
+				billingMessage = 'No API key found. Please refresh the page.';
+				return;
+			}
+			
+			const response = await supabase.functions.invoke('stripe-portal', {
+				headers: {
+					Authorization: `Bearer ${storedApiKey}`
+				}
+			});
+			
+			if (response.data?.url) {
+				window.location.href = response.data.url;
+			} else {
+				billingMessage = response.data?.error || response.error?.message || 'Failed to open billing portal.';
+			}
+		} catch (e) {
+			billingMessage = 'Failed to open billing portal: ' + e;
+		} finally {
+			upgradeProcessing = null;
 		}
 	}
 
@@ -336,7 +348,16 @@
 	}
 	
 	function getPlanDisplayName(plan: string) {
+		if (plan === 'hobby') return 'Free';
 		return plan.charAt(0).toUpperCase() + plan.slice(1);
+	}
+
+	function formatUSD(value: number) {
+		return value.toLocaleString('en-US', {
+			style: 'currency',
+			currency: 'USD',
+			maximumFractionDigits: 2
+		});
 	}
 
 	function applyDateFilter() {
@@ -406,34 +427,37 @@
 				</div>
 			</div>
 			
-			{#if userPlan !== 'pro'}
-				<div class="waitlist-prompt">
-					<div class="waitlist-content">
-						<span class="waitlist-title">Pro plan coming soon</span>
-						<span class="waitlist-desc">Get notified when it launches and get early access.</span>
-					</div>
-					<div class="waitlist-form">
-						<input 
-							type="email" 
-							bind:value={waitlistEmail} 
-							placeholder="your@email.com"
-							disabled={waitlistSubmitting}
-						/>
-						<button 
-							class="btn btn-primary" 
-							onclick={submitWaitlist}
-							disabled={waitlistSubmitting}
-						>
-							{waitlistSubmitting ? 'Joining...' : 'Notify me'}
+			<div class="waitlist-prompt">
+				<div class="waitlist-content">
+					<span class="waitlist-title">{getPlanDisplayName(userPlan)} plan</span>
+					<span class="waitlist-desc">
+						{userDailyLimit.toLocaleString()} checks/day
+						{#if subscriptionStatus === 'past_due'} · Payment past due{/if}
+					</span>
+				</div>
+				{#if subscriptionStatus === 'past_due'}
+					<div class="billing-warning">Update your payment method to avoid interruption.</div>
+				{/if}
+				<div class="plan-actions">
+					{#if userPlan === 'hobby'}
+						<button class="btn btn-secondary upgrade-btn" onclick={() => upgradePlan('growth')} disabled={upgradeProcessing !== null}>
+							{upgradeProcessing === 'growth' ? 'Redirecting...' : 'Upgrade to Growth - $49/mo'}
 						</button>
-					</div>
-					{#if waitlistMessage}
-						<div class="waitlist-message" class:error={!waitlistMessage.includes('Thanks')}>
-							{waitlistMessage}
-						</div>
+						<button class="btn btn-primary upgrade-btn" onclick={() => upgradePlan('pro')} disabled={upgradeProcessing !== null}>
+							{upgradeProcessing === 'pro' ? 'Redirecting...' : 'Upgrade to Pro - $199/mo'}
+						</button>
+					{:else}
+						<button class="btn btn-secondary upgrade-btn" onclick={manageBilling} disabled={upgradeProcessing !== null}>
+							{upgradeProcessing === 'portal' ? 'Opening...' : 'Manage billing'}
+						</button>
 					{/if}
 				</div>
-			{/if}
+				{#if billingMessage}
+					<div class="waitlist-message" class:error={billingMessage.includes('Failed') || billingMessage.includes('past due')}>
+						{billingMessage}
+					</div>
+				{/if}
+			</div>
 		</section>
 		
 		<!-- API Key Section -->
@@ -483,13 +507,13 @@
 					</div>
 				</div>
 
-				<div class="stat-card">
+				<div class="stat-card" title="Estimated cost of reasoning steps avoided by halting detected loops (step tokens x 10 assumed steps x $10/1M output tokens).">
 					<div class="stat-icon saved">
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
 					</div>
 					<div class="stat-content">
-						<span class="stat-label">Loops Stopped</span>
-						<span class="stat-value">{stats.loops_detected.toLocaleString()}</span>
+						<span class="stat-label">Est. $ Saved</span>
+						<span class="stat-value">{formatUSD(stats.dollars_saved)}</span>
 					</div>
 				</div>
 
@@ -793,24 +817,16 @@
 		color: var(--text-secondary);
 	}
 
-	.waitlist-form {
+	.plan-actions {
 		display: flex;
+		flex-direction: column;
 		gap: var(--space-sm);
 	}
 
-	.waitlist-form input {
-		flex: 1;
-		padding: var(--space-sm) var(--space-md);
-		background: var(--bg-primary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		color: var(--text-primary);
-		font-size: 0.9rem;
-	}
-
-	.waitlist-form input:focus {
-		outline: none;
-		border-color: var(--accent);
+	.billing-warning {
+		margin-bottom: var(--space-sm);
+		font-size: 0.85rem;
+		color: var(--danger);
 	}
 
 	.waitlist-message {

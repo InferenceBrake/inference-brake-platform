@@ -85,43 +85,6 @@ function processStep() {
 
 // Code tabs
 let activeTab = $state("python");
-
-// Beta waitlist
-let betaEmail = $state('');
-let betaSubmitting = $state(false);
-let betaMessage = $state('');
-
-async function joinBeta() {
-	if (!betaEmail || !betaEmail.includes('@')) {
-		betaMessage = 'Please enter a valid email';
-		return;
-	}
-	
-	betaSubmitting = true;
-	betaMessage = '';
-	
-	try {
-		const { supabase } = await import('$lib/supabase');
-		const { error } = await supabase
-			.from('waitlist')
-			.insert({ email: betaEmail });
-		
-		if (error) {
-			if (error.code === '23505') {
-				betaMessage = 'You are already on the list!';
-			} else {
-				betaMessage = 'Failed to join. Please try again.';
-			}
-		} else {
-			betaMessage = 'Welcome to the beta! Check your email to get started.';
-			betaEmail = '';
-		}
-	} catch (e) {
-		betaMessage = 'Failed to join. Please try again.';
-	} finally {
-		betaSubmitting = false;
-	}
-}
 </script>
 
 <svelte:head>
@@ -404,46 +367,53 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 <section id="pricing" class="pricing-section">
 	<div class="container">
 		<div class="section-header">
-			<h2>Free During Beta</h2>
-			<p>All features, no credit card required.</p>
+			<h2>Simple, usage-based pricing</h2>
+			<p>Scale with the number of agent steps you monitor. Cancel anytime.</p>
 		</div>
 		
-		<div class="beta-card">
-			<div class="beta-badge">Open Beta</div>
-			<h3>10,000 checks/day</h3>
-			<p class="beta-desc">Full access to all 5 detectors during our public beta. No limits, no credit card, no catch.</p>
-			
-			<ul class="beta-features">
-				<li><span class="check">✓</span> All 5 production detectors</li>
-				<li><span class="check">✓</span> Adjustable voting thresholds</li>
-				<li><span class="check">✓</span> 90-day history</li>
-				<li><span class="check">✓</span> Email support</li>
-			</ul>
-			
-			<div class="beta-signup">
-				<input 
-					type="email" 
-					bind:value={betaEmail} 
-					placeholder="Enter your email"
-					disabled={betaSubmitting}
-				/>
-				<button class="btn btn-primary" onclick={joinBeta} disabled={betaSubmitting}>
-					{betaSubmitting ? 'Joining...' : 'Get Started Free'}
-				</button>
+		<div class="pricing-grid">
+			<div class="price-card">
+				<h3>Free</h3>
+				<div class="price"><span class="amount">$0</span><span class="period">/mo</span></div>
+				<p class="price-desc">1,000 checks/day. No credit card required.</p>
+				<ul class="price-features">
+					<li><span class="check">✓</span> All 5 production detectors</li>
+					<li><span class="check">✓</span> 7-day log retention</li>
+					<li><span class="check">✓</span> Email support</li>
+				</ul>
+				<a href="/register" class="btn btn-secondary">Get started free</a>
 			</div>
-			
-			{#if betaMessage}
-				<div class="beta-message" class:error={!betaMessage.includes('Welcome')}>
-					{betaMessage}
-				</div>
-			{/if}
+
+			<div class="price-card featured">
+				<div class="price-badge">Most popular</div>
+				<h3>Growth</h3>
+				<div class="price"><span class="amount">$49</span><span class="period">/mo</span></div>
+				<p class="price-desc">~100,000 checks/month for production agents.</p>
+				<ul class="price-features">
+					<li><span class="check">✓</span> All 5 production detectors</li>
+					<li><span class="check">✓</span> Slack + webhook alerts</li>
+					<li><span class="check">✓</span> Est. dollars-saved dashboard</li>
+					<li><span class="check">✓</span> 30-day log retention</li>
+				</ul>
+				<a href="/register" class="btn btn-primary">Start with Growth</a>
+			</div>
+
+			<div class="price-card">
+				<h3>Pro</h3>
+				<div class="price"><span class="amount">$199</span><span class="period">/mo</span></div>
+				<p class="price-desc">~500,000 checks/month and priority latency.</p>
+				<ul class="price-features">
+					<li><span class="check">✓</span> All 5 production detectors</li>
+					<li><span class="check">✓</span> Custom voting thresholds</li>
+					<li><span class="check">✓</span> Priority API latency</li>
+					<li><span class="check">✓</span> 90-day log retention</li>
+				</ul>
+				<a href="/register" class="btn btn-secondary">Start with Pro</a>
+			</div>
 		</div>
 		
 		<div class="pro-notice">
-			<span>Pro plan coming later with higher limits and early access to new detectors.</span>
-			<a href="#pricing" onclick={() => document.getElementById('beta-signup')?.scrollIntoView({behavior: 'smooth'})}>
-				Get notified →
-			</a>
+			<span>Paid plans require a free account. Upgrade from the dashboard after signing up.</span>
 		</div>
 	</div>
 </section>
@@ -833,86 +803,97 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 	.s { color: #22c55e; }
 	.c { color: var(--text-tertiary); }
 	
-	/* Beta Card */
-	.beta-card {
+	/* Pricing */
+	.pricing-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5rem;
+		align-items: stretch;
+	}
+	
+	.price-card {
+		position: relative;
 		background: var(--bg-secondary);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-xl);
-		padding: 3rem 2rem;
-		max-width: 500px;
-		margin: 0 auto;
-		text-align: center;
+		padding: 2.5rem 2rem;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
 	}
 	
-	.beta-badge {
-		display: inline-block;
+	.price-card.featured {
+		border-color: var(--accent);
+		box-shadow: 0 0 40px rgba(249, 115, 22, 0.12);
+	}
+	
+	.price-badge {
+		position: absolute;
+		top: -0.75rem;
+		left: 50%;
+		transform: translateX(-50%);
 		background: var(--gradient-accent);
 		color: white;
-		padding: 0.35rem 1rem;
-		font-size: 0.75rem;
+		padding: 0.25rem 0.9rem;
+		font-size: 0.7rem;
 		font-weight: 600;
 		border-radius: var(--radius-full);
 		text-transform: uppercase;
-		margin-bottom: 1.5rem;
+		white-space: nowrap;
 	}
 	
-	.beta-card h3 {
+	.price-card h3 {
+		font-size: 1.25rem;
+		margin-bottom: 0.75rem;
+	}
+	
+	.price {
+		display: flex;
+		align-items: baseline;
+		gap: 0.25rem;
+		margin-bottom: 0.75rem;
+	}
+	
+	.price .amount {
 		font-size: 2.5rem;
 		font-weight: 800;
-		margin-bottom: 0.5rem;
 	}
 	
-	.beta-desc {
-		font-size: 1.1rem;
+	.price .period {
+		font-size: 1rem;
+		color: var(--text-tertiary);
+	}
+	
+	.price-desc {
+		font-size: 0.9rem;
 		color: var(--text-secondary);
-		margin-bottom: 2rem;
+		margin-bottom: 1.5rem;
+		min-height: 2.5rem;
 	}
 	
-	.beta-features {
+	.price-features {
 		list-style: none;
-		margin-bottom: 2rem;
-		text-align: left;
-		display: inline-block;
+		margin: 0 0 2rem;
+		padding: 0;
+		flex: 1;
 	}
 	
-	.beta-features li {
+	.price-features li {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
-		padding: 0.5rem 0;
-		font-size: 0.95rem;
+		padding: 0.4rem 0;
+		font-size: 0.9rem;
 		color: var(--text-secondary);
 	}
 	
-	.beta-signup {
-		display: flex;
-		gap: 0.5rem;
-		max-width: 400px;
-		margin: 0 auto 1rem;
-	}
-	
-	.beta-signup input {
-		flex: 1;
-		padding: 0.75rem 1rem;
-		background: var(--bg-primary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		color: var(--text-primary);
-		font-size: 0.95rem;
-	}
-	
-	.beta-signup input:focus {
-		outline: none;
-		border-color: var(--accent);
-	}
-	
-	.beta-message {
-		font-size: 0.9rem;
+	.price-features .check {
 		color: var(--success);
 	}
 	
-	.beta-message.error {
-		color: var(--danger);
+	.price-card .btn {
+		width: 100%;
+		text-align: center;
 	}
 	
 	.pro-notice {
@@ -953,6 +934,10 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 		}
 		
 		.detectors-grid {
+			grid-template-columns: 1fr;
+		}
+		
+		.pricing-grid {
 			grid-template-columns: 1fr;
 		}
 	}

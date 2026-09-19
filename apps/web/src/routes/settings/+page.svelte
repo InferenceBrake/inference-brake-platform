@@ -13,6 +13,7 @@
 	let showTestApiKey = $state(false);
 	let loading = $state(true);
 	let processing = $state(false);
+	let billingProcessing = $state<string | null>(null);
 	let message = $state('');
 	let messageType = $state<'success' | 'error'>('success');
 
@@ -193,6 +194,91 @@
 		setTimeout(() => { message = ''; }, 5000);
 	}
 
+	function getPlanDisplayName(plan: string) {
+		if (plan === 'hobby') return 'Free';
+		return plan.charAt(0).toUpperCase() + plan.slice(1);
+	}
+
+	async function upgradePlan(plan: string) {
+		billingProcessing = plan;
+		try {
+			const { supabase } = await import('$lib/supabase');
+			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
+			if (!storedApiKey) throw new Error('No API key found');
+
+			const { data, error } = await supabase.functions.invoke('stripe-checkout', {
+				body: { plan },
+				headers: { Authorization: `Bearer ${storedApiKey}` }
+			});
+
+			if (data?.url) {
+				window.location.href = data.url;
+				return;
+			}
+			if (data?.demo) {
+				userPlan = plan;
+				userDailyLimit = plan === 'pro' ? 16666 : plan === 'growth' ? 3333 : 1000;
+				subscriptionStatus = 'active';
+				showMessage('Demo mode - plan updated', 'success');
+				return;
+			}
+			throw new Error(data?.error || error?.message || 'Failed to start checkout');
+		} catch (e: any) {
+			showMessage(e.message || 'Failed to start checkout', 'error');
+		} finally {
+			billingProcessing = null;
+		}
+	}
+
+	async function manageBilling() {
+		billingProcessing = 'portal';
+		try {
+			const { supabase } = await import('$lib/supabase');
+			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
+			if (!storedApiKey) throw new Error('No API key found');
+
+			const { data, error } = await supabase.functions.invoke('stripe-portal', {
+				headers: { Authorization: `Bearer ${storedApiKey}` }
+			});
+
+			if (data?.url) {
+				window.location.href = data.url;
+				return;
+			}
+			throw new Error(data?.error || error?.message || 'Failed to open billing portal');
+		} catch (e: any) {
+			showMessage(e.message || 'Failed to open billing portal', 'error');
+		} finally {
+			billingProcessing = null;
+		}
+	}
+
+	async function cancelSubscription() {
+		if (!confirm('Cancel your subscription? You will be downgraded to the Free plan.')) return;
+		billingProcessing = 'cancel';
+		try {
+			const { supabase } = await import('$lib/supabase');
+			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
+			if (!storedApiKey) throw new Error('No API key found');
+
+			const { data, error } = await supabase.functions.invoke('stripe-cancel', {
+				headers: { Authorization: `Bearer ${storedApiKey}` }
+			});
+
+			if (error) throw new Error(error.message);
+			if (data?.error) throw new Error(data.error);
+
+			userPlan = 'hobby';
+			userDailyLimit = 1000;
+			subscriptionStatus = 'canceled';
+			showMessage('Subscription canceled', 'success');
+		} catch (e: any) {
+			showMessage(e.message || 'Failed to cancel subscription', 'error');
+		} finally {
+			billingProcessing = null;
+		}
+	}
+
 	function formatDate(dateStr: string | null) {
 		if (!dateStr) return 'N/A';
 		return new Date(dateStr).toLocaleDateString('en-US', {
@@ -305,24 +391,50 @@
 
 				<section class="settings-card">
 					<h2>Plan</h2>
-					<p class="card-description">Your current plan during beta</p>
+					<p class="card-description">Your subscription and usage limits</p>
 					
 					<div class="current-plan">
 						<div class="plan-info">
-							<span class="plan-name">
-								Free Beta
+							<span class="plan-name" class:pro={userPlan === 'pro'}>
+								{getPlanDisplayName(userPlan)}
 							</span>
-							<span class="beta-badge">Open Beta</span>
+							<span class="badge" class:active={subscriptionStatus === 'active'}>
+								{subscriptionStatus}
+							</span>
 						</div>
 						<div class="plan-details">
 							<span>{userDailyLimit.toLocaleString()} checks/day</span>
-							<span class="period-end">All features included</span>
+							{#if subscriptionPeriodEnd && userPlan !== 'hobby'}
+								<span class="period-end">Renews {formatDate(subscriptionPeriodEnd)}</span>
+							{:else}
+								<span class="period-end">No billing</span>
+							{/if}
 						</div>
 					</div>
 
-					<div class="beta-notice">
-						<p>Pro plan coming later. Get notified when it launches.</p>
+					<div class="plan-options">
+						{#if userPlan === 'hobby'}
+							<button class="btn btn-secondary" onclick={() => upgradePlan('growth')} disabled={billingProcessing !== null}>
+								{billingProcessing === 'growth' ? 'Redirecting...' : 'Upgrade to Growth - $49/mo'}
+							</button>
+							<button class="btn btn-primary" onclick={() => upgradePlan('pro')} disabled={billingProcessing !== null}>
+								{billingProcessing === 'pro' ? 'Redirecting...' : 'Upgrade to Pro - $199/mo'}
+							</button>
+						{:else}
+							<button class="btn btn-secondary" onclick={manageBilling} disabled={billingProcessing !== null}>
+								{billingProcessing === 'portal' ? 'Opening...' : 'Manage billing'}
+							</button>
+						{/if}
 					</div>
+
+					{#if userPlan !== 'hobby' && subscriptionStatus !== 'canceled'}
+						<div class="cancel-section">
+							<button class="btn btn-danger-outline" onclick={cancelSubscription} disabled={billingProcessing !== null}>
+								{billingProcessing === 'cancel' ? 'Canceling...' : 'Cancel subscription'}
+							</button>
+							<p class="cancel-hint">You will be downgraded to the Free plan at the end of the billing period.</p>
+						</div>
+					{/if}
 				</section>
 
 				<section class="settings-card">
@@ -570,33 +682,15 @@
 		color: var(--text-tertiary);
 	}
 
-	.beta-badge {
-		display: inline-block;
-		background: var(--gradient-accent);
-		color: white;
-		padding: 0.2rem 0.6rem;
-		font-size: 0.7rem;
-		font-weight: 600;
-		border-radius: var(--radius-full);
-		text-transform: uppercase;
-	}
-
-	.beta-notice {
-		background: var(--bg-primary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		padding: var(--space-md);
-		margin-top: var(--space-md);
-	}
-
-	.beta-notice p {
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-		margin: 0;
-	}
-
 	.plan-options {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
 		margin-bottom: var(--space-lg);
+	}
+
+	.plan-options .btn {
+		width: 100%;
 	}
 
 	.cancel-section {

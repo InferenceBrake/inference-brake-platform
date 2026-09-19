@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
 	}
 
 	try {
-		const { session_id, reasoning, similarity, detectors, action, webhook_url, message } = await req.json();
+		const { session_id, reasoning, similarity, detectors, action, webhook_url, message, estimated_cost_saved, token_count } = await req.json();
 
     if (!webhook_url) {
       return new Response(JSON.stringify({ error: "Missing webhook_url" }), {
@@ -69,6 +69,14 @@ Deno.serve(async (req) => {
             {
               type: "mrkdwn",
               text: `*Similarity:*\n${similarity ? (similarity * 100).toFixed(1) + "%" : "N/A"}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*Est. Saved:*\n${typeof estimated_cost_saved === "number" ? "$" + estimated_cost_saved.toFixed(2) : "N/A"}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*Step Tokens:*\n${typeof token_count === "number" ? token_count.toLocaleString() : "N/A"}`
             }
           ]
         },
@@ -128,7 +136,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

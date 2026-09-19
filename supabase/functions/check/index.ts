@@ -8,6 +8,28 @@ const supabase = createClient(
 
 const model = new Supabase.ai.Session("gte-small");
 
+// --- Cost model ---
+// A detected loop is assumed to have continued for LOOP_STEPS_AVOIDED more
+// reasoning steps had it not been halted. Each step's output token count is
+// estimated with words * TOKENS_PER_WORD (same convention as the Python
+// engine, pipeline.py). Priced at OUTPUT_PRICE_PER_TOKEN (USD), defaulting to
+// $10 / 1M tokens (GPT-4o-class output). Override via env vars.
+const TOKENS_PER_WORD = 1.3;
+const LOOP_STEPS_AVOIDED = Number(Deno.env.get("LOOP_STEPS_AVOIDED") ?? 10);
+const OUTPUT_PRICE_PER_TOKEN = Number(
+	Deno.env.get("OUTPUT_PRICE_PER_TOKEN") ?? 0.00001,
+);
+
+function estimateTokens(text: string): number {
+	const words = text.trim().split(/\s+/).filter(Boolean).length;
+	return Math.ceil(words * TOKENS_PER_WORD);
+}
+
+function estimateCostSaved(tokens: number, isLooping: boolean): number {
+	if (!isLooping) return 0;
+	return tokens * LOOP_STEPS_AVOIDED * OUTPUT_PRICE_PER_TOKEN;
+}
+
 // --- Client-side detectors: edit distance, NCD ---
 
 function wordLevenshtein(a: string[], b: string[]): number {
@@ -215,6 +237,10 @@ Deno.serve(async (req) => {
 			?? reasoning.split(" ")[0]?.toLowerCase().slice(0, 50)
 			?? "unknown";
 
+		// 7b. COST ESTIMATE
+		const tokenCount = estimateTokens(reasoning);
+		const costSaved = estimateCostSaved(tokenCount, isLooping);
+
 		// 8. ASYNC LOGGING
 		Promise.all([
 			supabase
@@ -239,6 +265,8 @@ Deno.serve(async (req) => {
 						ncd_vote: ncdVote,
 						ncd_score: ncdScore,
 						confidence,
+						token_count: tokenCount,
+						estimated_cost_saved: costSaved,
 					},
 				})
 				.then(({ error }) => {
@@ -252,7 +280,7 @@ Deno.serve(async (req) => {
 					session_id,
 					loop_detected: isLooping,
 					similarity,
-					estimated_cost_saved: null,
+					estimated_cost_saved: costSaved,
 				})
 				.then(({ error }) => {
 					if (error) console.error("Metrics log failed:", error.message);
@@ -271,6 +299,7 @@ Deno.serve(async (req) => {
 				action,
 				loop_detected: isLooping,
 				similarity,
+				estimated_cost_saved: costSaved,
 				action_repeat_count: actionRepeatCount,
 				ngram_overlap: ngramOverlap,
 				detectors: {
@@ -303,7 +332,7 @@ Deno.serve(async (req) => {
 			},
 		);
 	} catch (err) {
-		return new Response(JSON.stringify({ error: err.message }), {
+		return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
 			status: 500,
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
 		});

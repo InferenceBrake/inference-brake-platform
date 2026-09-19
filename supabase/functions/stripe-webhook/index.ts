@@ -1,13 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { PLANS, FREE_PLAN, planForPriceId } from "../_shared/plans.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
-};
-
-const PLANS: Record<string, { dailyLimit: number }> = {
-  hobby: { dailyLimit: 1000 },
-  pro: { dailyLimit: 10000 },
 };
 
 Deno.serve(async (req) => {
@@ -121,20 +117,13 @@ Deno.serve(async (req) => {
         const subscription = await subRes.json();
         
         const priceId = subscription.items?.data?.[0]?.price?.id;
-        let plan = "hobby";
-        let dailyLimit = 1000;
-        
-        const proPriceId = Deno.env.get("STRIPE_PRO_PRICE_ID");
-        if (priceId === proPriceId) {
-          plan = "pro";
-          dailyLimit = 10000;
-        }
+        const planConfig = planForPriceId(priceId) ?? PLANS[FREE_PLAN];
 
         updateData = {
           stripe_subscription_id: subscriptionId,
           stripe_customer_id: customerId,
-          plan: plan,
-          daily_limit: dailyLimit,
+          plan: planConfig.id,
+          daily_limit: planConfig.dailyLimit,
           subscription_status: "active",
           subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
         };
@@ -152,17 +141,24 @@ Deno.serve(async (req) => {
           subscriptionStatus = "canceled";
         }
 
+        // Reflect plan changes (upgrade/downgrade) on the user record.
+        const updatedPriceId = data.items?.data?.[0]?.price?.id;
+        const planConfig = planForPriceId(updatedPriceId);
+
         updateData = {
           subscription_status: subscriptionStatus,
           subscription_current_period_end: currentPeriodEnd,
+          ...(planConfig
+            ? { plan: planConfig.id, daily_limit: planConfig.dailyLimit }
+            : {}),
         };
         break;
       }
 
       case "customer.subscription.deleted": {
         updateData = {
-          plan: "hobby",
-          daily_limit: 1000,
+          plan: FREE_PLAN,
+          daily_limit: PLANS[FREE_PLAN].dailyLimit,
           subscription_status: "canceled",
           stripe_subscription_id: null,
         };
@@ -200,7 +196,7 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     console.error("Webhook error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
