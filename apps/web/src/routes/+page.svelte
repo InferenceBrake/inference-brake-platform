@@ -307,6 +307,23 @@ let activeTab = $state("python");
 	</div>
 </section>
 
+<section id="recording" class="recording-section">
+	<div class="container">
+		<div class="section-header">
+			<h2>Recorded From a Real Agent</h2>
+			<p>An OpenRouter model stuck retrying a failing tool, halted at step 6</p>
+		</div>
+		
+		<div class="recording-frame">
+			<img
+				src="/demo.gif"
+				alt="InferenceBrake detecting a real agent reasoning loop in a terminal"
+				loading="lazy"
+			/>
+		</div>
+	</div>
+</section>
+
 <section class="code-section">
 	<div class="container">
 		<div class="section-header">
@@ -637,6 +654,27 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 	/* Demo Section */
 	.demo-section {
 		padding: 6rem 0;
+	}
+	
+	/* Recording Section */
+	.recording-section {
+		padding: 6rem 0;
+	}
+	
+	.recording-frame {
+		max-width: 900px;
+		margin: 0 auto;
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-xl);
+		overflow: hidden;
+		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+	}
+	
+	.recording-frame img {
+		display: block;
+		width: 100%;
+		height: auto;
 	}
 	
 	.demo-container {

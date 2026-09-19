@@ -45,6 +45,14 @@ Step 247: [Your OpenAI bill: $4,732.50]
 
 ---
 
+## Demo
+
+A real OpenRouter agent is given one tool that always fails. The agent retries the same call and its reasoning converges. InferenceBrake detects the loop and halts it at step 6.
+
+![InferenceBrake detecting a real agent loop](demo.gif)
+
+---
+
 ## Quick Start
 
 ### 1. Deploy Supabase Edge Function
