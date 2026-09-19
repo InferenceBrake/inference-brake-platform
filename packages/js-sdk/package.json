@@ -1,34 +1,48 @@
 {
-  "name": "@inferencebrake/sdk",
+  "name": "inferencebrake",
   "version": "0.1.0",
-  "description": "JavaScript/TypeScript SDK for InferenceBrake",
+  "description": "Loop detection for AI agents. Detect and stop runaway reasoning loops before they burn your token budget.",
   "main": "index.js",
   "type": "commonjs",
   "types": "index.d.ts",
   "exports": {
     ".": {
+      "types": "./index.d.ts",
       "import": "./index.js",
       "require": "./index.js"
     }
   },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "sideEffects": false,
   "scripts": {
     "test": "echo \"No tests yet\" && exit 0"
   },
   "keywords": [
     "ai",
-    "agent",
+    "agents",
+    "llm",
     "loop",
     "detection",
     "semantic",
-    "supabase",
-    "llm"
+    "guardrails",
+    "langchain"
   ],
-  "author": "",
+  "author": "InferenceBrake",
   "license": "MIT",
-  "engines": {
-    "node": ">=14.0.0"
+  "homepage": "https://inferencebrake.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/InferenceBrake/inference-brake-platform.git",
+    "directory": "packages/js-sdk"
   },
-  "peerDependencies": {
-    "@supabase/supabase-js": ">=2.0.0"
+  "bugs": {
+    "url": "https://github.com/InferenceBrake/inference-brake-platform/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

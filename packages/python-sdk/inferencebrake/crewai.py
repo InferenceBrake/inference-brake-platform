@@ -4,7 +4,7 @@ InferenceBrake CrewAI Callback
 Detects reasoning loops in CrewAI agents.
 
 Installation:
-    pip install inferencebrake[crewai]
+    pip install inferencebrake
 
 Usage:
     from inferencebrake import create_crewai_callback
@@ -24,7 +24,7 @@ import logging
 from typing import Optional, Callable, Any, Dict, List
 from dataclasses import dataclass
 
-import inferencebrake_sdk
+from .client import InferenceBrake
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class CrewAICallback:
     @property
     def client(self):
         if self._client is None:
-            self._client = inferencebrake_sdk.InferenceBrake(
+            self._client = InferenceBrake(
                 api_key=self.api_key,
                 supabase_url=self.supabase_url,
             )

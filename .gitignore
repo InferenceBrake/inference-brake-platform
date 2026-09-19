@@ -16,6 +16,11 @@ bun-debug.log*
 __pycache__
 .ruff_cache
 .venv
+dist
+*.egg-info
+
+# Deno
+deno.lock
 
 # Opencode skills
 .opencode/skill

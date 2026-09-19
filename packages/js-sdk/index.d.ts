@@ -8,6 +8,7 @@ export interface CheckStatusOptions {
   actionRepeatCount: number;
   ngramOverlap: number;
   detectors: DetectorVotes;
+  estimatedCostSaved: number;
   testMode?: boolean;
   usage?: UsageInfo;
   shouldStop: boolean;
@@ -17,6 +18,8 @@ export interface DetectorVotes {
   semantic: boolean;
   action: boolean;
   ngram: boolean;
+  editdist?: boolean;
+  compression?: boolean;
 }
 
 export interface UsageInfo {
@@ -64,6 +67,8 @@ export class CheckStatus {
   readonly actionRepeatCount: number;
   readonly ngramOverlap: number;
   readonly detectors: DetectorVotes;
+  readonly estimatedCostSaved: number;
+  readonly estimatedSavings: number;
   readonly shouldStop: boolean;
 
   constructor(data: CheckStatusOptions);

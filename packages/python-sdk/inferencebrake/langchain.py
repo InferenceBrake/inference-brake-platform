@@ -24,7 +24,7 @@ import os
 import logging
 from typing import Any, Dict, List, Optional, Callable
 
-import inferencebrake_sdk
+from .client import InferenceBrake
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class InferenceBrakeCallbackHandler:
         """Lazy import and cache the InferenceBrake client."""
         if self._client is None:
             try:
-                self._client = inferencebrake_sdk.InferenceBrake(
+                self._client = InferenceBrake(
                     api_key=self.api_key,
                     supabase_url=self.supabase_url,
                 )

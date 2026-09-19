@@ -130,7 +130,11 @@ inferencebrake/
 │   │
 │   ├── python-sdk/              # PyPI package
 │   │   ├── pyproject.toml
-│   │   └── inferencebrake_sdk.py
+│   │   └── inferencebrake/
+│   │       ├── __init__.py
+│   │       ├── client.py
+│   │       ├── langchain.py
+│   │       └── crewai.py
 │   │
 │   ├── js-sdk/                  # NPM package
 │   │   ├── package.json
@@ -169,7 +173,7 @@ inferencebrake/
 - `apps/web/src/routes/+page.svelte` - Landing page
 - `apps/web/src/routes/dashboard/+page.svelte` - User dashboard
 - `packages/js-sdk/index.js` - JavaScript SDK
-- `packages/python-sdk/inferencebrake_sdk.py` - Python SDK
+- `packages/python-sdk/inferencebrake/client.py` - Python SDK client
 
 ## Running Tests
 

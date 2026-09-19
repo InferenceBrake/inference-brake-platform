@@ -8,17 +8,35 @@ With LangChain support:
     pip install inferencebrake[langchain]
 """
 
-import inferencebrake_sdk
+from .client import (
+    InferenceBrake,
+    CheckStatus,
+    InferenceBrakeError,
+    AuthenticationError,
+    RateLimitError,
+    inferencebrake_monitor,
+    InferenceBrakeCallback,
+)
 
-InferenceBrake = inferencebrake_sdk.InferenceBrake
-CheckStatus = inferencebrake_sdk.CheckStatus
-
-__version__ = "0.2.0"
-__all__ = ["InferenceBrake", "CheckStatus"]
+__version__ = "0.3.0"
+__all__ = [
+    "InferenceBrake",
+    "CheckStatus",
+    "InferenceBrakeError",
+    "AuthenticationError",
+    "RateLimitError",
+    "inferencebrake_monitor",
+    "InferenceBrakeCallback",
+]
 
 try:
     from .langchain import InferenceBrakeCallbackHandler, LoopDetectedError
-    __all__.append("InferenceBrakeCallbackHandler")
-    __all__.append("LoopDetectedError")
+    __all__.extend(["InferenceBrakeCallbackHandler", "LoopDetectedError"])
+except ImportError:
+    pass
+
+try:
+    from .crewai import CrewAICallback, create_crewai_callback
+    __all__.extend(["CrewAICallback", "create_crewai_callback"])
 except ImportError:
     pass

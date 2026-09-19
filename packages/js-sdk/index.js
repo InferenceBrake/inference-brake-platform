@@ -29,6 +29,7 @@ class CheckStatus {
     this.actionRepeatCount = data.action_repeat_count ?? 0;
     this.ngramOverlap = data.ngram_overlap ?? 0.0;
     this.detectors = data.detectors ?? {};
+    this.estimatedCostSaved = data.estimated_cost_saved ?? 0.0;
   }
 
   get shouldStop() {
@@ -36,10 +37,7 @@ class CheckStatus {
   }
 
   get estimatedSavings() {
-    if (this.shouldStop) {
-      return 0.23; // ~GPT-4 cost for remaining steps
-    }
-    return 0.0;
+    return this.estimatedCostSaved;
   }
 
   toJSON() {
@@ -53,6 +51,7 @@ class CheckStatus {
       actionRepeatCount: this.actionRepeatCount,
       ngramOverlap: this.ngramOverlap,
       detectors: this.detectors,
+      estimatedCostSaved: this.estimatedCostSaved,
       shouldStop: this.shouldStop,
     };
   }
@@ -255,7 +254,10 @@ class InferenceBrake {
     circuitBreakerTimeout = 30000,
   }) {
     this.apiKey = apiKey;
-    this.supabaseUrl = supabaseUrl || process.env.INFERENCEBRAKE_URL || DEFAULT_SUPABASE_URL;
+    const envUrl = typeof process !== 'undefined' && process.env
+      ? process.env.INFERENCEBRAKE_URL
+      : undefined;
+    this.supabaseUrl = supabaseUrl || envUrl || DEFAULT_SUPABASE_URL;
 
     this.baseUrl = `${this.supabaseUrl}/functions/v1`;
     this.timeout = timeout;

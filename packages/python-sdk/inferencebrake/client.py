@@ -1,13 +1,14 @@
 """
-InferenceBrake Python SDK
-Semantic loop detection for AI agents using Supabase free embeddings
+InferenceBrake Python SDK client.
+
+Semantic loop detection for AI agents using Supabase free embeddings.
 
 Installation:
     pip install inferencebrake
 
 Usage:
     from inferencebrake import InferenceBrake
-    
+
     guard = InferenceBrake(api_key="ib_your_key")
     status = guard.check("reasoning text", session_id="agent-1")
 """
@@ -33,23 +34,24 @@ class CheckStatus:
     action_repeat_count: int = 0
     ngram_overlap: float = 0.0
     detectors: dict = None
-    
+    estimated_cost_saved: float = 0.0
+
     def __post_init__(self):
         if self.detectors is None:
             self.detectors = {}
-    
+
     def __repr__(self):
         return f"CheckStatus(action={self.action}, similarity={self.similarity:.2f})"
-    
+
     @property
     def should_stop(self) -> bool:
         """Convenience method to check if agent should stop"""
         return self.action == "KILL"
-    
+
     @property
     def estimated_savings(self) -> float:
-        """Placeholder for cost saved calculation (not validated)"""
-        return 0.0
+        """Estimated USD saved by halting this loop (server-computed)."""
+        return self.estimated_cost_saved
 
 
 class InferenceBrakeError(Exception):
@@ -70,26 +72,26 @@ class AuthenticationError(InferenceBrakeError):
 class InferenceBrake:
     """
     InferenceBrake client for detecting semantic loops in AI agent reasoning.
-    
+
     Uses Supabase's free gte-small embedding model (384 dimensions) for
     zero-cost loop detection.
-    
+
     Example:
         >>> from inferencebrake import InferenceBrake
-        >>> 
+        >>>
         >>> guard = InferenceBrake(api_key="ib_your_key")
-        >>> 
+        >>>
         >>> for step in agent.run():
         ...     status = guard.check(
         ...         reasoning=step.reasoning,
         ...         session_id="agent-session-123"
         ...     )
-        ...     
+        ...
         ...     if status.should_stop:
         ...         print(f"Loop detected! Similarity: {status.similarity}")
         ...         break
     """
-    
+
     def __init__(
         self,
         api_key: str,
@@ -99,7 +101,7 @@ class InferenceBrake:
     ):
         """
         Initialize InferenceBrake client.
-        
+
         Args:
             api_key: Your InferenceBrake API key (get one at inferencebrake.dev)
             supabase_url: Custom API base URL for self-hosting (defaults to InferenceBrake cloud)
@@ -107,21 +109,21 @@ class InferenceBrake:
             auto_stop: If True, raise exception when loop is detected
         """
         self.api_key = api_key
-        
+
         # Default to production unless overridden
         self.supabase_url = supabase_url or os.getenv('INFERENCEBRAKE_URL') or DEFAULT_SUPABASE_URL
-        
+
         # Construct edge function URL
         self.base_url = f"{self.supabase_url}/functions/v1"
         self.timeout = timeout
         self.auto_stop = auto_stop
-        
+
         self._session = requests.Session()
         self._session.headers.update({
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         })
-    
+
     def check(
         self,
         reasoning: str,
@@ -130,49 +132,49 @@ class InferenceBrake:
     ) -> CheckStatus:
         """
         Check if the current reasoning step indicates a loop.
-        
+
         Args:
             reasoning: The agent's current reasoning/thought process
             session_id: Unique identifier for this agent session
             threshold: Custom similarity threshold (default: 0.85)
-        
+
         Returns:
             CheckStatus object with detection results
-        
+
         Raises:
             AuthenticationError: If API key is invalid
             RateLimitError: If rate limit is exceeded
             InferenceBrakeError: For other API errors
         """
         url = f"{self.base_url}/check"
-        
+
         payload = {
             "reasoning": reasoning,
             "session_id": session_id
         }
-        
+
         if threshold is not None:
             payload["threshold"] = threshold
-        
+
         try:
             response = self._session.post(
                 url,
                 json=payload,
                 timeout=self.timeout
             )
-            
+
             if response.status_code == 401:
                 raise AuthenticationError("Invalid API key")
-            
+
             if response.status_code == 429:
                 raise RateLimitError(
                     "Rate limit exceeded. Upgrade your plan at inferencebrake.dev/pricing"
                 )
-            
+
             if response.status_code != 200:
                 error_msg = response.json().get('error', 'Unknown error')
                 raise InferenceBrakeError(f"API error: {response.status_code} - {error_msg}")
-            
+
             data = response.json()
             status = CheckStatus(
                 action=data["action"],
@@ -183,22 +185,23 @@ class InferenceBrake:
                 confidence=data.get("confidence", 0.0),
                 action_repeat_count=data.get("action_repeat_count", 0),
                 ngram_overlap=data.get("ngram_overlap", 0.0),
-                detectors=data.get("detectors", {})
+                detectors=data.get("detectors", {}),
+                estimated_cost_saved=data.get("estimated_cost_saved", 0.0) or 0.0,
             )
-            
+
             if self.auto_stop and status.should_stop:
                 raise InferenceBrakeError(
                     f"Loop detected: {status.message} "
                     f"(similarity: {status.similarity:.2f})"
                 )
-            
+
             return status
-            
+
         except requests.exceptions.Timeout:
             raise InferenceBrakeError("Request timeout")
         except requests.exceptions.RequestException as e:
             raise InferenceBrakeError(f"Request failed: {str(e)}")
-    
+
     def check_batch(
         self,
         reasoning_list: List[str],
@@ -206,11 +209,11 @@ class InferenceBrake:
     ) -> List[CheckStatus]:
         """
         Check multiple reasoning steps in batch.
-        
+
         Args:
             reasoning_list: List of reasoning texts
             session_id: Session identifier
-        
+
         Returns:
             List of CheckStatus objects
         """
@@ -218,13 +221,13 @@ class InferenceBrake:
         for reasoning in reasoning_list:
             status = self.check(reasoning, session_id)
             results.append(status)
-            
+
             # Stop batch if loop detected
             if status.should_stop:
                 break
-        
+
         return results
-    
+
     def get_session_history(
         self,
         session_id: str,
@@ -233,39 +236,39 @@ class InferenceBrake:
     ) -> Dict[str, Any]:
         """
         Get reasoning history for a session.
-        
+
         Args:
             session_id: Session identifier
             limit: Max number of steps to return
             offset: Number of steps to skip
-        
+
         Returns:
             Dict with session_id, steps, total, limit, offset
         """
         url = f"{self.base_url}/session-history"
-        
+
         try:
             response = self._session.get(
                 url,
                 params={"session_id": session_id, "limit": limit, "offset": offset},
                 timeout=self.timeout
             )
-            
+
             if response.status_code == 401:
                 raise AuthenticationError("Invalid API key")
-            
+
             if response.status_code != 200:
                 raise InferenceBrakeError(f"API error: {response.status_code}")
-            
+
             return response.json()
-            
+
         except requests.exceptions.RequestException as e:
             raise InferenceBrakeError(f"Request failed: {str(e)}")
-    
+
     def __enter__(self):
         """Context manager support"""
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager cleanup"""
         self._session.close()
@@ -282,7 +285,7 @@ def inferencebrake_monitor(
 ):
     """
     Decorator to automatically monitor agent functions for loops.
-    
+
     Example:
         >>> @inferencebrake_monitor(api_key="ib_your_key")
         ... def agent_step(reasoning: str):
@@ -293,43 +296,40 @@ def inferencebrake_monitor(
         def wrapper(*args, **kwargs):
             # Extract reasoning from args/kwargs
             reasoning = kwargs.get('reasoning') or (args[0] if args else "")
-            
+
             # Generate session_id if not provided
             sid = session_id or f"auto-{int(time.time())}"
-            
+
             # Check for loop
             guard = InferenceBrake(api_key=api_key, supabase_url=supabase_url)
             status = guard.check(reasoning=str(reasoning), session_id=sid)
-            
+
             if status.should_stop:
                 print(f"Warning: {status.message}")
                 return None
-            
+
             # Continue with function
             return func(*args, **kwargs)
-        
+
         return wrapper
     return decorator
 
 
 # ============================================
-# LANGCHAIN INTEGRATION
+# GENERIC CALLBACK (non-LangChain)
 # ============================================
 
 class InferenceBrakeCallback:
     """
-    LangChain callback handler for InferenceBrake.
-    
+    Minimal callback that checks LLM responses for loops.
+
     Example:
-        >>> from langchain.callbacks import CallbackManager
         >>> from inferencebrake import InferenceBrakeCallback
-        >>> 
+        >>>
         >>> callback = InferenceBrakeCallback(api_key="ib_your_key")
-        >>> manager = CallbackManager([callback])
-        >>> 
-        >>> agent = initialize_agent(tools, llm, callbacks=manager)
+        >>> callback.on_llm_end(response)
     """
-    
+
     def __init__(
         self,
         api_key: str,
@@ -337,34 +337,34 @@ class InferenceBrakeCallback:
         session_id: Optional[str] = None
     ):
         self.guard = InferenceBrake(api_key=api_key, supabase_url=supabase_url)
-        self.session_id = session_id or f"langchain-{int(time.time())}"
+        self.session_id = session_id or f"callback-{int(time.time())}"
         self.step_count = 0
-    
+
     def on_llm_start(self, serialized, prompts, **kwargs):
         """Called when LLM starts"""
         pass
-    
+
     def on_llm_end(self, response, **kwargs):
         """Called when LLM completes"""
         self.step_count += 1
-        
+
         # Extract reasoning from response
         if hasattr(response, 'generations'):
             text = response.generations[0][0].text
         else:
             text = str(response)
-        
+
         # Check for loop
         status = self.guard.check(
             reasoning=text,
             session_id=self.session_id
         )
-        
+
         if status.should_stop:
             raise InferenceBrakeError(
                 f"Loop detected at step {self.step_count}: {status.message}"
             )
-    
+
     def on_chain_error(self, error, **kwargs):
         """Called when chain errors"""
         pass
@@ -377,72 +377,30 @@ class InferenceBrakeCallback:
 def cli():
     """Command-line interface for InferenceBrake"""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="InferenceBrake CLI")
     parser.add_argument('--api-key', required=True, help='Your API key')
-    parser.add_argument('--url', required=True, help='Supabase URL')
+    parser.add_argument('--url', required=False, help='Supabase URL')
     parser.add_argument('--session', required=True, help='Session ID')
     parser.add_argument('--reasoning', required=True, help='Reasoning text to check')
     parser.add_argument('--threshold', type=float, help='Custom threshold')
-    
+
     args = parser.parse_args()
-    
+
     guard = InferenceBrake(api_key=args.api_key, supabase_url=args.url)
     status = guard.check(
         reasoning=args.reasoning,
         session_id=args.session,
         threshold=args.threshold
     )
-    
+
     print(f"Action: {status.action}")
     print(f"Loop Detected: {status.loop_detected}")
     print(f"Similarity: {status.similarity:.2%}")
     print(f"Status: {status.status}")
     print(f"Message: {status.message}")
-    
+
     if status.should_stop:
         exit(1)
-    
+
     exit(0)
-
-
-# ============================================
-# EXAMPLE USAGE
-# ============================================
-
-if __name__ == "__main__":
-    # Example usage
-    API_KEY = "ib_your_api_key_here"
-    
-    guard = InferenceBrake(api_key=API_KEY)
-    
-    # Simulate agent loop
-    session_id = "example-session"
-    
-    reasoning_steps = [
-        "I need to search for weather in NYC",
-        "Let me call the weather API for NYC",
-        "I should check the weather in New York City",  # Similar!
-        "I need to get weather data for NYC",  # Loop will be detected!
-    ]
-    
-    for i, reasoning in enumerate(reasoning_steps, 1):
-        print(f"\n{'='*60}")
-        print(f"Step {i}: {reasoning}")
-        print('='*60)
-        
-        status = guard.check(
-            reasoning=reasoning,
-            session_id=session_id
-        )
-        
-        print(f"Action: {status.action}")
-        print(f"Similarity: {status.similarity:.2%}")
-        print(f"Status: {status.status}")
-        
-        if status.should_stop:
-            print(f"\nLOOP DETECTED!")
-            print(f"Message: {status.message}")
-            break
-        else:
-            print("Safe to continue")
