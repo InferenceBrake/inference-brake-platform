@@ -46,15 +46,19 @@
 
 	onMount(() => {
 		const params = new URLSearchParams(window.location.search);
-		if (params.get('success') === 'true') {
-			billingMessage = 'Subscription activated. Your plan will update shortly.';
+		const fromCheckout = params.get('success') === 'true';
+		if (fromCheckout) {
+			billingMessage = 'Subscription activated. Syncing your plan...';
 		} else if (params.get('canceled') === 'true') {
 			billingMessage = 'Checkout canceled. No changes were made.';
 		}
 
 		loadData();
+		// Reconcile with Stripe in the background so a delayed or missing
+		// webhook cannot leave the plan stale.
+		syncSubscription(fromCheckout);
 		
-		// Poll for usage updates every 3 seconds
+		// Poll for usage and plan updates every 3 seconds
 		const interval = setInterval(async () => {
 			const { supabase } = await import('$lib/supabase');
 			const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -62,18 +66,53 @@
 			
 			const { data: userData } = await supabase
 				.from('users')
-				.select('checks_today, daily_limit')
+				.select('checks_today, daily_limit, plan, subscription_status')
 				.eq('id', authUser.id)
 				.single();
 			
 			if (userData) {
 				checksToday = userData.checks_today || 0;
 				userDailyLimit = userData.daily_limit || 10000;
+				if (userData.plan && userData.plan !== userPlan) {
+					userPlan = userData.plan;
+					if (billingMessage.startsWith('Subscription activated')) {
+						billingMessage = 'Subscription active.';
+					}
+				}
+				if (userData.subscription_status) {
+					subscriptionStatus = userData.subscription_status;
+				}
 			}
 		}, 3000);
 		
 		return () => clearInterval(interval);
 	});
+
+	async function syncSubscription(notify = false) {
+		try {
+			const { supabase } = await import('$lib/supabase');
+			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
+			if (!storedApiKey) return;
+
+			const response = await supabase.functions.invoke('stripe-sync', {
+				headers: { Authorization: `Bearer ${storedApiKey}` }
+			});
+
+			if (notify) {
+				if (response.data?.plan && response.data.plan !== 'hobby') {
+					billingMessage = 'Subscription active.';
+				} else if (response.data?.synced === false) {
+					billingMessage = 'Subscription not found yet. This page will update automatically.';
+				} else if (response.data?.error) {
+					billingMessage = response.data.error;
+				}
+			}
+
+			await loadData();
+		} catch (e) {
+			console.error('Subscription sync failed:', e);
+		}
+	}
 	
 	async function loadData() {
 		try {

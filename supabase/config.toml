@@ -13,6 +13,9 @@ verify_jwt = false
 [functions.stripe-portal]
 verify_jwt = false
 
+[functions.stripe-sync]
+verify_jwt = false
+
 [functions.account-delete]
 verify_jwt = false
 

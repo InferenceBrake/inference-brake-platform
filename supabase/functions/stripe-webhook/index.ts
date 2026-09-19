@@ -94,10 +94,26 @@ Deno.serve(async (req) => {
 
     const event = JSON.parse(body);
     const data = event.data.object;
-    const userId = data.metadata?.user_id;
+    let userId: string | undefined = data.metadata?.user_id;
+
+    // Invoice and other subscription events may not carry metadata; fall back
+    // to resolving the user from the Stripe customer id.
+    if (!userId && data.customer) {
+      const userRes = await fetch(
+        `${supabaseUrl}/rest/v1/users?stripe_customer_id=eq.${encodeURIComponent(data.customer)}&select=id`,
+        {
+          headers: {
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+        },
+      );
+      const rows = await userRes.json();
+      userId = rows?.[0]?.id;
+    }
 
     if (!userId) {
-      return new Response(JSON.stringify({ error: "No user_id in metadata" }), {
+      return new Response(JSON.stringify({ error: "No matching user for event" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
