@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { PLANS, FREE_PLAN } from "../_shared/plans.ts";
+import { buildAlertText, emailConfigured, sendEmail, sendSlack } from "../_shared/alerts.ts";
 
 const supabase = createClient(
 	Deno.env.get("SUPABASE_URL")!,
@@ -225,7 +226,7 @@ Deno.serve(async (req) => {
 			model.run(reasoning, { mean_pool: true, normalize: true }),
 			supabase
 				.from("reasoning_history")
-				.select("step_number, reasoning")
+				.select("step_number, reasoning, loop_detected")
 				.eq("session_id", session_id)
 				.order("step_number", { ascending: false })
 				.limit(5),
@@ -234,6 +235,7 @@ Deno.serve(async (req) => {
 		const embedding = embeddingResult;
 		const recentSteps = historyResult.data || [];
 		const nextStep = (recentSteps[0]?.step_number || 0) + 1;
+		const previousWasLoop = recentSteps[0]?.loop_detected === true;
 		const recentTexts: string[] = recentSteps
 			.map((s: { reasoning: string }) => s.reasoning)
 			.filter(Boolean)
@@ -311,6 +313,45 @@ Deno.serve(async (req) => {
 		// 7b. COST ESTIMATE
 		const tokenCount = estimateTokens(reasoning);
 		const costSaved = estimateCostSaved(tokenCount, isLooping);
+
+		// 7c. ALERTS (best-effort, first loop of a session only)
+		if (isLooping && !previousWasLoop && user.alerts_enabled !== false) {
+			const alertText = buildAlertText({
+				session_id,
+				reasoning,
+				confidence,
+				detectors: {
+					semantic: semanticVote,
+					action: actionVote,
+					ngram: ngramVote,
+					editdist: editDistVote,
+					compression: ncdVote,
+					token_repeat: tokenRepeatVote,
+				},
+				action: extractedAction,
+				model: reqModel ?? null,
+				estimated_cost_saved: costSaved,
+			});
+
+			const emailConfig = emailConfigured();
+			if (user.alert_email && emailConfig) {
+				sendEmail({
+					apiKey: emailConfig.apiKey,
+					from: emailConfig.from,
+					to: user.alert_email,
+					subject: "InferenceBrake: loop detected",
+					text: alertText,
+				}).then((r) => {
+					if (!r.ok) console.error("Email alert failed:", r.error);
+				});
+			}
+
+			if (user.webhook_url) {
+				sendSlack(user.webhook_url, alertText).then((r) => {
+					if (!r.ok) console.error("Webhook alert failed:", r.error);
+				});
+			}
+		}
 
 		// 8. ASYNC LOGGING
 		Promise.all([

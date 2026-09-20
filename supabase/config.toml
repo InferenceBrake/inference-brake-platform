@@ -34,6 +34,9 @@ verify_jwt = false
 [functions.slack-alert]
 verify_jwt = false
 
+[functions.alert]
+verify_jwt = false
+
 [functions.get-api-key]
 verify_jwt = false
 

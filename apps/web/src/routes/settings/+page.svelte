@@ -16,6 +16,9 @@
 	let billingProcessing = $state<string | null>(null);
 	let message = $state('');
 	let messageType = $state<'success' | 'error'>('success');
+	let alertEmail = $state('');
+	let webhookUrl = $state('');
+	let savingAlerts = $state(false);
 
 	onMount(() => {
 		loadData();
@@ -36,7 +39,7 @@
 			// Try direct query first (subject to RLS)
 			const { data: userData } = await supabase
 				.from('users')
-				.select('api_key, test_mode_api_key, plan, monthly_limit, subscription_status, subscription_current_period_end')
+				.select('api_key, test_mode_api_key, plan, monthly_limit, subscription_status, subscription_current_period_end, alert_email, webhook_url')
 				.eq('id', authUser.id)
 				.single();
 			
@@ -47,6 +50,8 @@
 				userMonthlyLimit = userData.monthly_limit || 5000;
 				subscriptionStatus = userData.subscription_status || 'active';
 				subscriptionPeriodEnd = userData.subscription_current_period_end;
+				alertEmail = userData.alert_email || '';
+				webhookUrl = userData.webhook_url || '';
 			}
 
 			// If key is missing, fall back to edge function (bypasses RLS)
@@ -192,6 +197,30 @@
 		message = msg;
 		messageType = type;
 		setTimeout(() => { message = ''; }, 5000);
+	}
+
+	async function saveAlerts() {
+		savingAlerts = true;
+		try {
+			const { supabase } = await import('$lib/supabase');
+			const { data: { user: authUser } } = await supabase.auth.getUser();
+			if (!authUser) throw new Error('Not signed in');
+
+			const { error } = await supabase
+				.from('users')
+				.update({
+					alert_email: alertEmail.trim() || null,
+					webhook_url: webhookUrl.trim() || null
+				})
+				.eq('id', authUser.id);
+
+			if (error) throw new Error(error.message);
+			showMessage('Alert settings saved', 'success');
+		} catch (e: any) {
+			showMessage(e.message || 'Failed to save alert settings', 'error');
+		} finally {
+			savingAlerts = false;
+		}
 	}
 
 	function getPlanDisplayName(plan: string) {
@@ -438,6 +467,36 @@
 				</section>
 
 				<section class="settings-card">
+					<h2>Alerts</h2>
+					<p class="card-description">Get notified when a loop is detected and halted</p>
+
+					<div class="field">
+						<label for="alert-email">Email</label>
+						<input
+							id="alert-email"
+							type="email"
+							bind:value={alertEmail}
+							placeholder="ops@yourcompany.com"
+						/>
+					</div>
+
+					<div class="field">
+						<label for="alert-webhook">Webhook URL</label>
+						<input
+							id="alert-webhook"
+							type="url"
+							bind:value={webhookUrl}
+							placeholder="https://hooks.slack.com/services/..."
+						/>
+					</div>
+
+					<button class="btn btn-primary" onclick={saveAlerts} disabled={savingAlerts}>
+						{savingAlerts ? 'Saving...' : 'Save alerts'}
+					</button>
+					<p class="hint">Alerts fire once per session, on the first detected loop.</p>
+				</section>
+
+				<section class="settings-card">
 					<h2>Security</h2>
 					<p class="card-description">Manage your account security</p>
 
@@ -579,6 +638,21 @@
 		font-size: 0.85rem;
 		color: var(--text-secondary);
 		margin-bottom: var(--space-xs);
+	}
+
+	.field input {
+		width: 100%;
+		padding: var(--space-sm) var(--space-md);
+		background: var(--bg-primary);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		color: var(--text-primary);
+		font-size: 0.9rem;
+	}
+
+	.field input:focus {
+		outline: none;
+		border-color: var(--accent);
 	}
 
 	.value {
