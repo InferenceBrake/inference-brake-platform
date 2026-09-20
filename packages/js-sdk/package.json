@@ -1,6 +1,6 @@
 {
   "name": "inferencebrake",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Loop detection for AI agents. Detect and stop runaway reasoning loops before they burn your token budget.",
   "main": "index.js",
   "type": "commonjs",

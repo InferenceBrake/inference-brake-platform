@@ -463,7 +463,7 @@ class InferenceBrake {
     if (typeof options === 'number') {
       options = { threshold: options };
     }
-    const { threshold, action } = options;
+    const { threshold, action, model, prompt } = options;
 
     return this.executeWithRetry(async () => {
       const url = `${this.baseUrl}/check`;
@@ -471,6 +471,8 @@ class InferenceBrake {
       const payload = { reasoning, session_id: sessionId };
       if (threshold !== undefined) payload.threshold = threshold;
       if (action !== undefined && action !== null) payload.action = action;
+      if (model !== undefined && model !== null) payload.model = model;
+      if (prompt !== undefined && prompt !== null) payload.prompt = prompt;
 
       let response;
       try {
@@ -592,6 +594,8 @@ function guarded(fn, options = {}) {
     onLoop,
     escalate,
     maxEscalations = 2,
+    model,
+    prompt,
   } = options;
 
   const guard = new InferenceBrake({ apiKey, supabaseUrl, timeout, failOpen });
@@ -613,7 +617,11 @@ function guarded(fn, options = {}) {
         typeof sessionId === 'function'
           ? String(sessionId(...args))
           : sessionId || fn.name || 'guarded';
-      const status = await guard.check(String(text), sid, { action: identity });
+      const status = await guard.check(String(text), sid, {
+        action: identity,
+        model: typeof model === 'function' ? model(result) : model,
+        prompt: typeof prompt === 'function' ? prompt(result) : prompt,
+      });
       policy.handle(status);
     }
     return result;

@@ -47,6 +47,8 @@ export interface InferenceBrakeOptions {
 export interface CheckOptions {
   threshold?: number;
   action?: string | null;
+  model?: string | null;
+  prompt?: string | null;
 }
 
 export interface LoopPolicyOptions {
@@ -69,6 +71,8 @@ export interface GuardedOptions {
   onLoop?: (status: CheckStatus) => void;
   escalate?: (status: CheckStatus, attempt: number) => void;
   maxEscalations?: number;
+  model?: string | ((result: unknown) => string);
+  prompt?: string | ((result: unknown) => string);
 }
 
 export interface CallbackHandlerOptions extends GuardedOptions {

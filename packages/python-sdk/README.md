@@ -31,7 +31,9 @@ guard = InferenceBrake(api_key="ib_your_key")
 status = guard.check(
     reasoning="Let me search for the weather in NYC",
     session_id="agent-session-123",
-    action="web_search",  # optional, enables action repetition detection
+    action="web_search",   # optional, enables action repetition detection
+    model="gpt-4o-mini",   # optional, recorded for attribution
+    prompt="weather task", # optional, recorded for attribution
 )
 
 status.should_stop            # True when a loop was detected
@@ -198,11 +200,15 @@ curl -H "Authorization: Bearer ib_your_key" \
   "loops_blocked": 9,
   "estimated_usd_saved": 0.0146,
   "avg_similarity": 0.7739,
-  "daily": [{ "date": "2026-09-19", "checks": 47, "loops": 8, "saved": 0.0107 }]
+  "daily": [{ "date": "2026-09-19", "checks": 47, "loops": 8, "saved": 0.0107 }],
+  "by_model": [{ "model": "gpt-4o-mini", "checks": 3, "loops": 1, "saved": 0.0019 }],
+  "by_action": [{ "action": "get_balance", "checks": 3, "loops": 1, "saved": 0.0019 }],
+  "by_detector": [{ "detector": "token_repeat", "loops": 1 }],
+  "recent_loops": [{ "session_id": "agent-1", "model": "gpt-4o-mini", "action": "get_balance", "confidence": 0.85, "saved": 0.0019, "detectors": { "semantic": true } }]
 }
 ```
 
-Totals reflect retained metrics, so the window is bounded by your plan's retention.
+Attribution (`by_model`, `by_action`, `by_prompt`, `by_detector`, `recent_loops`) comes from the `model`, `action`, and `prompt` you pass to `check()`. Totals reflect retained metrics, so the window is bounded by your plan's retention.
 
 ## Errors
 

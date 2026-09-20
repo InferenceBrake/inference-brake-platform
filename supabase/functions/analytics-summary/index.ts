@@ -71,6 +71,11 @@ Deno.serve(async (req) => {
 			first_check_at: summary.first_check_at ?? null,
 			last_check_at: summary.last_check_at ?? null,
 			daily: summary.daily ?? [],
+			by_model: summary.by_model ?? [],
+			by_action: summary.by_action ?? [],
+			by_prompt: summary.by_prompt ?? [],
+			by_detector: summary.by_detector ?? [],
+			recent_loops: summary.recent_loops ?? [],
 			generated_at: new Date().toISOString(),
 		});
 	} catch (err) {

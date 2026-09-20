@@ -1,6 +1,6 @@
 [project]
 name = "inferencebrake"
-version = "0.5.0"
+version = "0.6.0"
 description = "Loop detection for AI agents. Detect and stop runaway reasoning loops before they burn your token budget."
 readme = "README.md"
 requires-python = ">=3.10"

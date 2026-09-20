@@ -15,6 +15,25 @@
 		loops_detected: 0,
 		dollars_saved: 0
 	});
+	let analytics = $state<{
+		total_checks: number;
+		loops_blocked: number;
+		estimated_usd_saved: number;
+		by_model: Array<{ model: string; checks: number; loops: number; saved: number }>;
+		by_action: Array<{ action: string; checks: number; loops: number; saved: number }>;
+		by_prompt: Array<{ prompt: string; checks: number; loops: number; saved: number }>;
+		by_detector: Array<{ detector: string; loops: number }>;
+		recent_loops: Array<{
+			session_id: string;
+			model: string | null;
+			action: string | null;
+			prompt: string | null;
+			confidence: number;
+			saved: number;
+			detectors: Record<string, boolean> | null;
+			created_at: string;
+		}>;
+	} | null>(null);
 	let loading = $state(true);
 	let userEmail = $state('');
 	let userPlan = $state('hobby');
@@ -58,6 +77,7 @@
 		// Reconcile with Stripe in the background so a delayed or missing
 		// webhook cannot leave the plan stale.
 		syncSubscription(fromCheckout);
+		loadAnalytics();
 		
 		// Poll for usage and plan updates every 3 seconds
 		const interval = setInterval(async () => {
@@ -90,8 +110,26 @@
 		return () => clearInterval(interval);
 	});
 
-	async function syncSubscription(notify = false) {
+	async function loadAnalytics() {
 		try {
+			const { supabase } = await import('$lib/supabase');
+			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
+			if (!storedApiKey) return;
+
+			const response = await supabase.functions.invoke('analytics-summary', {
+				body: { days: 30 },
+				headers: { Authorization: `Bearer ${storedApiKey}` }
+			});
+
+			if (response.data && !response.error) {
+				analytics = response.data;
+			}
+		} catch (e) {
+			console.error('Failed to load analytics:', e);
+		}
+	}
+
+	async function syncSubscription(notify = false) {		try {
 			const { supabase } = await import('$lib/supabase');
 			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
 			if (!storedApiKey) return;
@@ -570,6 +608,91 @@
 				</div>
 			</div>
 
+			{#if analytics && analytics.loops_blocked > 0}
+				<section class="analytics-section">
+					<div class="analytics-header">
+						<h2>Loop Analytics</h2>
+						<span class="analytics-period">Last 30 days</span>
+					</div>
+
+					<div class="analytics-grid">
+						<div class="analytics-card">
+							<h3>Loops by model</h3>
+							<ul class="breakdown">
+								{#each analytics.by_model as row}
+									<li>
+										<span class="breakdown-label">{row.model}</span>
+										<span class="breakdown-value">{row.loops} / {row.checks}</span>
+									</li>
+								{:else}
+									<li class="analytics-empty">No data</li>
+								{/each}
+							</ul>
+						</div>
+
+						<div class="analytics-card">
+							<h3>Top looping tools</h3>
+							<ul class="breakdown">
+								{#each analytics.by_action as row}
+									<li>
+										<span class="breakdown-label">{row.action}</span>
+										<span class="breakdown-value">{row.loops} / {row.checks}</span>
+									</li>
+								{:else}
+									<li class="analytics-empty">No data</li>
+								{/each}
+							</ul>
+						</div>
+
+						<div class="analytics-card">
+							<h3>Detectors that fired</h3>
+							<ul class="breakdown">
+								{#each analytics.by_detector as row}
+									<li>
+										<span class="breakdown-label">{row.detector}</span>
+										<span class="breakdown-value">{row.loops}</span>
+									</li>
+								{:else}
+									<li class="analytics-empty">No data</li>
+								{/each}
+							</ul>
+						</div>
+					</div>
+
+					<div class="analytics-card wide">
+						<h3>Recent loops</h3>
+						<div class="loop-table-wrap">
+							<table class="loop-table">
+								<thead>
+									<tr>
+										<th>When</th>
+										<th>Model</th>
+										<th>Tool</th>
+										<th>Detectors</th>
+										<th>Conf</th>
+										<th>Saved</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each analytics.recent_loops as loop}
+										<tr>
+											<td>{formatDate(loop.created_at)}</td>
+											<td>{loop.model || '-'}</td>
+											<td>{loop.action || '-'}</td>
+											<td>{Object.entries(loop.detectors || {}).filter(([, v]) => v).map(([k]) => k).join(', ') || '-'}</td>
+											<td>{(loop.confidence * 100).toFixed(0)}%</td>
+											<td>{formatUSD(loop.saved)}</td>
+										</tr>
+									{:else}
+										<tr><td colspan="6" class="analytics-empty">No loops yet</td></tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</section>
+			{/if}
+
 			<section class="sessions-section">
 				<div class="sessions-header">
 					<h2>Recent Sessions</h2>
@@ -980,6 +1103,118 @@
 		font-size: 2rem;
 		font-weight: 700;
 		font-family: var(--font-mono);
+	}
+
+	/* Analytics */
+	.analytics-section {
+		margin-bottom: 3rem;
+	}
+
+	.analytics-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		margin-bottom: var(--space-lg);
+	}
+
+	.analytics-header h2 {
+		font-size: 1.5rem;
+	}
+
+	.analytics-period {
+		font-size: 0.85rem;
+		color: var(--text-tertiary);
+	}
+
+	.analytics-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--space-lg);
+		margin-bottom: var(--space-lg);
+	}
+
+	.analytics-card {
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		padding: var(--space-lg);
+	}
+
+	.analytics-card.wide {
+		overflow: hidden;
+	}
+
+	.analytics-card h3 {
+		font-size: 0.9rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--text-tertiary);
+		margin-bottom: var(--space-md);
+	}
+
+	.breakdown {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+	}
+
+	.breakdown li {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--space-md);
+		font-size: 0.9rem;
+	}
+
+	.breakdown-label {
+		color: var(--text-primary);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.breakdown-value {
+		color: var(--text-secondary);
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		flex-shrink: 0;
+	}
+
+	.analytics-empty {
+		color: var(--text-tertiary);
+		font-size: 0.85rem;
+	}
+
+	.loop-table-wrap {
+		overflow-x: auto;
+	}
+
+	.loop-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.85rem;
+	}
+
+	.loop-table th {
+		text-align: left;
+		padding: 0.5rem 0.75rem;
+		color: var(--text-tertiary);
+		font-weight: 500;
+		border-bottom: 1px solid var(--border);
+		white-space: nowrap;
+	}
+
+	.loop-table td {
+		padding: 0.6rem 0.75rem;
+		border-bottom: 1px solid var(--border);
+		color: var(--text-secondary);
+		white-space: nowrap;
+	}
+
+	@media (max-width: 900px) {
+		.analytics-grid {
+			grid-template-columns: 1fr;
+		}
 	}
 
 	.sessions-section h2 {

@@ -30,7 +30,7 @@ from .adapters import (
 # CheckStatus is the typed response returned by every check. Status is an alias.
 Status = CheckStatus
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 __all__ = [
     "InferenceBrake",
     "CheckStatus",

@@ -47,6 +47,8 @@ def guard_agent_loop(
     on_loop: Optional[Callable[[CheckStatus], None]] = None,
     escalate: Optional[Callable[[CheckStatus, int], None]] = None,
     max_escalations: int = 2,
+    model: Optional[Any] = None,
+    prompt: Optional[Any] = None,
 ) -> Callable:
     """Wrap a function so every result is checked for a reasoning loop.
 
@@ -73,6 +75,10 @@ def guard_agent_loop(
             detected and the escalation budget is not exhausted. The wrapped
             call is allowed to continue so you can switch to a stronger model.
         max_escalations: Cap on ``escalate`` calls before stopping.
+        model: Static model id, or a callable ``(result) -> str``, recorded for
+            attribution.
+        prompt: Static prompt/task label, or a callable ``(result) -> str``,
+            recorded for attribution.
     """
     key = api_key or os.getenv("INFERENCEBRAKE_API_KEY")
     if not key:
@@ -100,7 +106,12 @@ def guard_agent_loop(
                 return str(session_id(*args, **kwargs))
             return session_id or f"{func.__module__}.{func.__name__}"
 
-        def evaluate(text: Any, sid: str, raw_action: Optional[str]) -> Optional[CheckStatus]:
+        def evaluate(
+            text: Any,
+            sid: str,
+            raw_action: Optional[str],
+            result: Any = None,
+        ) -> Optional[CheckStatus]:
             if not text:
                 return None
 
@@ -111,7 +122,16 @@ def guard_agent_loop(
                 except Exception as e:  # never let identity computation crash the run
                     logger.warning("loop_key failed (%s); falling back to raw action", e)
 
-            status = guard.check(reasoning=str(text), session_id=sid, action=identity)
+            model_value = model(result) if callable(model) else model
+            prompt_value = prompt(result) if callable(prompt) else prompt
+
+            status = guard.check(
+                reasoning=str(text),
+                session_id=sid,
+                action=identity,
+                model=model_value,
+                prompt=prompt_value,
+            )
             policy.handle(status)
             return status
 
@@ -126,7 +146,7 @@ def guard_agent_loop(
 
             text = extract(result) if extract else _default_extract(result)
             raw_action = action(result) if action else None
-            evaluate(text, sid, raw_action)
+            evaluate(text, sid, raw_action, result)
             return result
 
         @functools.wraps(func)
@@ -140,7 +160,7 @@ def guard_agent_loop(
 
             text = extract(result) if extract else _default_extract(result)
             raw_action = action(result) if action else None
-            evaluate(text, sid, raw_action)
+            evaluate(text, sid, raw_action, result)
             return result
 
         return async_wrapper if inspect.iscoroutinefunction(func) else wrapper

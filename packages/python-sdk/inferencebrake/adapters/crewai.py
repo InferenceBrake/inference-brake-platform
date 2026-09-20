@@ -32,6 +32,7 @@ class CrewAICallback:
     on_loop_detected: Optional[Callable[[CheckStatus], None]] = None
     escalate: Optional[Callable[[CheckStatus, int], None]] = None
     max_escalations: int = 2
+    model: Optional[str] = None
     _client: Any = field(default=None, repr=False)
     _policy: Any = field(default=None, repr=False)
     _step_count: int = field(default=0, repr=False)
@@ -72,6 +73,7 @@ class CrewAICallback:
             session_id=self.session_id or "",
             threshold=self.threshold,
             action=identity,
+            model=self.model,
         )
 
         if status.should_stop:
@@ -120,6 +122,7 @@ def create_crewai_callback(
     on_loop_detected: Optional[Callable[[CheckStatus], None]] = None,
     escalate: Optional[Callable[[CheckStatus, int], None]] = None,
     max_escalations: int = 2,
+    model: Optional[str] = None,
 ) -> CrewAICallback:
     """Factory for a CrewAI loop-detection callback."""
     return CrewAICallback(
@@ -133,4 +136,5 @@ def create_crewai_callback(
         on_loop_detected=on_loop_detected,
         escalate=escalate,
         max_escalations=max_escalations,
+        model=model,
     )

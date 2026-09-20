@@ -26,6 +26,8 @@ const guard = new InferenceBrake({ apiKey: 'ib_your_key' });
 
 const status = await guard.check('Let me search for the weather in NYC', 'agent-session-123', {
   action: 'web_search', // optional, enables action repetition detection
+  model: 'gpt-4o-mini', // optional, recorded for attribution
+  prompt: 'weather task', // optional, recorded for attribution
 });
 
 status.shouldStop            // true when a loop was detected

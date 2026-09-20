@@ -172,7 +172,9 @@ class InferenceBrake:
         reasoning: str,
         session_id: str,
         threshold: Optional[float] = None,
-        action: Optional[str] = None
+        action: Optional[str] = None,
+        model: Optional[str] = None,
+        prompt: Optional[str] = None
     ) -> CheckStatus:
         """
         Check if the current reasoning step indicates a loop.
@@ -184,6 +186,8 @@ class InferenceBrake:
             action: Optional tool/action name for this step. Enables the action
                 repetition detector. Pass a normalized identity so cosmetic
                 differences do not look like progress (see ``loop_key``).
+            model: Optional model id (e.g. "gpt-4o") recorded for attribution.
+            prompt: Optional task/prompt label recorded for attribution.
 
         Returns:
             CheckStatus object with detection results
@@ -205,6 +209,12 @@ class InferenceBrake:
 
         if action is not None:
             payload["action"] = action
+
+        if model is not None:
+            payload["model"] = model
+
+        if prompt is not None:
+            payload["prompt"] = prompt
 
         try:
             response = self._session.post(

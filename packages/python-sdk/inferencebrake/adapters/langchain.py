@@ -54,6 +54,7 @@ class InferenceBrakeCallbackHandler(BaseCallbackHandler):
         on_loop_detected: Optional[Callable[[CheckStatus], None]] = None,
         escalate: Optional[Callable[[CheckStatus, int], None]] = None,
         max_escalations: int = 2,
+        model: Optional[str] = None,
     ) -> None:
         try:
             super().__init__()
@@ -78,6 +79,7 @@ class InferenceBrakeCallbackHandler(BaseCallbackHandler):
         self.action = action
         self.loop_key = loop_key
         self.on_loop_detected = on_loop_detected
+        self.model = model
         self._policy = LoopPolicy(
             auto_stop=auto_stop,
             max_escalations=max_escalations,
@@ -116,6 +118,7 @@ class InferenceBrakeCallbackHandler(BaseCallbackHandler):
             session_id=self.session_id,
             threshold=self.threshold,
             action=identity,
+            model=self.model,
         )
         self.last_status = status
 

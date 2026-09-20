@@ -218,7 +218,7 @@ Deno.serve(async (req) => {
 
 		// 3. PARSE
 		const body = await req.json();
-		const { session_id, reasoning, action: reqAction } = body;
+		const { session_id, reasoning, action: reqAction, model: reqModel, prompt: reqPrompt } = body;
 
 		// 4. EMBEDDING + HISTORY (parallel)
 		const [embeddingResult, historyResult] = await Promise.all([
@@ -354,6 +354,18 @@ Deno.serve(async (req) => {
 					loop_detected: isLooping,
 					similarity,
 					estimated_cost_saved: costSaved,
+					model: reqModel ? String(reqModel).slice(0, 100) : null,
+					action: extractedAction,
+					prompt: reqPrompt ? String(reqPrompt).slice(0, 200) : null,
+					confidence,
+					detectors: {
+						semantic: semanticVote,
+						action: actionVote,
+						ngram: ngramVote,
+						editdist: editDistVote,
+						compression: ncdVote,
+						token_repeat: tokenRepeatVote,
+					},
 				})
 				.then(({ error }) => {
 					if (error) console.error("Metrics log failed:", error.message);
