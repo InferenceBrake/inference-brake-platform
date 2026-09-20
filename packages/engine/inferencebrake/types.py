@@ -177,6 +177,12 @@ class ThresholdConfig:
     editdist_decay_threshold: float = -0.03  # negative trend = decay
     editdist_window: int = 6
 
+    # Token repetition (exact repeated span) - fast, no embeddings needed
+    token_repeat_min_span: int = 6  # tokens in a repeated span to flag
+    token_repeat_warn_span: int = 4
+    token_repeat_window: int = 5  # recent steps to compare against
+    token_repeat_max_tokens: int = 1500  # cap for O(n^2) span search
+
     # Pipeline
     min_steps_before_detection: int = 2  # Don't flag until N steps
     voting_threshold: float = 0.5  # Fraction of detectors needed
@@ -193,6 +199,8 @@ class ThresholdConfig:
             compression_threshold=0.75,
             editdist_stasis_threshold=0.12,
             editdist_decay_threshold=-0.02,
+            token_repeat_min_span=4,
+            token_repeat_warn_span=3,
             voting_threshold=0.3,
         )
 
@@ -211,6 +219,8 @@ class ThresholdConfig:
             compression_threshold=0.85,
             editdist_stasis_threshold=0.05,
             editdist_decay_threshold=-0.04,
+            token_repeat_min_span=8,
+            token_repeat_warn_span=6,
             voting_threshold=0.7,
         )
 
@@ -262,7 +272,7 @@ class PipelineConfig:
     enabled_detectors: list[str] = field(
         default_factory=lambda: [
             "ngram", "semantic", "cusum", "entropy", "action",
-            "compression", "editdist",  # Fast, no embeddings needed
+            "compression", "editdist", "token_repeat",  # Fast, no embeddings needed
         ]
     )
     # Weights for voting (detector_name -> weight)
@@ -275,6 +285,7 @@ class PipelineConfig:
             "action": 1.0,
             "compression": 1.0,  # NCD - fast, no embeddings
             "editdist": 1.0,  # Edit distance decay - fast, no embeddings
+            "token_repeat": 1.2,  # Exact repeated span - fast, no embeddings
         }
     )
     enable_resolution_hints: bool = True

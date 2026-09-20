@@ -88,6 +88,71 @@ async function ncdSimilarity(textA: string, textB: string): Promise<number> {
 	return 1.0 - Math.max(0, Math.min(ncd, 1.0));
 }
 
+// --- Token repetition (exact repeated spans) ---
+// Mirrors the failure mode Antidoom targets at training time and OpenRouter
+// detects for exact repeats, but available at runtime for any framework.
+
+const TOKEN_REPEAT_MIN_SPAN = 6;
+const TOKEN_REPEAT_MAX_TOKENS = 800;
+
+function tokenizeWords(text: string): string[] {
+	return text.toLowerCase().match(/[a-z0-9']+/g) ?? [];
+}
+
+function longestRepeatedSpan(tokens: string[]): number {
+	const n = tokens.length;
+	if (n < 2) return 0;
+	let best = 0;
+	let prev = new Array<number>(n + 1).fill(0);
+	for (let i = 1; i <= n; i++) {
+		const curr = new Array<number>(n + 1).fill(0);
+		for (let j = 1; j < i; j++) {
+			if (tokens[i - 1] === tokens[j - 1]) {
+				const len = prev[j - 1] + 1;
+				curr[j] = len;
+				if (len > best) best = len;
+			}
+		}
+		prev = curr;
+	}
+	return best;
+}
+
+function longestCommonSpan(a: string[], b: string[]): number {
+	if (!a.length || !b.length) return 0;
+	if (b.length > a.length) {
+		const swap = a;
+		a = b;
+		b = swap;
+	}
+	let best = 0;
+	let prev = new Array<number>(b.length + 1).fill(0);
+	for (let i = 1; i <= a.length; i++) {
+		const curr = new Array<number>(b.length + 1).fill(0);
+		for (let j = 1; j <= b.length; j++) {
+			if (a[i - 1] === b[j - 1]) {
+				const len = prev[j - 1] + 1;
+				curr[j] = len;
+				if (len > best) best = len;
+			}
+		}
+		prev = curr;
+	}
+	return best;
+}
+
+function tokenRepeatSpan(reasoning: string, recentTexts: string[]): number {
+	const tokens = tokenizeWords(reasoning).slice(0, TOKEN_REPEAT_MAX_TOKENS);
+	if (tokens.length < 3) return 0;
+	let best = longestRepeatedSpan(tokens);
+	for (const prev of recentTexts) {
+		const prevTokens = tokenizeWords(prev).slice(0, TOKEN_REPEAT_MAX_TOKENS);
+		const common = longestCommonSpan(tokens, prevTokens);
+		if (common > best) best = common;
+	}
+	return best;
+}
+
 // --- Main handler ---
 
 Deno.serve(async (req) => {
@@ -221,15 +286,20 @@ Deno.serve(async (req) => {
 			ncdVote = ncdScore >= 0.80;
 		}
 
-		// 7. WEIGHTED VOTING (5 detectors)
-		// semantic=1.5, action=1.0, ngram=1.0, editdist=1.0, compression=1.0
-		const totalWeight = 5.5;
+		// Token repetition: exact repeated spans (intra-text and vs recent steps)
+		const tokenRepeatScore = tokenRepeatSpan(reasoning, recentTexts);
+		const tokenRepeatVote = tokenRepeatScore >= TOKEN_REPEAT_MIN_SPAN;
+
+		// 7. WEIGHTED VOTING (6 detectors)
+		// semantic=1.5, token_repeat=1.2, action=1.0, ngram=1.0, editdist=1.0, compression=1.0
+		const totalWeight = 6.7;
 		let weightedSum = 0;
 		if (semanticVote) weightedSum += 1.5;
 		if (actionVote) weightedSum += 1.0;
 		if (ngramVote) weightedSum += 1.0;
 		if (editDistVote) weightedSum += 1.0;
 		if (ncdVote) weightedSum += 1.0;
+		if (tokenRepeatVote) weightedSum += 1.2;
 		const confidence = weightedSum / totalWeight;
 		const isLooping = confidence >= 0.5;  // Default threshold
 
@@ -264,6 +334,8 @@ Deno.serve(async (req) => {
 						editdist_score: editDistScore,
 						ncd_vote: ncdVote,
 						ncd_score: ncdScore,
+						token_repeat_vote: tokenRepeatVote,
+						token_repeat_score: tokenRepeatScore,
 						confidence,
 						token_count: tokenCount,
 						estimated_cost_saved: costSaved,
@@ -308,6 +380,7 @@ Deno.serve(async (req) => {
 					ngram: ngramVote,
 					editdist: editDistVote,
 					compression: ncdVote,
+					token_repeat: tokenRepeatVote,
 				},
 				confidence: Math.round(confidence * 100) / 100,
 				status: isLooping ? "danger" : "safe",

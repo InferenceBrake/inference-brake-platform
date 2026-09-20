@@ -43,6 +43,7 @@ from inferencebrake.detectors.entropy import EntropyDetector
 from inferencebrake.detectors.action import ActionDetector
 from inferencebrake.detectors.compression import CompressionDetector
 from inferencebrake.detectors.editdist import EditDistanceDecayDetector
+from inferencebrake.detectors.token_repeat import TokenRepeatDetector
 from inferencebrake.content import LongContentHandler
 from inferencebrake.resolution import LoopResolver
 
@@ -89,6 +90,8 @@ class DetectionPipeline:
                 self._detectors[name] = CompressionDetector()
             elif name == "editdist":
                 self._detectors[name] = EditDistanceDecayDetector()
+            elif name == "token_repeat":
+                self._detectors[name] = TokenRepeatDetector()
 
     def get_session(self, session_id: str) -> SessionState:
         """Get or create session state."""
@@ -140,7 +143,7 @@ class DetectionPipeline:
         short_circuited = False
 
         # Phase 1: Fast detectors (no API calls, no embeddings)
-        fast_detectors = ["ngram", "action", "compression", "editdist"]
+        fast_detectors = ["ngram", "action", "compression", "editdist", "token_repeat"]
         for name in fast_detectors:
             if name in self._detectors:
                 detector = self._detectors[name]
