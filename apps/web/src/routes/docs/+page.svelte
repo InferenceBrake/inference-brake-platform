@@ -220,6 +220,7 @@ def call_model(prompt):
 		<section id="quickstart">
 			<h1 class="text-gradient">Integration Documentation</h1>
 			<p class="lead">Connect InferenceBrake to your AI agents in minutes. The Free plan includes 5,000 checks/month; paid plans scale to 100k and 500k per month.</p>
+			<p>Runnable examples: <a href="https://github.com/InferenceBrake/inferencebrake-examples" target="_blank" rel="noopener">InferenceBrake/inferencebrake-examples</a>.</p>
 
 			<div class="card highlight-card">
 				<h4>Before You Start</h4>

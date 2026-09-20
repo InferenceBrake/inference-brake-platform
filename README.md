@@ -223,6 +223,8 @@ InferenceBrake is the only runtime option that is framework-agnostic and detects
 
 ## Integrations
 
+Runnable examples for every integration live in [InferenceBrake/inferencebrake-examples](https://github.com/InferenceBrake/inferencebrake-examples).
+
 ### LangChain
 
 ```python
