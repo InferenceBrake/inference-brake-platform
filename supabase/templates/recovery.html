@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reset your password</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0b0b0c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0b0b0c;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#141416;border:1px solid #26262b;border-radius:12px;">
+        <tr><td style="padding:28px 32px 0 32px;">
+          <span style="font-size:18px;font-weight:700;color:#f97316;letter-spacing:-0.01em;">InferenceBrake</span>
+        </td></tr>
+        <tr><td style="padding:16px 32px 0 32px;color:#e5e5e7;font-size:20px;font-weight:600;">
+          Reset your password
+        </td></tr>
+        <tr><td style="padding:12px 32px 0 32px;color:#a1a1aa;font-size:14px;line-height:1.6;">
+          We received a request to reset the password for <strong style="color:#e5e5e7;">{{ .Email }}</strong>. Choose a new password below.
+        </td></tr>
+        <tr><td style="padding:24px 32px 8px 32px;">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;background-color:#f97316;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 20px;border-radius:8px;">Set a new password</a>
+        </td></tr>
+        <tr><td style="padding:8px 32px 0 32px;color:#71717a;font-size:12px;line-height:1.6;">
+          If the button does not work, paste this link into your browser:<br>
+          <a href="{{ .ConfirmationURL }}" style="color:#f97316;word-break:break-all;">{{ .ConfirmationURL }}</a>
+        </td></tr>
+        <tr><td style="padding:24px 32px 28px 32px;color:#71717a;font-size:12px;line-height:1.6;border-top:1px solid #26262b;">
+          This link expires shortly and can only be used once. If you did not request a reset, ignore this email; your password stays unchanged.
+          <br><br>
+          <a href="https://www.inferencebrake.dev" style="color:#a1a1aa;text-decoration:none;">inferencebrake.dev</a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
