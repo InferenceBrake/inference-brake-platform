@@ -93,7 +93,7 @@ async function ncdSimilarity(textA: string, textB: string): Promise<number> {
 // Mirrors the failure mode Antidoom targets at training time and OpenRouter
 // detects for exact repeats, but available at runtime for any framework.
 
-const TOKEN_REPEAT_MIN_SPAN = 6;
+const TOKEN_REPEAT_MIN_SPAN = 10;
 const TOKEN_REPEAT_MAX_TOKENS = 800;
 
 function tokenizeWords(text: string): string[] {

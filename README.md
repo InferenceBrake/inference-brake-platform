@@ -189,6 +189,18 @@ The system uses 8 complementary detectors:
 
 The hosted API runs 6 of these (semantic, token repeat, action, n-gram, edit distance, compression); CUSUM and entropy are in the Python engine.
 
+### Token-repeat detector (Antidoom benchmark)
+
+Prompts from [LiquidAI/antidoom-mix-v1.0](https://huggingface.co/datasets/LiquidAI/antidoom-mix-v1.0) plus repetition-inducing prompts, completed by a model at low temperature. Ground truth is a conservative repeated-span length (>=16 tokens) computed independently of the detector.
+
+| Span threshold | Precision | Recall | F1 | False-positive rate |
+| --- | --- | --- | --- | --- |
+| 6 | 0.36 | 1.00 | 0.53 | 0.33 |
+| 10 | 0.50 | 1.00 | 0.67 | 0.19 |
+| 12 | 0.67 | 1.00 | 0.80 | 0.10 |
+
+Sample: 25 completions, 4 severe. The default span threshold is 10: full recall on severe loops with far fewer false positives than 6. Reproduce with `uv run --project packages/engine python benchmarks/antidoom_benchmark.py --limit 20 --induce 8`. Raw results in `benchmarks/reports/antidoom_benchmark.json`.
+
 See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for running benchmarks.
 
 ---

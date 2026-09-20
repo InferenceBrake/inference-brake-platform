@@ -178,8 +178,10 @@ class ThresholdConfig:
     editdist_window: int = 6
 
     # Token repetition (exact repeated span) - fast, no embeddings needed
-    token_repeat_min_span: int = 6  # tokens in a repeated span to flag
-    token_repeat_warn_span: int = 4
+    # Span threshold chosen from the Antidoom benchmark: 10 tokens keeps full
+    # recall on severe loops while cutting the false-positive rate versus 6.
+    token_repeat_min_span: int = 10  # tokens in a repeated span to flag
+    token_repeat_warn_span: int = 7
     token_repeat_window: int = 5  # recent steps to compare against
     token_repeat_max_tokens: int = 1500  # cap for O(n^2) span search
 
@@ -199,8 +201,8 @@ class ThresholdConfig:
             compression_threshold=0.75,
             editdist_stasis_threshold=0.12,
             editdist_decay_threshold=-0.02,
-            token_repeat_min_span=4,
-            token_repeat_warn_span=3,
+            token_repeat_min_span=7,
+            token_repeat_warn_span=5,
             voting_threshold=0.3,
         )
 
@@ -219,8 +221,8 @@ class ThresholdConfig:
             compression_threshold=0.85,
             editdist_stasis_threshold=0.05,
             editdist_decay_threshold=-0.04,
-            token_repeat_min_span=8,
-            token_repeat_warn_span=6,
+            token_repeat_min_span=12,
+            token_repeat_warn_span=9,
             voting_threshold=0.7,
         )
 

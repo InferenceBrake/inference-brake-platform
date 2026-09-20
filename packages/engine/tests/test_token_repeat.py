@@ -56,13 +56,13 @@ def test_cross_step_repetition_detected():
 
 def test_short_repeated_span_warns():
     reasoning = (
-        "alpha beta gamma delta epsilon then something else "
-        "alpha beta gamma delta epsilon"
+        "alpha beta gamma delta epsilon zeta eta theta then something else "
+        "alpha beta gamma delta epsilon zeta eta theta"
     )
     signal = TokenRepeatDetector().detect(reasoning, make_session([]), ThresholdConfig())
 
     assert signal.verdict == DetectorVerdict.WARNING
-    assert signal.metadata["span_len"] == 5
+    assert signal.metadata["span_len"] == 8
 
 
 def test_too_few_tokens_is_safe():
