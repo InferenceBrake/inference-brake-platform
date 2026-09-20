@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
           stripe_subscription_id: subscriptionId,
           stripe_customer_id: customerId,
           plan: planConfig.id,
-          daily_limit: planConfig.dailyLimit,
+          monthly_limit: planConfig.monthlyLimit,
           subscription_status: "active",
           subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
         };
@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
           subscription_status: subscriptionStatus,
           subscription_current_period_end: currentPeriodEnd,
           ...(planConfig
-            ? { plan: planConfig.id, daily_limit: planConfig.dailyLimit }
+            ? { plan: planConfig.id, monthly_limit: planConfig.monthlyLimit }
             : {}),
         };
         break;
@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
       case "customer.subscription.deleted": {
         updateData = {
           plan: FREE_PLAN,
-          daily_limit: PLANS[FREE_PLAN].dailyLimit,
+          monthly_limit: PLANS[FREE_PLAN].monthlyLimit,
           subscription_status: "canceled",
           stripe_subscription_id: null,
         };

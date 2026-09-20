@@ -269,7 +269,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 			<div class="price-card">
 				<h3>Free</h3>
 				<div class="price"><span class="amount">$0</span><span class="period">/mo</span></div>
-				<p class="price-desc">1,000 checks/day. No credit card required.</p>
+				<p class="price-desc">5,000 checks/month. No credit card required.</p>
 				<ul class="price-features">
 					<li><span class="check">✓</span> All 6 production detectors</li>
 					<li><span class="check">✓</span> 7-day log retention</li>
@@ -282,7 +282,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 				<div class="price-badge">Most popular</div>
 				<h3>Growth</h3>
 				<div class="price"><span class="amount">$49</span><span class="period">/mo</span></div>
-				<p class="price-desc">~100,000 checks/month for production agents.</p>
+				<p class="price-desc">100,000 checks/month for production agents.</p>
 				<ul class="price-features">
 					<li><span class="check">✓</span> All 6 production detectors</li>
 					<li><span class="check">✓</span> Slack + webhook alerts</li>
@@ -295,7 +295,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 			<div class="price-card">
 				<h3>Pro</h3>
 				<div class="price"><span class="amount">$199</span><span class="period">/mo</span></div>
-				<p class="price-desc">~500,000 checks/month and priority latency.</p>
+				<p class="price-desc">500,000 checks/month and priority latency.</p>
 				<ul class="price-features">
 					<li><span class="check">✓</span> All 6 production detectors</li>
 					<li><span class="check">✓</span> Custom voting thresholds</li>

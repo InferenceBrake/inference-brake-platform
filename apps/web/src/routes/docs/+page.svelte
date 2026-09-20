@@ -171,7 +171,7 @@ if (status.shouldStop) {
 	<main class="docs-content">
 		<section id="quickstart">
 			<h1 class="text-gradient">Integration Documentation</h1>
-			<p class="lead">Connect InferenceBrake to your AI agents in minutes. The Free plan includes 1,000 checks/day; paid plans scale to 100k and 500k per month.</p>
+			<p class="lead">Connect InferenceBrake to your AI agents in minutes. The Free plan includes 5,000 checks/month; paid plans scale to 100k and 500k per month.</p>
 
 			<div class="card highlight-card">
 				<h4>Before You Start</h4>
@@ -376,7 +376,7 @@ if (status.shouldStop) {
 
 			<h3>Rate Limits</h3>
 			<div class="card info-card">
-				<p><strong>Free plan:</strong> 1,000 checks per day per account. Paid plans raise the limit. Counters reset daily at midnight UTC.</p>
+				<p><strong>Free plan:</strong> 5,000 checks per month per account. Paid plans raise the limit. Counters reset on the 1st.</p>
 				<p>Rate limit headers are returned with every response:</p>
 				<ul class="header-list">
 					<li><code>X-RateLimit-Limit</code> - Daily limit</li>

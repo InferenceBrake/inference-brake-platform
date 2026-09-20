@@ -4,7 +4,7 @@
 
 	let userEmail = $state('');
 	let userPlan = $state('hobby');
-	let userDailyLimit = $state(1000);
+	let userMonthlyLimit = $state(5000);
 	let subscriptionStatus = $state('active');
 	let subscriptionPeriodEnd = $state<string | null>(null);
 	let apiKey = $state('');
@@ -36,7 +36,7 @@
 			// Try direct query first (subject to RLS)
 			const { data: userData } = await supabase
 				.from('users')
-				.select('api_key, test_mode_api_key, plan, daily_limit, subscription_status, subscription_current_period_end')
+				.select('api_key, test_mode_api_key, plan, monthly_limit, subscription_status, subscription_current_period_end')
 				.eq('id', authUser.id)
 				.single();
 			
@@ -44,7 +44,7 @@
 				apiKey = userData.api_key || '';
 				testApiKey = userData.test_mode_api_key || '';
 				userPlan = userData.plan || 'hobby';
-				userDailyLimit = userData.daily_limit || 1000;
+				userMonthlyLimit = userData.monthly_limit || 5000;
 				subscriptionStatus = userData.subscription_status || 'active';
 				subscriptionPeriodEnd = userData.subscription_current_period_end;
 			}
@@ -217,7 +217,7 @@
 			}
 			if (data?.demo) {
 				userPlan = plan;
-				userDailyLimit = plan === 'pro' ? 16666 : plan === 'growth' ? 3333 : 1000;
+				userMonthlyLimit = plan === 'pro' ? 500000 : plan === 'growth' ? 100000 : 5000;
 				subscriptionStatus = 'active';
 				showMessage('Demo mode - plan updated', 'success');
 				return;
@@ -269,7 +269,7 @@
 			if (data?.error) throw new Error(data.error);
 
 			userPlan = 'hobby';
-			userDailyLimit = 1000;
+			userMonthlyLimit = 5000;
 			subscriptionStatus = 'canceled';
 			showMessage('Subscription canceled', 'success');
 		} catch (e: any) {
@@ -403,7 +403,7 @@
 							</span>
 						</div>
 						<div class="plan-details">
-							<span>{userDailyLimit.toLocaleString()} checks/day</span>
+							<span>{userMonthlyLimit.toLocaleString()} checks/month</span>
 							{#if subscriptionPeriodEnd && userPlan !== 'hobby'}
 								<span class="period-end">Renews {formatDate(subscriptionPeriodEnd)}</span>
 							{:else}

@@ -40,12 +40,13 @@ async function ensureTestUser() {
 		console.log(`Found existing user: ${TEST_EMAIL}`);
 		API_KEY = existingUser.api_key;
 		
-		// Reset daily limit and disable test mode for rate limit testing
+		// Reset the monthly counter and set a tiny limit for testing
 		await supabase
 			.from("users")
 			.update({ 
 				checks_today: 0, 
-				daily_limit: 5,
+				checks_this_month: 0,
+				monthly_limit: 5,
 				test_mode: false,
 				test_mode_api_key: null
 			})
@@ -63,10 +64,10 @@ async function runRateLimitTest() {
 	const sessionId = "rate-limit-test-" + Math.random().toString(36).substring(7);
 	
 	// Step through the session, making requests
-	// With daily_limit=5, we should get 429 on the 6th request
+	// With monthly_limit=5, we should get 429 on the 6th request
 	const reasoning = "Testing rate limit with repeated reasoning step";
 	
-	console.log(`Testing with daily_limit=5 (expect 429 on 6th request)\n`);
+	console.log(`Testing with monthly_limit=5 (expect 429 on 6th request)\n`);
 	
 	let rateLimited = false;
 	const successCount = 0;
@@ -125,18 +126,18 @@ async function runRateLimitTest() {
 	}
 
 	// Assertions
-	assert(rateLimited, "Should get rate limited after exceeding daily limit");
+	assert(rateLimited, "Should get rate limited after exceeding monthly quota");
 	
-	// Verify in database that user has hits the limit
+	// Verify in database that user has hit the limit
 	const { data: user } = await supabase
 		.from("users")
-		.select("checks_today, daily_limit")
+		.select("checks_this_month, monthly_limit")
 		.eq("api_key", API_KEY)
 		.single();
 	
 	if (user) {
-		assert(user.checks_today >= 5, `Should have 5+ checks_today, got ${user.checks_today}`);
-		console.log(`Database shows checks_today: ${user.checks_today}, daily_limit: ${user.daily_limit}`);
+		assert(user.checks_this_month >= 5, `Should have 5+ checks_this_month, got ${user.checks_this_month}`);
+		console.log(`Database shows checks_this_month: ${user.checks_this_month}, monthly_limit: ${user.monthly_limit}`);
 	}
 	
 	// Try one more request - should still be rate limited

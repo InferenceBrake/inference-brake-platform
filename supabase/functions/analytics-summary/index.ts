@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
 		};
 
 		const userRes = await fetch(
-			`${supabaseUrl}/rest/v1/users?api_key=eq.${apiKey}&select=id,plan,daily_limit`,
+			`${supabaseUrl}/rest/v1/users?api_key=eq.${apiKey}&select=id,plan,monthly_limit`,
 			{ headers: authHeaders },
 		);
 		const users = await userRes.json();

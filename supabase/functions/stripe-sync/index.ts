@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
 			},
 			body: JSON.stringify({
 				plan,
-				daily_limit: PLANS[plan].dailyLimit,
+				monthly_limit: PLANS[plan].monthlyLimit,
 				subscription_status: subscriptionStatus,
 				stripe_customer_id: customerId,
 				stripe_subscription_id: subscriptionId,
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
 			synced: true,
 			plan,
 			subscription_status: subscriptionStatus,
-			daily_limit: PLANS[plan].dailyLimit,
+			monthly_limit: PLANS[plan].monthlyLimit,
 			subscription_current_period_end: periodEnd,
 		});
 	} catch (err) {

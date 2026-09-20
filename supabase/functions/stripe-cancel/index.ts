@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           plan: FREE_PLAN,
-          daily_limit: PLANS[FREE_PLAN].dailyLimit,
+          monthly_limit: PLANS[FREE_PLAN].monthlyLimit,
           subscription_status: "canceled",
           stripe_subscription_id: null,
         }),
@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         plan: "hobby",
-        daily_limit: 1000,
+        monthly_limit: 5000,
         subscription_status: "canceled",
         stripe_subscription_id: null,
       }),

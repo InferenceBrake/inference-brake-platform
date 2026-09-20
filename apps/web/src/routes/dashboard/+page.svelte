@@ -18,7 +18,8 @@
 	let loading = $state(true);
 	let userEmail = $state('');
 	let userPlan = $state('hobby');
-	let userDailyLimit = $state(10000);
+	let userMonthlyLimit = $state(5000);
+	let checksThisMonth = $state(0);
 	let checksToday = $state(0);
 	let subscriptionStatus = $state('inactive');
 	let upgradeProcessing = $state<string | null>(null);
@@ -66,13 +67,14 @@
 			
 			const { data: userData } = await supabase
 				.from('users')
-				.select('checks_today, daily_limit, plan, subscription_status')
+				.select('checks_today, checks_this_month, monthly_limit, plan, subscription_status')
 				.eq('id', authUser.id)
 				.single();
 			
 			if (userData) {
 				checksToday = userData.checks_today || 0;
-				userDailyLimit = userData.daily_limit || 10000;
+				checksThisMonth = userData.checks_this_month || 0;
+				userMonthlyLimit = userData.monthly_limit || 5000;
 				if (userData.plan && userData.plan !== userPlan) {
 					userPlan = userData.plan;
 					if (billingMessage.startsWith('Subscription activated')) {
@@ -130,14 +132,15 @@
 			// Get user's full data from our users table
 			const { data: userData } = await supabase
 				.from('users')
-				.select('api_key, plan, daily_limit, checks_today, onboarding_completed, subscription_status')
+				.select('api_key, plan, monthly_limit, checks_this_month, checks_today, onboarding_completed, subscription_status')
 				.eq('id', authUser.id)
 				.single();
 			
 			if (userData) {
 				apiKey = userData.api_key || '';
 				userPlan = userData.plan || 'hobby';
-				userDailyLimit = userData.daily_limit || 10000;
+				userMonthlyLimit = userData.monthly_limit || 5000;
+				checksThisMonth = userData.checks_this_month || 0;
 				checksToday = userData.checks_today || 0;
 				subscriptionStatus = userData.subscription_status || 'inactive';
 				
@@ -332,7 +335,7 @@
 			} else if (response.data?.demo) {
 				billingMessage = 'Demo mode - plan updated.';
 				userPlan = plan;
-				userDailyLimit = plan === 'pro' ? 16666 : plan === 'growth' ? 3333 : 1000;
+				userMonthlyLimit = plan === 'pro' ? 500000 : plan === 'growth' ? 100000 : 5000;
 			} else {
 				billingMessage = response.data?.error || response.error?.message || 'Failed to start checkout.';
 			}
@@ -458,11 +461,11 @@
 			<!-- Usage Meter -->
 			<div class="usage-meter">
 				<div class="usage-header">
-					<span>Today's Usage</span>
-					<span>{checksToday} / {userDailyLimit}</span>
+					<span>This Month's Usage</span>
+					<span>{checksThisMonth.toLocaleString()} / {userMonthlyLimit.toLocaleString()}</span>
 				</div>
 				<div class="usage-bar">
-					<div class="usage-fill" style="width: {Math.min(100, (checksToday / userDailyLimit) * 100)}%"></div>
+					<div class="usage-fill" style="width: {Math.min(100, (checksThisMonth / userMonthlyLimit) * 100)}%"></div>
 				</div>
 			</div>
 			
@@ -470,7 +473,7 @@
 				<div class="waitlist-content">
 					<span class="waitlist-title">{getPlanDisplayName(userPlan)} plan</span>
 					<span class="waitlist-desc">
-						{userDailyLimit.toLocaleString()} checks/day
+						{userMonthlyLimit.toLocaleString()} checks/month
 						{#if subscriptionStatus === 'past_due'} · Payment past due{/if}
 					</span>
 				</div>

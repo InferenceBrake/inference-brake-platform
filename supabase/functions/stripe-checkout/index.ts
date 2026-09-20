@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
 				},
 				body: JSON.stringify({
 					plan,
-					daily_limit: planConfig.dailyLimit,
+					monthly_limit: planConfig.monthlyLimit,
 					subscription_status: "active",
 				}),
 			});

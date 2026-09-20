@@ -274,9 +274,9 @@ curl -X POST https://yourproject.supabase.co/functions/v1/check \
 
 | Plan | Price | Checks | Features |
 |------|-------|--------|----------|
-| **Free** | **$0** | 1,000/day | All 6 detectors, 7-day history |
-| **Growth** | **$49/mo** | ~100,000/month | Slack + webhook alerts, dollars-saved dashboard, 30-day history |
-| **Pro** | **$199/mo** | ~500,000/month | Custom thresholds, priority latency, 90-day history |
+| **Free** | **$0** | 5,000/month | All 6 detectors, 7-day history |
+| **Growth** | **$49/mo** | 100,000/month | Slack + webhook alerts, dollars-saved dashboard, 30-day history |
+| **Pro** | **$199/mo** | 500,000/month | Custom thresholds, priority latency, 90-day history |
 
 All plans use Supabase's free gte-small model (no embedding costs!)
 
@@ -619,6 +619,6 @@ from inferencebrake import InferenceBrake
 guard = InferenceBrake(api_key="ib_key", supabase_url="...")
 ```
 
-**No credit card required. 10,000 checks/day during beta.**
+**No credit card required. 5,000 checks/month on the Free plan.**
 
 [Get Started Free](https://inferencebrake.dev) · [View Demo](https://inferencebrake.dev/demo) · [Read Docs](https://docs.inferencebrake.dev)

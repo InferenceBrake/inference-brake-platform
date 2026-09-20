@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { PLANS, FREE_PLAN } from "../_shared/plans.ts";
 
 const supabase = createClient(
 	Deno.env.get("SUPABASE_URL")!,
@@ -180,9 +181,9 @@ Deno.serve(async (req) => {
 		const isTestMode = user.test_mode === true || user.test_mode_api_key === apiKey;
 
 		// 2. RATE LIMIT (check before increment to avoid phantom counts)
-		let currentChecks = user.checks_today || 0;
-		// Beta mode: generous free tier - 10k checks/day
-		const dailyLimit = user.daily_limit || 10000;
+		const checksToday = user.checks_today || 0;
+		let currentChecks = user.checks_this_month || 0;
+		const monthlyLimit = user.monthly_limit || PLANS[FREE_PLAN].monthlyLimit;
 
 		if (!isTestMode) {
 			if (user.subscription_status === "past_due") {
@@ -192,17 +193,17 @@ Deno.serve(async (req) => {
 				});
 			}
 
-			if (currentChecks >= dailyLimit) {
+			if (currentChecks >= monthlyLimit) {
 				return new Response(JSON.stringify({
-					error: "Rate limit exceeded",
-					limit: dailyLimit,
+					error: "Monthly quota exceeded",
+					limit: monthlyLimit,
 					used: currentChecks,
 				}), {
 					status: 429,
 					headers: {
 						...corsHeaders,
 						"Content-Type": "application/json",
-						"X-RateLimit-Limit": String(dailyLimit),
+						"X-RateLimit-Limit": String(monthlyLimit),
 						"X-RateLimit-Remaining": "0",
 					},
 				});
@@ -213,7 +214,7 @@ Deno.serve(async (req) => {
 			currentChecks += 1;
 		}
 
-		const remaining = dailyLimit - currentChecks;
+		const remaining = monthlyLimit - currentChecks;
 
 		// 3. PARSE
 		const body = await req.json();
@@ -363,8 +364,8 @@ Deno.serve(async (req) => {
 		const action = isLooping ? "KILL" : "PROCEED";
 
 		const now = new Date();
-		const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-		const resetTimestamp = Math.floor(tomorrow.getTime() / 1000);
+		const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+		const resetTimestamp = Math.floor(nextMonth.getTime() / 1000);
 
 		return new Response(
 			JSON.stringify({
@@ -389,8 +390,9 @@ Deno.serve(async (req) => {
 					: "Reasoning sound",
 				test_mode: isTestMode,
 				usage: {
-					today: currentChecks,
-					limit: dailyLimit,
+					today: checksToday,
+					month: currentChecks,
+					limit: monthlyLimit,
 					remaining: Math.max(0, remaining),
 				},
 			}),
@@ -398,8 +400,9 @@ Deno.serve(async (req) => {
 				headers: {
 					...corsHeaders,
 					"Content-Type": "application/json",
-					"X-RateLimit-Limit": String(dailyLimit),
-					"X-RateLimit-Remaining": String(isTestMode ? dailyLimit : Math.max(0, remaining)),
+					"X-RateLimit-Limit": String(monthlyLimit),
+					"X-RateLimit-Remaining": String(isTestMode ? monthlyLimit : Math.max(0, remaining)),
+					"X-RateLimit-Period": "month",
 					"X-RateLimit-Reset": String(resetTimestamp),
 				},
 			},
