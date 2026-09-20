@@ -21,7 +21,7 @@ let activeTab = $state("python");
 				</p>
 				
 			<p class="hero-desc">
-				Open-source detection system with 5 production detectors and 2 more in development - from embedding similarity to information theory. Runs on Supabase free tier.
+				Open-source detection system with 6 production detectors and 2 more in development - from embedding similarity and exact token repeats to information theory. Runs on Supabase free tier.
 			</p>
 				
 				<div class="hero-cta">
@@ -75,6 +75,9 @@ let activeTab = $state("python");
 					<a href="https://nocrash.io/blog/bolt-new-doom-loop" target="_blank" rel="noopener" class="signal">
 						Bolt.new users burn hundreds of thousands of credits in doom loops
 					</a>
+					<a href="https://getunblocked.com/blog/ai-agent-doom-loop/" target="_blank" rel="noopener" class="signal">
+						82% of developers hit repeated AI agent failures
+					</a>
 				</div>
 			</div>
 		</div>
@@ -85,7 +88,7 @@ let activeTab = $state("python");
 	<div class="container">
 		<div class="section-header">
 			<h2>Science Based Detection Methods</h2>
-			<p>From information theory to embedding drift</p>
+			<p>From embedding similarity and exact repeats to information theory</p>
 		</div>
 		
 		<div class="detectors-grid">
@@ -96,6 +99,16 @@ let activeTab = $state("python");
 				<div class="card-footer">
 					<span class="detector-badge free">Implemented</span>
 					<span class="paper-tag">TAAR 2026</span>
+				</div>
+			</a>
+
+			<a class="detector-card" href="https://github.com/Liquid4All/antidoom" target="_blank" rel="noopener noreferrer">
+				<svg class="detector-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 01-4 4H3"/></svg>
+				<h3>Token Repeat</h3>
+				<p>Exact repeated token spans, within a response and across steps. The verbatim loop Antidoom targets at training time, caught here at runtime.</p>
+				<div class="card-footer">
+					<span class="detector-badge free">Implemented</span>
+					<span class="paper-tag">Antidoom 2026</span>
 				</div>
 			</a>
 
@@ -258,7 +271,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 				<div class="price"><span class="amount">$0</span><span class="period">/mo</span></div>
 				<p class="price-desc">1,000 checks/day. No credit card required.</p>
 				<ul class="price-features">
-					<li><span class="check">✓</span> All 5 production detectors</li>
+					<li><span class="check">✓</span> All 6 production detectors</li>
 					<li><span class="check">✓</span> 7-day log retention</li>
 					<li><span class="check">✓</span> Email support</li>
 				</ul>
@@ -271,7 +284,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 				<div class="price"><span class="amount">$49</span><span class="period">/mo</span></div>
 				<p class="price-desc">~100,000 checks/month for production agents.</p>
 				<ul class="price-features">
-					<li><span class="check">✓</span> All 5 production detectors</li>
+					<li><span class="check">✓</span> All 6 production detectors</li>
 					<li><span class="check">✓</span> Slack + webhook alerts</li>
 					<li><span class="check">✓</span> Est. dollars-saved dashboard</li>
 					<li><span class="check">✓</span> 30-day log retention</li>
@@ -284,7 +297,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 				<div class="price"><span class="amount">$199</span><span class="period">/mo</span></div>
 				<p class="price-desc">~500,000 checks/month and priority latency.</p>
 				<ul class="price-features">
-					<li><span class="check">✓</span> All 5 production detectors</li>
+					<li><span class="check">✓</span> All 6 production detectors</li>
 					<li><span class="check">✓</span> Custom voting thresholds</li>
 					<li><span class="check">✓</span> Priority API latency</li>
 					<li><span class="check">✓</span> 90-day log retention</li>

@@ -45,7 +45,7 @@ Step 247: [Your OpenAI bill: $4,732.50]
 - ✅ **FREE** embeddings via Supabase (gte-small, 384 dims)
 - ✅ Stops execution **before** budget burn
 - ✅ Works with any framework (LangChain, CrewAI, AutoGPT, custom)
-- ✅ **7 detectors**: Semantic, Action, N-gram, CUSUM, Entropy, Compression, Edit Distance
+- ✅ **8 detectors**: Semantic, Token Repeat, Action, N-gram, CUSUM, Entropy, Compression, Edit Distance
 
 ---
 
@@ -174,11 +174,12 @@ else:
 
 ## Benchmark Status
 
-The system uses 7 complementary detectors:
+The system uses 8 complementary detectors:
 
 | Detector | Type | Best For |
 |----------|------|----------|
 | **Semantic** | Embedding similarity | Paraphrased repetition |
+| **Token Repeat** | Exact repeated spans | Verbatim loops (the Antidoom / OpenRouter failure mode) |
 | **Action** | Tool call patterns | Repeated actions |
 | **N-gram** | Text overlap | Phrase repetition |
 | **CUSUM** | Embedding drift | Early stagnation warning |
@@ -186,7 +187,25 @@ The system uses 7 complementary detectors:
 | **Compression (NCD)** | Information theory | Structural similarity |
 | **Edit Distance** | Levenshtein decay | Mirror loop detection |
 
+The hosted API runs 6 of these (semantic, token repeat, action, n-gram, edit distance, compression); CUSUM and entropy are in the Python engine.
+
 See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for running benchmarks.
+
+---
+
+## How InferenceBrake compares
+
+"Doom loop" is used for several different failure modes. They are not the same problem, and no single tool covers all of them.
+
+| Approach | When it acts | What it catches | Scope |
+|----------|--------------|-----------------|-------|
+| [OpenRouter doom-loop detection](https://openrouter.ai/docs/agent-sdk/call-model/doom-loop-detection) | Runtime | Exact repeats of tool calls, server tools, and text | OpenRouter's Agent SDK only |
+| [Antidoom](https://github.com/Liquid4All/antidoom) (Liquid AI) | Training time | Reduces a model's tendency to repeat | Models you fine-tune |
+| [NoCrash](https://nocrash.io/blog/bolt-new-doom-loop) | After deploy | Broken output that reaches users | Live app monitoring |
+| [Unblocked](https://getunblocked.com/blog/ai-agent-doom-loop/) | Between sessions | Repeated mistakes caused by missing institutional context | Context/memory layer |
+| **InferenceBrake** | **Runtime** | **Semantic loops plus exact token repeats** | **Any framework, any model** |
+
+InferenceBrake is the only runtime option that is framework-agnostic and detects rephrased reasoning. The others are complementary: Antidoom reduces how often a model loops, Unblocked reduces repeated mistakes across sessions, and NoCrash catches breakage after the run. InferenceBrake stops the loop while it is happening.
 
 ---
 
@@ -251,13 +270,13 @@ curl -X POST https://yourproject.supabase.co/functions/v1/check \
 
 ## Pricing
 
-**Open Beta: Free during beta testing**
+**Plans scale with the number of agent steps you monitor.**
 
-| Plan | Price | Checks/Day | Features |
-|------|-------|------------|----------|
-| **Beta** | **$0** | 10,000 | All 5 detectors, 90-day history, test mode |
-| **Pro** | Coming Soon | TBD | Higher limits, webhooks, priority support |
-| **Enterprise** | Coming Soon | Custom | Self-hosted, team features |
+| Plan | Price | Checks | Features |
+|------|-------|--------|----------|
+| **Free** | **$0** | 1,000/day | All 6 detectors, 7-day history |
+| **Growth** | **$49/mo** | ~100,000/month | Slack + webhook alerts, dollars-saved dashboard, 30-day history |
+| **Pro** | **$199/mo** | ~500,000/month | Custom thresholds, priority latency, 90-day history |
 
 All plans use Supabase's free gte-small model (no embedding costs!)
 
@@ -512,7 +531,7 @@ inferencebrake/
 
 ### Completed
 
-- [x] Core loop detection (5 detectors: semantic, action, n-gram, edit distance, compression)
+- [x] Core loop detection (6 detectors: semantic, token repeat, action, n-gram, edit distance, compression)
 - [x] Supabase Edge Function
 - [x] Python SDK with LangChain & CrewAI integrations
 - [x] Node.js SDK with retry/circuit-breaker/offline queue

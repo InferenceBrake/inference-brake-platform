@@ -146,7 +146,7 @@
 				<div class="feature-list">
 					<div class="feature-item">
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-						<span>3 detection methods working together</span>
+						<span>6 detectors working together</span>
 					</div>
 					<div class="feature-item">
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -154,7 +154,7 @@
 					</div>
 					<div class="feature-item">
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-						<span>Free tier: 10,000 checks per day</span>
+						<span>Free tier: 1,000 checks per day</span>
 					</div>
 				</div>
 				<button class="btn btn-primary btn-lg" onclick={() => saveStep(2)}>

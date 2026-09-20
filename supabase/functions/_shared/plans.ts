@@ -26,7 +26,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
 		monthlyVolume: 30000,
 		priceEnv: null,
 		features: [
-			"All 5 detectors",
+			"All 6 detectors",
 			"1,000 checks/day",
 			"7-day log retention",
 			"Email support",
@@ -40,7 +40,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
 		monthlyVolume: 100000,
 		priceEnv: "STRIPE_GROWTH_PRICE_ID",
 		features: [
-			"All 5 detectors",
+			"All 6 detectors",
 			"~100,000 checks/month",
 			"Slack + webhook alerts",
 			"Est. dollars-saved dashboard",
@@ -55,7 +55,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
 		monthlyVolume: 500000,
 		priceEnv: "STRIPE_PRO_PRICE_ID",
 		features: [
-			"All 5 detectors",
+			"All 6 detectors",
 			"~500,000 checks/month",
 			"Custom voting thresholds",
 			"Priority API latency",
