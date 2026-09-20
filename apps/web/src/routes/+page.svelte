@@ -1,88 +1,4 @@
 <script lang="ts">
-// Demo state
-let demoRunning = $state(false);
-let currentStep = $state(0);
-let steps: Array<{
-	reasoning: string;
-	similarity: number;
-	safe: boolean;
-	stepNum: number;
-}> = $state([]);
-let detected = $state(false);
-
-const demoSteps = [
-	{
-		reasoning:
-			"Analyzing user's refactoring request for authentication module. Need to identify all auth-related functions across the codebase.",
-		similarity: 0,
-		safe: true,
-	},
-	{
-		reasoning:
-			"Found 3 auth files: auth.py, middleware.py, utils.py. Will refactor to use modern async/await patterns.",
-		similarity: 0.12,
-		safe: true,
-	},
-	{
-		reasoning:
-			"Starting with auth.py - converting sync functions to async. Changed login() to async login(). Testing compatibility.",
-		similarity: 0.18,
-		safe: true,
-	},
-	{
-		reasoning:
-			"Middleware integration looks good. Now should refactor the authentication logic to be more modular and use async patterns throughout.",
-		similarity: 0.67,
-		safe: false,
-	},
-	{
-		reasoning:
-			"I need to refactor this authentication code to use better async/await patterns. Let me restructure the auth module.",
-		similarity: 0.84,
-		safe: false,
-	},
-	{
-		reasoning:
-			"The authentication should be refactored to async. I'll reorganize these auth functions for better async compatibility.",
-		similarity: 0.91,
-		safe: false,
-	},
-	{
-		reasoning:
-			"Looking at authentication refactoring again - should convert these methods to use async/await properly.",
-		similarity: 0.94,
-		safe: false,
-	},
-];
-
-function runDemo() {
-	if (demoRunning) return;
-	demoRunning = true;
-	currentStep = 0;
-	detected = false;
-	steps = [];
-	processStep();
-}
-
-function processStep() {
-	if (currentStep >= demoSteps.length) {
-		demoRunning = false;
-		return;
-	}
-
-	const step = demoSteps[currentStep];
-	steps = [...steps, { ...step, stepNum: currentStep + 1 }];
-
-	if (!step.safe && step.similarity > 0.85) {
-		detected = true;
-		demoRunning = false;
-		return;
-	}
-
-	currentStep++;
-	setTimeout(processStep, 1500);
-}
-
 // Code tabs
 let activeTab = $state("python");
 </script>
@@ -245,79 +161,13 @@ let activeTab = $state("python");
 	<div class="container">
 		<div class="section-header">
 			<h2>See It In Action</h2>
-			<p>Watch InferenceBrake detect a semantic loop in real-time</p>
-		</div>
-		
-		<div class="demo-container">
-			<div class="demo-header">
-				<div class="demo-title">
-					<span class="demo-dot"></span>
-					Agent Monitor
-				</div>
-				<div class="demo-status">
-					{#if detected}
-						<span class="status-badge danger">Loop Detected</span>
-					{:else if demoRunning}
-						<span class="status-badge running">Monitoring...</span>
-					{:else}
-						<span class="status-badge ready">Ready</span>
-					{/if}
-				</div>
-			</div>
-			
-			<div class="demo-body">
-				<div class="terminal">
-					{#each steps as step}
-						<div class="terminal-line" class:danger={step.similarity > 0.85} class:warning={step.similarity > 0.5 && step.similarity <= 0.85}>
-							<span class="step-num">[{step.stepNum}]</span>
-							<span class="step-text">{step.reasoning.slice(0, 80)}...</span>
-							<span class="step-sim">({Math.round(step.similarity * 100)}%)</span>
-						</div>
-					{/each}
-					{#if steps.length === 0}
-						<div class="terminal-line info">Waiting for agent execution...</div>
-					{/if}
-					{#if detected}
-						<div class="terminal-line danger kill">⚠ CIRCUIT BREAKER TRIGGERED - Agent stopped</div>
-					{/if}
-				</div>
-				
-				<div class="demo-metrics">
-					<div class="metric">
-						<span class="metric-label">Steps</span>
-						<span class="metric-value">{steps.length}</span>
-					</div>
-					<div class="metric">
-						<span class="metric-label">Similarity</span>
-						<span class="metric-value">{steps.length > 0 ? Math.round(steps[steps.length - 1].similarity * 100) : 0}%</span>
-					</div>
-					<div class="metric">
-						<span class="metric-label">Status</span>
-						<span class="metric-value" class:danger={detected}>{detected ? 'LOOP' : 'SAFE'}</span>
-					</div>
-				</div>
-			</div>
-			
-			<div class="demo-footer">
-				<button class="btn btn-primary" onclick={runDemo} disabled={demoRunning}>
-					{demoRunning ? 'Running...' : 'Run Demo →'}
-				</button>
-			</div>
-		</div>
-	</div>
-</section>
-
-<section id="recording" class="recording-section">
-	<div class="container">
-		<div class="section-header">
-			<h2>Recorded From a Real Agent</h2>
-			<p>An OpenRouter model stuck retrying a failing tool, halted at step 6</p>
+			<p>A real agent loop detected and halted in the terminal</p>
 		</div>
 		
 		<div class="recording-frame">
 			<img
 				src="/demo.gif"
-				alt="InferenceBrake detecting a real agent reasoning loop in a terminal"
+				alt="InferenceBrake detecting and halting a real agent reasoning loop in a terminal"
 				loading="lazy"
 			/>
 		</div>
@@ -656,11 +506,6 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 		padding: 6rem 0;
 	}
 	
-	/* Recording Section */
-	.recording-section {
-		padding: 6rem 0;
-	}
-	
 	.recording-frame {
 		max-width: 900px;
 		margin: 0 auto;
@@ -675,119 +520,6 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 		display: block;
 		width: 100%;
 		height: auto;
-	}
-	
-	.demo-container {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-xl);
-		overflow: hidden;
-		max-width: 900px;
-		margin: 0 auto;
-	}
-	
-	.demo-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1rem 1.5rem;
-		background: var(--bg-tertiary);
-		border-bottom: 1px solid var(--border);
-	}
-	
-	.demo-title {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-weight: 600;
-	}
-	
-	.demo-dot {
-		width: 8px;
-		height: 8px;
-		background: var(--accent);
-		border-radius: 50%;
-		animation: pulse 2s infinite;
-	}
-	
-	.status-badge {
-		padding: 0.35rem 0.75rem;
-		font-size: 0.8rem;
-		font-weight: 600;
-		border-radius: var(--radius-full);
-	}
-	
-	.status-badge.ready { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
-	.status-badge.running { background: rgba(234, 179, 8, 0.15); color: #eab308; }
-	.status-badge.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-	
-	.demo-body {
-		display: grid;
-		grid-template-columns: 2fr 1fr;
-	}
-	
-	.terminal {
-		background: #000;
-		padding: 1.5rem;
-		font-family: var(--font-mono);
-		font-size: 0.8rem;
-		min-height: 350px;
-		max-height: 350px;
-		overflow-y: auto;
-	}
-	
-	.terminal-line {
-		display: flex;
-		gap: 0.5rem;
-		margin-bottom: 0.75rem;
-		animation: fadeIn 0.3s ease;
-	}
-	
-	.terminal-line.info { color: var(--text-tertiary); }
-	.terminal-line.warning { color: #eab308; }
-	.terminal-line.danger { color: #ef4444; }
-	.terminal-line.kill { 
-		margin-top: 1rem; 
-		padding-top: 1rem; 
-		border-top: 1px solid rgba(239, 68, 68, 0.3);
-		font-weight: 600;
-	}
-	
-	.step-num { color: var(--text-tertiary); }
-	.step-sim { color: var(--text-tertiary); margin-left: auto; }
-	
-	.demo-metrics {
-		display: flex;
-		flex-direction: column;
-		gap: 1px;
-		background: var(--border);
-	}
-	
-	.metric {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1rem 1.5rem;
-		background: var(--bg-secondary);
-	}
-	
-	.metric-label {
-		font-size: 0.8rem;
-		color: var(--text-tertiary);
-	}
-	
-	.metric-value {
-		font-family: var(--font-mono);
-		font-size: 1.25rem;
-		font-weight: 600;
-	}
-	
-	.metric-value.danger { color: #ef4444; }
-	
-	.demo-footer {
-		padding: 1.5rem;
-		border-top: 1px solid var(--border);
-		text-align: center;
 	}
 	
 	/* Code Section */
@@ -965,10 +697,6 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 		
 		.hero-problem {
 			padding-right: 0;
-		}
-		
-		.demo-body {
-			grid-template-columns: 1fr;
 		}
 		
 		.detectors-grid {
