@@ -573,7 +573,7 @@
 					</div>
 					<div class="stat-content">
 						<span class="stat-label">Total Checks</span>
-						<span class="stat-value">{stats.total_checks.toLocaleString()}</span>
+						<span class="stat-value">{(analytics?.total_checks ?? stats.total_checks).toLocaleString()}</span>
 					</div>
 				</div>
 
@@ -583,7 +583,7 @@
 					</div>
 					<div class="stat-content">
 						<span class="stat-label">Loops Detected</span>
-						<span class="stat-value">{stats.loops_detected.toLocaleString()}</span>
+						<span class="stat-value">{(analytics?.loops_blocked ?? stats.loops_detected).toLocaleString()}</span>
 					</div>
 				</div>
 
@@ -593,7 +593,7 @@
 					</div>
 					<div class="stat-content">
 						<span class="stat-label">Est. $ Saved</span>
-						<span class="stat-value">{formatUSD(stats.dollars_saved)}</span>
+						<span class="stat-value">{formatUSD(analytics?.estimated_usd_saved ?? stats.dollars_saved)}</span>
 					</div>
 				</div>
 

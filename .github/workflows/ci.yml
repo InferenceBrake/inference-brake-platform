@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  web:
+    name: Web (SvelteKit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Svelte check
+        working-directory: apps/web
+        run: bun run check
+      - name: Build
+        working-directory: apps/web
+        run: bun run build
+
+  python-sdk:
+    name: Python SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Unit tests
+        working-directory: packages/python-sdk
+        run: uv run python -m unittest discover -s tests -t . -v
+
+  engine:
+    name: Detection engine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Detector tests
+        env:
+          PYTHONPATH: packages/engine
+        run: uv run --no-project --with numpy --with scipy --with pytest pytest packages/engine/tests -q
