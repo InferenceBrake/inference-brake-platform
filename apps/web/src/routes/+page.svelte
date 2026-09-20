@@ -201,6 +201,31 @@ let activeTab = $state("python");
 	</div>
 </section>
 
+<section class="wild-section">
+	<div class="container">
+		<div class="section-header">
+			<h2>Doom Loops Happen in Your Editor</h2>
+			<p>A coding agent stuck repeating the same constraint. Every step re-billed, no progress.</p>
+		</div>
+
+		<div class="recording-frame narrow">
+			<video
+				autoplay
+				loop
+				muted
+				playsinline
+				preload="metadata"
+				poster="/vscode-doomloop-poster.jpg"
+				aria-label="A coding agent repeating the same sentence in a loop"
+			>
+				<source src="/vscode-doomloop.webm" type="video/webm" />
+				<source src="/vscode-doomloop.mp4" type="video/mp4" />
+			</video>
+		</div>
+		<p class="wild-caption">Recorded from a real agent session. InferenceBrake halts this at the first repeat, not the hundredth.</p>
+	</div>
+</section>
+
 <section class="code-section">
 	<div class="container">
 		<div class="section-header">
@@ -575,6 +600,28 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 		display: block;
 		width: 100%;
 		height: auto;
+	}
+	
+	/* Wild / editor doom loop */
+	.wild-section {
+		padding: 6rem 0;
+	}
+	
+	.recording-frame.narrow {
+		max-width: 680px;
+	}
+	
+	.recording-frame video {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	
+	.wild-caption {
+		text-align: center;
+		color: var(--text-tertiary);
+		font-size: 0.9rem;
+		margin-top: 1rem;
 	}
 	
 	/* Code Section */
