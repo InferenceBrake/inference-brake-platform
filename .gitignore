@@ -11,6 +11,7 @@ bun-debug.log*
 # Environment files (local configs)
 .env.*
 .env
+!.env.example
 
 # Python
 __pycache__

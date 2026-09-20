@@ -13,6 +13,8 @@
 		{ id: 'rest', label: 'REST API' },
 		{ id: 'reference', label: 'API Reference' },
 		{ id: 'integrations', label: 'Integrations' },
+		{ id: 'escalation', label: 'Escalation' },
+		{ id: 'analytics', label: 'Analytics' },
 	];
 
 	function scrollTo(id: string) {
@@ -41,11 +43,14 @@ guard = InferenceBrake(api_key="ib_your_key")
 for step in agent.run():
     status = guard.check(
         reasoning=step.reasoning,
-        session_id="agent-session-1"
+        session_id="agent-session-1",
+        action=step.tool,       # optional, enables action repetition
+        model="gpt-4o-mini",    # optional, recorded for attribution
+        prompt="weather task",  # optional, recorded for attribution
     )
 
     if status.should_stop:
-        print(f"Loop detected! Similarity: {status.similarity}")
+        print(f"Loop detected! {status.detector_triggered}")
         break`,
 		pythonBatch: `statuses = guard.check_batch(
     reasoning_list=["step1", "step2", "step3"],
@@ -100,49 +105,92 @@ monitor.reset('new-session-id');`,
   "action": "PROCEED",
   "loop_detected": false,
   "similarity": 0.42,
-  "action_repeat_count": 0,
-  "ngram_overlap": 0.1,
+  "confidence": 0.18,
   "detectors": {
     "semantic": false,
+    "token_repeat": false,
     "action": false,
     "ngram": false,
     "editdist": false,
     "compression": false
   },
-  "confidence": 0.18,
+  "estimated_cost_saved": 0,
   "status": "safe",
   "message": "Reasoning sound",
   "usage": {
     "today": 42,
-    "limit": 10000,
-    "remaining": 9958
+    "month": 42,
+    "limit": 5000,
+    "remaining": 4958
   }
 }`,
-		langchain: `from inferencebrake import InferenceBrakeCallback
+		langchain: `from inferencebrake import InferenceBrakeCallbackHandler
 
-callback = InferenceBrakeCallback(api_key="ib_your_key")
+handler = InferenceBrakeCallbackHandler(api_key="ib_your_key")
 
-agent = initialize_agent(tools, llm, callbacks=[callback])`,
-		crewai: `from inferencebrake import InferenceBrakeCallback
+agent = AgentExecutor(agent=agent, tools=tools, callbacks=[handler])`,
+		crewai: `from inferencebrake import create_crewai_callback
 
-callback = InferenceBrakeCallback(api_key="ib_your_key")
+callback = create_crewai_callback(api_key="ib_your_key")
 
 agent.callbacks = [callback]`,
-		decorator: `from inferencebrake import inferencebrake_monitor
+		decorator: `from inferencebrake import guard_agent_loop
 
-@inferencebrake_monitor(api_key="ib_your_key")
-def agent_step(reasoning: str):
-    return result`,
-		jsMonitorFull: `const { inferencebrakeMonitor } = require('inferencebrake');
+@guard_agent_loop(
+    api_key="ib_your_key",
+    session_id="agent-1",
+    action=lambda r: r["tool"],
+)
+def call_model(prompt):
+    return client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+    )`,
+		jsMonitorFull: `const { InferenceBrakeCallbackHandler } = require('inferencebrake');
 
-const monitor = inferencebrakeMonitor({
+const handler = new InferenceBrakeCallbackHandler({
     apiKey: 'ib_your_key',
     sessionId: 'my-agent'
 });
 
-const status = await monitor.check(reasoningText);
-if (status.shouldStop) {
-    // Handle loop
+const result = await chain.invoke(input, { callbacks: [handler] });`,
+		escalation: `from inferencebrake import guard_agent_loop
+
+@guard_agent_loop(
+    api_key="ib_your_key",
+    session_id="agent-1",
+    escalate=lambda status, attempt: switch_model("claude-opus"),
+    max_escalations=2,
+)
+def call_model(prompt):
+    ...  # on a loop the agent retries on the stronger model,
+         # then stops if it still loops`,
+		analyticsCurl: `curl -H "Authorization: Bearer ib_your_key" \\
+  "https://ocnjiyiqeifllbyqohks.supabase.co/functions/v1/analytics-summary?days=30"`,
+		analyticsJson: `{
+  "total_checks": 78,
+  "loops_blocked": 9,
+  "estimated_usd_saved": 0.0146,
+  "by_model": [
+    { "model": "gpt-4o-mini", "checks": 30, "loops": 4, "saved": 0.006 }
+  ],
+  "by_action": [
+    { "action": "get_balance", "checks": 12, "loops": 3, "saved": 0.004 }
+  ],
+  "by_detector": [
+    { "detector": "semantic", "loops": 6 },
+    { "detector": "token_repeat", "loops": 3 }
+  ],
+  "recent_loops": [
+    {
+      "session_id": "agent-1",
+      "model": "gpt-4o-mini",
+      "action": "get_balance",
+      "confidence": 0.85,
+      "saved": 0.0019,
+      "created_at": "2026-09-20T03:24:44Z"
+    }
+  ]
 }`,
 	};
 </script>
@@ -366,6 +414,7 @@ if (status.shouldStop) {
 					</thead>
 					<tbody>
 						<tr><td><code>semantic</code></td><td>Embedding cosine similarity</td><td>Paraphrased repetition</td></tr>
+						<tr><td><code>token_repeat</code></td><td>Exact repeated token spans</td><td>Verbatim loops (Antidoom / OpenRouter failure mode)</td></tr>
 						<tr><td><code>action</code></td><td>Tool call patterns</td><td>Repeated tool invocations</td></tr>
 						<tr><td><code>ngram</code></td><td>Text overlap</td><td>Phrase-level repetition</td></tr>
 						<tr><td><code>editdist</code></td><td>Normalized Levenshtein</td><td>Near-identical mirror loops</td></tr>
@@ -379,9 +428,10 @@ if (status.shouldStop) {
 				<p><strong>Free plan:</strong> 5,000 checks per month per account. Paid plans raise the limit. Counters reset on the 1st.</p>
 				<p>Rate limit headers are returned with every response:</p>
 				<ul class="header-list">
-					<li><code>X-RateLimit-Limit</code> - Daily limit</li>
-					<li><code>X-RateLimit-Remaining</code> - Checks remaining today</li>
-					<li><code>X-RateLimit-Reset</code> - Unix timestamp when limit resets</li>
+					<li><code>X-RateLimit-Limit</code> - Monthly limit</li>
+					<li><code>X-RateLimit-Remaining</code> - Checks remaining this month</li>
+					<li><code>X-RateLimit-Period</code> - <code>month</code></li>
+					<li><code>X-RateLimit-Reset</code> - Unix timestamp when the quota resets</li>
 				</ul>
 			</div>
 
@@ -450,6 +500,60 @@ if (status.shouldStop) {
 					</button>
 				</div>
 				<pre><code class="language-javascript">{codes.jsMonitorFull}</code></pre>
+			</div>
+		</section>
+
+		<section id="escalation">
+			<h2>Escalation</h2>
+			<p class="lead">Instead of stopping on the first loop, give the agent a chance to recover on a stronger model, then stop if it still loops. The SDK does not pick models; you provide the hook.</p>
+
+			<div class="code-block">
+				<div class="code-header">
+					<span>Python</span>
+					<button class="copy-btn" onclick={() => copyCode(codes.escalation, 'escalation')}>
+						{copyFeedback === 'escalation' ? 'Copied' : 'Copy'}
+					</button>
+				</div>
+				<pre><code class="language-python">{codes.escalation}</code></pre>
+			</div>
+
+			<div class="card info-card">
+				<p>Order of precedence on detection:</p>
+				<ol class="header-list">
+					<li><code>escalate(status, attempt)</code> while under <code>max_escalations</code></li>
+					<li><code>on_loop(status)</code></li>
+					<li>raise <code>LoopDetectedError</code> when <code>auto_stop</code> is set</li>
+				</ol>
+				<p>Use <code>steering_message(status)</code> for a ready-to-inject nudge, and <code>LoopPolicy</code> to apply the same behavior outside a decorator.</p>
+			</div>
+		</section>
+
+		<section id="analytics">
+			<h2>Analytics</h2>
+			<p class="lead">Attribute loops to the model, tool, and prompt that produced them, not just a total count.</p>
+
+			<div class="code-block">
+				<div class="code-header">
+					<span>cURL</span>
+					<button class="copy-btn" onclick={() => copyCode(codes.analyticsCurl, 'analytics curl')}>
+						{copyFeedback === 'analytics curl' ? 'Copied' : 'Copy'}
+					</button>
+				</div>
+				<pre><code class="language-bash">{codes.analyticsCurl}</code></pre>
+			</div>
+
+			<div class="code-block">
+				<div class="code-header">
+					<span>Response</span>
+					<button class="copy-btn" onclick={() => copyCode(codes.analyticsJson, 'analytics json')}>
+						{copyFeedback === 'analytics json' ? 'Copied' : 'Copy'}
+					</button>
+				</div>
+				<pre><code class="language-json">{codes.analyticsJson}</code></pre>
+			</div>
+
+			<div class="card info-card">
+				<p>Attribution comes from the <code>model</code>, <code>action</code>, and <code>prompt</code> you pass to <code>check()</code>. Totals reflect retained metrics, so the window is bounded by your plan's retention.</p>
 			</div>
 		</section>
 	</main>
