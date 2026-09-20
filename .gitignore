@@ -26,4 +26,7 @@ deno.lock
 # Opencode skills
 .opencode/skill
 
+# Opencode loop state
+.opencode/opencode-loop
+
 PROJECT_STATUS.md
