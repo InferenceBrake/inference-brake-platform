@@ -20,6 +20,7 @@ from .client import (
     inferencebrake_monitor,
 )
 from .decorators import guard, guard_agent_loop, loop_key
+from .policy import STEERING_MESSAGE, LoopPolicy, steering_message
 from .adapters import (
     CrewAICallback,
     InferenceBrakeCallbackHandler,
@@ -29,7 +30,7 @@ from .adapters import (
 # CheckStatus is the typed response returned by every check. Status is an alias.
 Status = CheckStatus
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __all__ = [
     "InferenceBrake",
     "CheckStatus",
@@ -39,6 +40,9 @@ __all__ = [
     "RateLimitError",
     "LoopDetectedError",
     "DoomLoopException",
+    "LoopPolicy",
+    "STEERING_MESSAGE",
+    "steering_message",
     "inferencebrake_monitor",
     "InferenceBrakeCallback",
     "guard_agent_loop",

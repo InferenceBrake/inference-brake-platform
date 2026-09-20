@@ -60,6 +60,25 @@ class DecoratorTests(unittest.TestCase):
         ):
             self.assertEqual(step("hi"), "result")
 
+    def test_escalate_then_stop(self):
+        attempts = []
+
+        @guard_agent_loop(
+            api_key="ib_test",
+            session_id="s1",
+            escalate=lambda status, attempt: attempts.append(attempt),
+            max_escalations=1,
+            auto_stop=True,
+        )
+        def step(prompt):
+            return "same reasoning"
+
+        with patch("requests.Session.post", return_value=FakeResponse(200, KILL_PAYLOAD)):
+            step("hi")  # first detection escalates and continues
+            self.assertEqual(attempts, [1])
+            with self.assertRaises(LoopDetectedError):
+                step("hi")  # budget exhausted, stops
+
     def test_requires_api_key(self):
         import os
 

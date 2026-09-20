@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
 from ..client import CheckStatus, InferenceBrake, LoopDetectedError
+from ..policy import LoopPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,10 @@ class CrewAICallback:
     fail_open: bool = True
     loop_key: Optional[Callable[[str], Optional[str]]] = None
     on_loop_detected: Optional[Callable[[CheckStatus], None]] = None
+    escalate: Optional[Callable[[CheckStatus, int], None]] = None
+    max_escalations: int = 2
     _client: Any = field(default=None, repr=False)
+    _policy: Any = field(default=None, repr=False)
     _step_count: int = field(default=0, repr=False)
 
     def __post_init__(self) -> None:
@@ -37,6 +41,12 @@ class CrewAICallback:
             raise ValueError("CrewAICallback requires an api_key")
         if not self.session_id:
             self.session_id = f"crewai-{os.urandom(8).hex()}"
+        self._policy = LoopPolicy(
+            auto_stop=self.auto_stop,
+            max_escalations=self.max_escalations,
+            escalate=self.escalate,
+            on_loop=self.on_loop_detected,
+        )
 
     @property
     def client(self) -> InferenceBrake:
@@ -71,16 +81,15 @@ class CrewAICallback:
                 status.confidence,
                 status.detector_triggered or "none",
             )
-            if self.on_loop_detected is not None:
-                self.on_loop_detected(status)
-            if self.auto_stop:
-                raise LoopDetectedError(f"Loop detected: {status.message}")
+            self._policy.handle(status)
 
         return status
 
     def reset(self, new_session_id: Optional[str] = None) -> None:
         """Start a new logical session."""
         self._step_count = 0
+        if self._policy is not None:
+            self._policy.reset()
         if new_session_id:
             self.session_id = new_session_id
 
@@ -109,6 +118,8 @@ def create_crewai_callback(
     fail_open: bool = True,
     loop_key: Optional[Callable[[str], Optional[str]]] = None,
     on_loop_detected: Optional[Callable[[CheckStatus], None]] = None,
+    escalate: Optional[Callable[[CheckStatus, int], None]] = None,
+    max_escalations: int = 2,
 ) -> CrewAICallback:
     """Factory for a CrewAI loop-detection callback."""
     return CrewAICallback(
@@ -120,4 +131,6 @@ def create_crewai_callback(
         fail_open=fail_open,
         loop_key=loop_key,
         on_loop_detected=on_loop_detected,
+        escalate=escalate,
+        max_escalations=max_escalations,
     )

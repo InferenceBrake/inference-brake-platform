@@ -13,6 +13,7 @@ import os
 from typing import Any, Callable, Dict, List, Optional
 
 from ..client import CheckStatus, InferenceBrake, LoopDetectedError
+from ..policy import LoopPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,8 @@ class InferenceBrakeCallbackHandler(BaseCallbackHandler):
         action: Optional[Callable[[str], Optional[str]]] = None,
         loop_key: Optional[Callable[[str], Optional[str]]] = None,
         on_loop_detected: Optional[Callable[[CheckStatus], None]] = None,
+        escalate: Optional[Callable[[CheckStatus, int], None]] = None,
+        max_escalations: int = 2,
     ) -> None:
         try:
             super().__init__()
@@ -75,6 +78,12 @@ class InferenceBrakeCallbackHandler(BaseCallbackHandler):
         self.action = action
         self.loop_key = loop_key
         self.on_loop_detected = on_loop_detected
+        self._policy = LoopPolicy(
+            auto_stop=auto_stop,
+            max_escalations=max_escalations,
+            escalate=escalate,
+            on_loop=on_loop_detected,
+        )
         self.step_count = 0
         self.last_status: Optional[CheckStatus] = None
 
@@ -117,13 +126,7 @@ class InferenceBrakeCallbackHandler(BaseCallbackHandler):
                 status.confidence,
                 status.detector_triggered or "none",
             )
-            if self.on_loop_detected is not None:
-                self.on_loop_detected(status)
-            if self.auto_stop:
-                raise LoopDetectedError(
-                    f"Loop detected: {status.message} "
-                    f"(confidence: {status.confidence:.2f})"
-                )
+            self._policy.handle(status)
 
     def on_llm_error(self, error: Exception, **kwargs: Any) -> None:
         return None
@@ -132,6 +135,7 @@ class InferenceBrakeCallbackHandler(BaseCallbackHandler):
         """Start a new logical session."""
         self.step_count = 0
         self.last_status = None
+        self._policy.reset()
         if new_session_id:
             self.session_id = new_session_id
 

@@ -113,6 +113,39 @@ if status.degraded:
 
 Set `fail_open=False` to raise `InferenceBrakeError` instead.
 
+## Escalation
+
+Instead of stopping on the first loop, give the agent a chance to recover on a stronger model, then stop if it still loops. `escalate` is your hook; the SDK does not pick models.
+
+```python
+from inferencebrake import guard_agent_loop
+
+@guard_agent_loop(
+    api_key="ib_your_key",
+    session_id="agent-1",
+    escalate=lambda status, attempt: switch_model("claude-opus"),  # 1st, 2nd...
+    max_escalations=2,
+)
+def call_model(prompt):
+    ...
+```
+
+Order of precedence on detection:
+
+1. `escalate(status, attempt)` while under `max_escalations`
+2. `on_loop(status)`
+3. raise `LoopDetectedError` when `auto_stop`
+
+`LoopPolicy` exposes the same behavior directly, and `steering_message(status)` returns a ready-to-inject nudge:
+
+```python
+from inferencebrake import LoopPolicy, steering_message
+
+policy = LoopPolicy(max_escalations=2, escalate=on_escalate, auto_stop=True)
+policy.handle(status)
+nudge = steering_message(status)
+```
+
 ## Options
 
 ```python
@@ -148,6 +181,28 @@ Environment variable `INFERENCEBRAKE_URL` overrides the default API base URL.
 results = guard.check_batch([step1, step2, step3], session_id="my-agent")
 history = guard.get_session_history("my-agent", limit=50)
 ```
+
+## Analytics
+
+`GET /functions/v1/analytics-summary` returns usage and dollars-saved totals plus a daily series for the account behind the API key.
+
+```bash
+curl -H "Authorization: Bearer ib_your_key" \
+  "https://<project>.supabase.co/functions/v1/analytics-summary?days=30"
+```
+
+```json
+{
+  "plan": "growth",
+  "total_checks": 78,
+  "loops_blocked": 9,
+  "estimated_usd_saved": 0.0146,
+  "avg_similarity": 0.7739,
+  "daily": [{ "date": "2026-09-19", "checks": 47, "loops": 8, "saved": 0.0107 }]
+}
+```
+
+Totals reflect retained metrics, so the window is bounded by your plan's retention.
 
 ## Errors
 

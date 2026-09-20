@@ -17,6 +17,7 @@ from .client import (
     InferenceBrake,
     LoopDetectedError,
 )
+from .policy import LoopPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,8 @@ def guard_agent_loop(
     loop_key: Optional[Callable[[str], Optional[str]]] = None,
     check_input: bool = False,
     on_loop: Optional[Callable[[CheckStatus], None]] = None,
+    escalate: Optional[Callable[[CheckStatus, int], None]] = None,
+    max_escalations: int = 2,
 ) -> Callable:
     """Wrap a function so every result is checked for a reasoning loop.
 
@@ -66,6 +69,10 @@ def guard_agent_loop(
         loop_key: Normalize the action identity. Return ``None`` to skip it.
         check_input: Also check the first positional arg / ``prompt`` kwarg.
         on_loop: Callback invoked with the ``CheckStatus`` on detection.
+        escalate: Callback invoked with ``(status, attempt)`` when a loop is
+            detected and the escalation budget is not exhausted. The wrapped
+            call is allowed to continue so you can switch to a stronger model.
+        max_escalations: Cap on ``escalate`` calls before stopping.
     """
     key = api_key or os.getenv("INFERENCEBRAKE_API_KEY")
     if not key:
@@ -80,6 +87,12 @@ def guard_agent_loop(
             timeout=timeout,
             auto_stop=False,  # the wrapper controls raising
             fail_open=fail_open,
+        )
+        policy = LoopPolicy(
+            auto_stop=auto_stop,
+            max_escalations=max_escalations,
+            escalate=escalate,
+            on_loop=on_loop,
         )
 
         def resolve_session(args: tuple, kwargs: dict) -> str:
@@ -99,11 +112,7 @@ def guard_agent_loop(
                     logger.warning("loop_key failed (%s); falling back to raw action", e)
 
             status = guard.check(reasoning=str(text), session_id=sid, action=identity)
-            if status.should_stop:
-                if on_loop is not None:
-                    on_loop(status)
-                if auto_stop:
-                    raise LoopDetectedError(status.message)
+            policy.handle(status)
             return status
 
         @functools.wraps(func)
