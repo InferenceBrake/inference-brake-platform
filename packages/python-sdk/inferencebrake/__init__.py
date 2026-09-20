@@ -9,34 +9,42 @@ With LangChain support:
 """
 
 from .client import (
-    InferenceBrake,
-    CheckStatus,
-    InferenceBrakeError,
     AuthenticationError,
+    CheckStatus,
+    DoomLoopException,
+    InferenceBrake,
+    InferenceBrakeCallback,
+    InferenceBrakeError,
+    LoopDetectedError,
     RateLimitError,
     inferencebrake_monitor,
-    InferenceBrakeCallback,
+)
+from .decorators import guard, guard_agent_loop, loop_key
+from .adapters import (
+    CrewAICallback,
+    InferenceBrakeCallbackHandler,
+    create_crewai_callback,
 )
 
-__version__ = "0.3.0"
+# CheckStatus is the typed response returned by every check. Status is an alias.
+Status = CheckStatus
+
+__version__ = "0.4.0"
 __all__ = [
     "InferenceBrake",
     "CheckStatus",
+    "Status",
     "InferenceBrakeError",
     "AuthenticationError",
     "RateLimitError",
+    "LoopDetectedError",
+    "DoomLoopException",
     "inferencebrake_monitor",
     "InferenceBrakeCallback",
+    "guard_agent_loop",
+    "guard",
+    "loop_key",
+    "InferenceBrakeCallbackHandler",
+    "CrewAICallback",
+    "create_crewai_callback",
 ]
-
-try:
-    from .langchain import InferenceBrakeCallbackHandler, LoopDetectedError
-    __all__.extend(["InferenceBrakeCallbackHandler", "LoopDetectedError"])
-except ImportError:
-    pass
-
-try:
-    from .crewai import CrewAICallback, create_crewai_callback
-    __all__.extend(["CrewAICallback", "create_crewai_callback"])
-except ImportError:
-    pass

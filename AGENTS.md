@@ -130,9 +130,14 @@ inferencebrake/
 │   │
 │   ├── python-sdk/              # PyPI package
 │   │   ├── pyproject.toml
+│   │   ├── tests/               # Unit tests (mocked API responses)
 │   │   └── inferencebrake/
 │   │       ├── __init__.py
 │   │       ├── client.py
+│   │       ├── decorators.py
+│   │       ├── adapters/
+│   │       │   ├── langchain.py
+│   │       │   └── crewai.py
 │   │       ├── langchain.py
 │   │       └── crewai.py
 │   │

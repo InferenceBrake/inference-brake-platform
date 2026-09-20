@@ -15,9 +15,12 @@ Usage:
 
 import requests
 import time
-from typing import Optional, Dict, Any, List
+import logging
+from typing import Optional, Dict, Any, List, Callable
 from dataclasses import dataclass
 import os
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_SUPABASE_URL = "https://ocnjiyiqeifllbyqohks.supabase.co"
 
@@ -35,6 +38,7 @@ class CheckStatus:
     ngram_overlap: float = 0.0
     detectors: dict = None
     estimated_cost_saved: float = 0.0
+    degraded: bool = False  # True when the API was unreachable and the guard failed open
 
     def __post_init__(self):
         if self.detectors is None:
@@ -47,6 +51,16 @@ class CheckStatus:
     def should_stop(self) -> bool:
         """Convenience method to check if agent should stop"""
         return self.action == "KILL"
+
+    @property
+    def score(self) -> float:
+        """Detection confidence in [0, 1]."""
+        return self.confidence
+
+    @property
+    def detector_triggered(self) -> str:
+        """Comma-separated names of the detectors that fired, or an empty string."""
+        return ", ".join(k for k, v in (self.detectors or {}).items() if v)
 
     @property
     def estimated_savings(self) -> float:
@@ -67,6 +81,15 @@ class RateLimitError(InferenceBrakeError):
 class AuthenticationError(InferenceBrakeError):
     """Raised when API key is invalid"""
     pass
+
+
+class LoopDetectedError(InferenceBrakeError):
+    """Raised when a reasoning loop is detected and auto_stop is enabled."""
+    pass
+
+
+# Alias used by the framework adapters.
+DoomLoopException = LoopDetectedError
 
 
 class InferenceBrake:
@@ -97,7 +120,8 @@ class InferenceBrake:
         api_key: str,
         supabase_url: Optional[str] = None,
         timeout: int = 10,
-        auto_stop: bool = False
+        auto_stop: bool = False,
+        fail_open: bool = True
     ):
         """
         Initialize InferenceBrake client.
@@ -106,7 +130,11 @@ class InferenceBrake:
             api_key: Your InferenceBrake API key (get one at inferencebrake.dev)
             supabase_url: Custom API base URL for self-hosting (defaults to InferenceBrake cloud)
             timeout: Request timeout in seconds (default: 10)
-            auto_stop: If True, raise exception when loop is detected
+            auto_stop: If True, raise LoopDetectedError when a loop is detected
+            fail_open: If True, return a safe status instead of raising when the
+                API is unreachable, times out, or returns a 5xx. Auth (401) and
+                rate limit (429) errors still raise. Defaults to True so a
+                network blip never breaks the host agent.
         """
         self.api_key = api_key
 
@@ -117,6 +145,7 @@ class InferenceBrake:
         self.base_url = f"{self.supabase_url}/functions/v1"
         self.timeout = timeout
         self.auto_stop = auto_stop
+        self.fail_open = fail_open
 
         self._session = requests.Session()
         self._session.headers.update({
@@ -124,11 +153,26 @@ class InferenceBrake:
             "Content-Type": "application/json"
         })
 
+    def _fail_open(self, reason: str) -> CheckStatus:
+        message = f"InferenceBrake unavailable ({reason}); failing open"
+        if not self.fail_open:
+            raise InferenceBrakeError(message)
+        logger.warning(message)
+        return CheckStatus(
+            action="PROCEED",
+            loop_detected=False,
+            similarity=0.0,
+            status="safe",
+            message=message,
+            degraded=True,
+        )
+
     def check(
         self,
         reasoning: str,
         session_id: str,
-        threshold: Optional[float] = None
+        threshold: Optional[float] = None,
+        action: Optional[str] = None
     ) -> CheckStatus:
         """
         Check if the current reasoning step indicates a loop.
@@ -137,6 +181,9 @@ class InferenceBrake:
             reasoning: The agent's current reasoning/thought process
             session_id: Unique identifier for this agent session
             threshold: Custom similarity threshold (default: 0.85)
+            action: Optional tool/action name for this step. Enables the action
+                repetition detector. Pass a normalized identity so cosmetic
+                differences do not look like progress (see ``loop_key``).
 
         Returns:
             CheckStatus object with detection results
@@ -144,7 +191,7 @@ class InferenceBrake:
         Raises:
             AuthenticationError: If API key is invalid
             RateLimitError: If rate limit is exceeded
-            InferenceBrakeError: For other API errors
+            InferenceBrakeError: For other API errors (unless fail_open)
         """
         url = f"{self.base_url}/check"
 
@@ -155,6 +202,9 @@ class InferenceBrake:
 
         if threshold is not None:
             payload["threshold"] = threshold
+
+        if action is not None:
+            payload["action"] = action
 
         try:
             response = self._session.post(
@@ -172,6 +222,8 @@ class InferenceBrake:
                 )
 
             if response.status_code != 200:
+                if response.status_code >= 500:
+                    return self._fail_open(f"API error {response.status_code}")
                 error_msg = response.json().get('error', 'Unknown error')
                 raise InferenceBrakeError(f"API error: {response.status_code} - {error_msg}")
 
@@ -190,17 +242,15 @@ class InferenceBrake:
             )
 
             if self.auto_stop and status.should_stop:
-                raise InferenceBrakeError(
+                raise LoopDetectedError(
                     f"Loop detected: {status.message} "
                     f"(similarity: {status.similarity:.2f})"
                 )
-
+            
             return status
-
-        except requests.exceptions.Timeout:
-            raise InferenceBrakeError("Request timeout")
+            
         except requests.exceptions.RequestException as e:
-            raise InferenceBrakeError(f"Request failed: {str(e)}")
+            return self._fail_open(f"request failed: {e}")
 
     def check_batch(
         self,
@@ -361,7 +411,7 @@ class InferenceBrakeCallback:
         )
 
         if status.should_stop:
-            raise InferenceBrakeError(
+            raise LoopDetectedError(
                 f"Loop detected at step {self.step_count}: {status.message}"
             )
 
