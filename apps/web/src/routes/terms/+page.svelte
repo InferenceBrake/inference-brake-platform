@@ -180,7 +180,7 @@
 		<h2>16. Contact</h2>
 		<p>
 			For questions about these Terms, contact us at
-			<a href="mailto:inferencebrake.dev@proton.me">inferencebrake.dev@proton.me</a>.
+			<a href="mailto:support@inferencebrake.dev">support@inferencebrake.dev</a>.
 		</p>
 	</div>
 </div>

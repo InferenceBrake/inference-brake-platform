@@ -610,7 +610,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - **Discord**: [discord.gg/inferencebrake](https://discord.gg/inferencebrake)
 - **Twitter**: [@inferencebrake](https://twitter.com/inferencebrake)
-- **Email**: <inferencebrake.dev@proton.me>
+- **Email**: <support@inferencebrake.dev>
 - **Docs**: [docs.inferencebrake.dev](https://docs.inferencebrake.dev)
 
 ---
