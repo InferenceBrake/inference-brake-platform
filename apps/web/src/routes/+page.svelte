@@ -61,6 +61,13 @@ let activeTab = $state("python");
 						</div>
 						<p class="reddit-text">"Agent runaway burnt all monthly credits in hours"</p>
 					</a>
+
+					<a href="https://openrouter.ai/docs/agent-sdk/call-model/doom-loop-detection" target="_blank" rel="noopener" class="reddit-card industry">
+						<div class="reddit-header">
+							<span class="reddit-source">OpenRouter Agent SDK</span>
+						</div>
+						<p class="reddit-text">Shipped built-in <strong>doom-loop detection</strong> for repeated tool calls and text</p>
+					</a>
 				</div>
 			</div>
 		</div>
@@ -369,6 +376,11 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 	.reddit-card.worst {
 		border-color: rgba(239, 68, 68, 0.5);
 		background: rgba(239, 68, 68, 0.05);
+	}
+	
+	.reddit-card.industry {
+		border-color: rgba(249, 115, 22, 0.4);
+		background: rgba(249, 115, 22, 0.05);
 	}
 	
 	.reddit-header {

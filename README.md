@@ -27,11 +27,13 @@ Step 247: [Your OpenAI bill: $4,732.50]
 - "$30,000 in an agent loop" - r/AI_Agents
 - "$1,400 in 6 hours" - r/Python
 - "Burnt all monthly credits" - r/cursor
+- "Built-in doom-loop detection" - [OpenRouter Agent SDK](https://openrouter.ai/docs/agent-sdk/call-model/doom-loop-detection)
 
 **Why existing solutions fail:**
 
 - ❌ **Budget limits** (Portkey, Helicone) - React AFTER burning money
 - ❌ **Code loop detection** (AgentCircuit) - Only catch `while True:` loops
+- ❌ **OpenRouter doom-loop detection** - Exact repeats only, scoped to OpenRouter's own Agent SDK
 - ❌ **Manual monitoring** - Too slow, too late
 
 **InferenceBrake detects semantic loops in reasoning:**
