@@ -41,6 +41,11 @@ class AdapterTests(unittest.TestCase):
         handler.on_llm_end(FakeLLMResult(None))
         self.assertEqual(handler.step_count, 0)
 
+    def test_langchain_handler_sets_raise_error(self):
+        # LangChain swallows callback exceptions unless raise_error is set.
+        handler = InferenceBrakeCallbackHandler(api_key="ib_test", session_id="s1")
+        self.assertTrue(handler.raise_error)
+
     def test_crewai_callback_raises_on_loop(self):
         callback = create_crewai_callback(api_key="ib_test", session_id="s1")
         with patch("requests.Session.post", return_value=FakeResponse(200, KILL_PAYLOAD)):

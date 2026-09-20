@@ -61,6 +61,10 @@ class InferenceBrakeCallbackHandler(BaseCallbackHandler):
         except TypeError:  # pragma: no cover - some base classes reject no-arg init
             pass
 
+        # LangChain swallows callback exceptions unless raise_error is set, so a
+        # detected loop would not stop the chain without this.
+        self.raise_error = True
+
         self.api_key = api_key or os.getenv("INFERENCEBRAKE_API_KEY")
         if not self.api_key:
             raise ValueError(
