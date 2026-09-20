@@ -11,11 +11,13 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  let claimedEventId: string | null = null;
+
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     if (!stripeKey || !webhookSecret) {
       return new Response(JSON.stringify({ error: "Stripe not configured" }), {
@@ -93,6 +95,31 @@ Deno.serve(async (req) => {
     }
 
     const event = JSON.parse(body);
+
+    // Idempotency: claim the event id; a duplicate delivery is ignored.
+    if (event.id) {
+      const claimRes = await fetch(
+        `${supabaseUrl}/rest/v1/stripe_events?on_conflict=event_id`,
+        {
+          method: "POST",
+          headers: {
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+            "Content-Type": "application/json",
+            "Prefer": "resolution=ignore-duplicates,return=representation",
+          },
+          body: JSON.stringify({ event_id: event.id, event_type: event.type }),
+        },
+      );
+      const claimed = await claimRes.json().catch(() => []);
+      if (Array.isArray(claimed) && claimed.length === 0) {
+        return new Response(JSON.stringify({ received: true, duplicate: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      claimedEventId = event.id;
+    }
+
     const data = event.data.object;
     let userId: string | undefined = data.metadata?.user_id;
 
@@ -212,6 +239,21 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     console.error("Webhook error:", err);
+
+    // Release the idempotency claim so a retry can reprocess this event.
+    if (claimedEventId) {
+      await fetch(
+        `${supabaseUrl}/rest/v1/stripe_events?event_id=eq.${encodeURIComponent(claimedEventId)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+        },
+      ).catch(() => {});
+    }
+
     return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
