@@ -472,6 +472,17 @@ supabase functions serve check --no-verify-jwt
 VITE_PUBLIC_SUPABASE_URL=http://localhost:54321
 VITE_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
+# Supabase edge function secrets (supabase secrets set ...)
+STRIPE_SECRET_KEY=sk_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_GROWTH_PRICE_ID=price_...
+STRIPE_PRO_PRICE_ID=price_...
+PUBLIC_SITE_URL=https://inferencebrake.dev
+
+# Email loop alerts (optional; alerts are skipped when unset)
+RESEND_API_KEY=re_...
+ALERT_FROM_EMAIL=alerts@inferencebrake.dev
+
 # Optional: Sentry error tracking
 SENTRY_ORG=your-org
 SENTRY_PROJECT=your-project
