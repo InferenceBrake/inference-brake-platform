@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { PLANS, FREE_PLAN } from "../_shared/plans.ts";
-import { buildAlertText, emailConfigured, sendEmail, sendSlack } from "../_shared/alerts.ts";
+import { buildAlertHtml, buildAlertText, buildSlackMessage, emailConfigured, sendEmail, sendSlack } from "../_shared/alerts.ts";
 
 const supabase = createClient(
 	Deno.env.get("SUPABASE_URL")!,
@@ -316,7 +316,7 @@ Deno.serve(async (req) => {
 
 		// 7c. ALERTS (best-effort, first loop of a session only)
 		if (isLooping && !previousWasLoop && user.alerts_enabled !== false) {
-			const alertText = buildAlertText({
+			const alertPayload = {
 				session_id,
 				reasoning,
 				confidence,
@@ -331,7 +331,10 @@ Deno.serve(async (req) => {
 				action: extractedAction,
 				model: reqModel ?? null,
 				estimated_cost_saved: costSaved,
-			});
+			};
+			const alertText = buildAlertText(alertPayload);
+			const alertHtml = buildAlertHtml(alertPayload);
+			const slack = buildSlackMessage(alertPayload);
 
 			const emailConfig = emailConfigured();
 			if (user.alert_email && emailConfig) {
@@ -339,15 +342,16 @@ Deno.serve(async (req) => {
 					apiKey: emailConfig.apiKey,
 					from: emailConfig.from,
 					to: user.alert_email,
-					subject: "InferenceBrake: loop detected",
+					subject: "InferenceBrake: loop detected and halted",
 					text: alertText,
+					html: alertHtml,
 				}).then((r) => {
 					if (!r.ok) console.error("Email alert failed:", r.error);
 				});
 			}
 
 			if (user.webhook_url) {
-				sendSlack(user.webhook_url, alertText).then((r) => {
+				sendSlack(user.webhook_url, slack.text, slack.blocks).then((r) => {
 					if (!r.ok) console.error("Webhook alert failed:", r.error);
 				});
 			}

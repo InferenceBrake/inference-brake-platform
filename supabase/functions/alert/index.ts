@@ -1,6 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {
+	buildAlertHtml,
 	buildAlertText,
+	buildSlackMessage,
 	emailConfigured,
 	sendEmail,
 	sendSlack,
@@ -47,6 +49,8 @@ Deno.serve(async (req) => {
 		const body = await req.json().catch(() => ({}));
 		const payload: AlertPayload = body.payload ?? body;
 		const text = buildAlertText(payload);
+		const html = buildAlertHtml(payload);
+		const slack = buildSlackMessage(payload);
 
 		const results: Record<string, { ok: boolean; error?: string }> = {};
 
@@ -60,15 +64,16 @@ Deno.serve(async (req) => {
 					apiKey: config.apiKey,
 					from: config.from,
 					to,
-					subject: "InferenceBrake: loop detected",
+					subject: "InferenceBrake: loop detected and halted",
 					text,
+					html,
 				});
 			}
 		}
 
 		const webhookUrl: string | undefined = body.webhook_url ?? user.webhook_url;
 		if (webhookUrl) {
-			results.slack = await sendSlack(webhookUrl, text);
+			results.slack = await sendSlack(webhookUrl, slack.text, slack.blocks);
 		}
 
 		if (Object.keys(results).length === 0) {
