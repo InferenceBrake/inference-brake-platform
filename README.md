@@ -623,7 +623,7 @@ Inspired by:
 ## Get Started
 
 ```bash
-# 1. Sign up at https://inferencebrake.dev (free during beta)
+# 1. Sign up at https://inferencebrake.dev (free plan available)
 # 2. Get your API key from the dashboard
 # 3. Install SDK
 pip install inferencebrake

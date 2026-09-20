@@ -9,11 +9,11 @@
 	<div class="legal-content">
 		<h1>Terms of Service</h1>
 
-		<p class="last-updated">Last updated: March 2026</p>
+		<p class="last-updated">Last updated: September 2026</p>
 
 		<div class="note">
-			<strong>Beta Status:</strong> The service is currently in free beta. Paid plans
-			are not yet available.
+			<strong>Paid plans:</strong> Subscriptions are billed monthly through Stripe and can
+			be cancelled at any time from the billing portal.
 		</div>
 
 		<h2>1. Parties and Scope</h2>
@@ -34,10 +34,10 @@
 		<h2>2. Description of Service</h2>
 		<p>InferenceBrake provides an API service for detecting reasoning loops in AI agent systems. The service includes:</p>
 		<ul>
-			<li>Loop detection via semantic, action-based, and n-gram detectors</li>
+			<li>Loop detection via semantic, token repetition, action, n-gram, edit distance, and compression detectors</li>
 			<li>API access for integrating loop detection into your applications</li>
 			<li>Dashboard for monitoring usage and session history</li>
-			<li>Webhook alerts (Pro plan)</li>
+			<li>Webhook and Slack alerts (Growth and Pro plans)</li>
 		</ul>
 		<p>
 			We provide the service on a best-effort basis and do not guarantee any specific
@@ -48,8 +48,9 @@
 		<h2>3. Plans and Pricing</h2>
 		<p>The following plans are available:</p>
 		<ul>
-			<li><strong>Hobby (free):</strong> 1,000 API checks per day, basic detectors, 7-day session history.</li>
-			<li><strong>Pro ($9/month):</strong> 10,000 API checks per day, all detectors, configurable thresholds, webhook alerts, 90-day history.</li>
+			<li><strong>Free:</strong> 5,000 API checks per month, all 6 detectors, 7-day session history.</li>
+			<li><strong>Growth ($49/month):</strong> 100,000 API checks per month, Slack and webhook alerts, dollars-saved dashboard, 30-day history.</li>
+			<li><strong>Pro ($199/month):</strong> 500,000 API checks per month, configurable thresholds, priority latency, 90-day history.</li>
 		</ul>
 		<p>
 			We reserve the right to change plan features and pricing with 30 days' notice by email.
