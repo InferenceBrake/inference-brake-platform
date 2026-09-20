@@ -63,6 +63,8 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+	<meta name="theme-color" content="#f97316" />
 	<title>InferenceBrake - Detect Reasoning Loops in AI Agents</title>
 	<meta name="description" content="Multi-detector loop detection for AI agents." />
 </svelte:head>
@@ -72,7 +74,7 @@
 	<nav class="nav">
 		<div class="nav-inner container">
 			<a href="/" class="logo">
-				<span class="logo-icon"></span>
+				<img src={favicon} alt="" class="logo-icon" />
 				InferenceBrake
 			</a>
 			
@@ -111,7 +113,7 @@
 		<div class="container">
 			<div class="footer-grid">
 				<div class="footer-brand">
-					<span class="logo-icon"></span>
+					<img src={favicon} alt="" class="logo-icon" />
 					<span class="logo-text">InferenceBrake</span>
 					<p>Multi-detector loop detection for AI agents.</p>
 				</div>
@@ -183,10 +185,9 @@
 	}
 	
 	.logo-icon {
+		display: block;
 		width: 28px;
 		height: 28px;
-		background: var(--gradient-accent);
-		border-radius: 6px;
 	}
 	
 	.nav-links {
