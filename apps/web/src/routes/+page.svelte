@@ -62,11 +62,18 @@ let activeTab = $state("python");
 						<p class="reddit-text">"Agent runaway burnt all monthly credits in hours"</p>
 					</a>
 
-					<a href="https://openrouter.ai/docs/agent-sdk/call-model/doom-loop-detection" target="_blank" rel="noopener" class="reddit-card industry">
-						<div class="reddit-header">
-							<span class="reddit-source">OpenRouter Agent SDK</span>
-						</div>
-						<p class="reddit-text">Shipped built-in <strong>doom-loop detection</strong> for repeated tool calls and text</p>
+				</div>
+
+				<div class="industry-signals">
+					<p class="problem-intro">The industry is responding:</p>
+					<a href="https://openrouter.ai/docs/agent-sdk/call-model/doom-loop-detection" target="_blank" rel="noopener" class="signal">
+						OpenRouter shipped built-in doom-loop detection
+					</a>
+					<a href="https://github.com/Liquid4All/antidoom" target="_blank" rel="noopener" class="signal">
+						Liquid AI released Antidoom to train doom loops out of models
+					</a>
+					<a href="https://nocrash.io/blog/bolt-new-doom-loop" target="_blank" rel="noopener" class="signal">
+						Bolt.new users burn hundreds of thousands of credits in doom loops
 					</a>
 				</div>
 			</div>
@@ -378,9 +385,32 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 		background: rgba(239, 68, 68, 0.05);
 	}
 	
-	.reddit-card.industry {
-		border-color: rgba(249, 115, 22, 0.4);
-		background: rgba(249, 115, 22, 0.05);
+	.industry-signals {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-top: 1.25rem;
+	}
+	
+	.signal {
+		display: block;
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+		text-decoration: none;
+		padding-left: 1rem;
+		position: relative;
+		transition: color 0.2s;
+	}
+	
+	.signal::before {
+		content: "\2192";
+		position: absolute;
+		left: 0;
+		color: var(--accent);
+	}
+	
+	.signal:hover {
+		color: var(--text-primary);
 	}
 	
 	.reddit-header {
