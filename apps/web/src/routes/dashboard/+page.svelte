@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import '../../app.css';
+	import StatCard from '$lib/components/StatCard.svelte';
 
 	let { data } = $props();
-	
+
 	let sessions = $state<Array<{
 		session_id: string;
 		step_count: number;
@@ -78,19 +79,19 @@
 		// webhook cannot leave the plan stale.
 		syncSubscription(fromCheckout);
 		loadAnalytics();
-		
+
 		// Poll for usage and plan updates every 3 seconds
 		const interval = setInterval(async () => {
 			const { supabase } = await import('$lib/supabase');
 			const { data: { user: authUser } } = await supabase.auth.getUser();
 			if (!authUser) return;
-			
+
 			const { data: userData } = await supabase
 				.from('users')
 				.select('checks_today, checks_this_month, monthly_limit, plan, subscription_status')
 				.eq('id', authUser.id)
 				.single();
-			
+
 			if (userData) {
 				checksToday = userData.checks_today || 0;
 				checksThisMonth = userData.checks_this_month || 0;
@@ -106,7 +107,7 @@
 				}
 			}
 		}, 3000);
-		
+
 		return () => clearInterval(interval);
 	});
 
@@ -153,27 +154,27 @@
 			console.error('Subscription sync failed:', e);
 		}
 	}
-	
+
 	async function loadData() {
 		try {
 			const { supabase } = await import('$lib/supabase');
-			
+
 			// Get authenticated user
 			const { data: { user: authUser } } = await supabase.auth.getUser();
 			if (!authUser) {
 				window.location.href = '/login';
 				return;
 			}
-			
+
 			userEmail = authUser.email || '';
-			
+
 			// Get user's full data from our users table
 			const { data: userData } = await supabase
 				.from('users')
 				.select('api_key, plan, monthly_limit, checks_this_month, checks_today, onboarding_completed, subscription_status')
 				.eq('id', authUser.id)
 				.single();
-			
+
 			if (userData) {
 				apiKey = userData.api_key || '';
 				userPlan = userData.plan || 'hobby';
@@ -181,7 +182,7 @@
 				checksThisMonth = userData.checks_this_month || 0;
 				checksToday = userData.checks_today || 0;
 				subscriptionStatus = userData.subscription_status || 'inactive';
-				
+
 				// Store API key for SDK use
 				if (userData.api_key) {
 					localStorage.setItem('inferencebrake_api_key', userData.api_key);
@@ -202,7 +203,7 @@
 					localStorage.setItem('inferencebrake_api_key', fnData.api_key);
 				}
 			}
-			
+
 			// Fetch user's reasoning history
 			let query = supabase
 				.from('reasoning_history')
@@ -219,10 +220,10 @@
 			}
 
 			const { data: sessionsData } = await query;
-			
+
 			if (sessionsData) {
 				const sessionMap = new Map<string, { step_count: number; loops_detected: number; created_at: string }>();
-				
+
 				for (const row of sessionsData) {
 					const existing = sessionMap.get(row.session_id);
 					if (existing) {
@@ -236,7 +237,7 @@
 						});
 					}
 				}
-				
+
 				sessions = Array.from(sessionMap.entries()).map(([session_id, data]) => ({
 					session_id,
 					...data
@@ -247,7 +248,7 @@
 				.from('metrics')
 				.select('loop_detected, estimated_cost_saved')
 				.eq('user_id', authUser.id);
-			
+
 			if (metricsData) {
 				const rows = metricsData as Array<{ loop_detected: boolean; estimated_cost_saved: number | null }>;
 				const loopsDetected = rows.filter(m => m.loop_detected).length;
@@ -323,22 +324,22 @@
 	async function copyApiKey() {
 		await navigator.clipboard.writeText(apiKey);
 	}
-	
+
 	async function regenerateApiKey() {
 		if (!confirm('Are you sure? Your old API key will stop working.')) return;
-		
+
 		try {
 			const { supabase } = await import('$lib/supabase');
 			const newKey = 'ib_' + Math.random().toString(36).substring(2, 34) + Math.random().toString(36).substring(2, 34);
-			
+
 			const { data: { user: authUser } } = await supabase.auth.getUser();
 			if (!authUser) return;
-			
+
 			const { error } = await supabase
 				.from('users')
 				.update({ api_key: newKey })
 				.eq('id', authUser.id);
-			
+
 			if (!error) {
 				apiKey = newKey;
 				localStorage.setItem('inferencebrake_api_key', newKey);
@@ -353,21 +354,21 @@
 		billingMessage = '';
 		try {
 			const { supabase } = await import('$lib/supabase');
-			
+
 			// Get stored API key
 			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
 			if (!storedApiKey) {
 				billingMessage = 'No API key found. Please refresh the page.';
 				return;
 			}
-			
+
 			const response = await supabase.functions.invoke('stripe-checkout', {
 				body: { plan },
 				headers: {
 					Authorization: `Bearer ${storedApiKey}`
 				}
 			});
-			
+
 			if (response.data?.url) {
 				window.location.href = response.data.url;
 			} else if (response.data?.demo) {
@@ -394,13 +395,13 @@
 				billingMessage = 'No API key found. Please refresh the page.';
 				return;
 			}
-			
+
 			const response = await supabase.functions.invoke('stripe-portal', {
 				headers: {
 					Authorization: `Bearer ${storedApiKey}`
 				}
 			});
-			
+
 			if (response.data?.url) {
 				window.location.href = response.data.url;
 			} else {
@@ -415,8 +416,8 @@
 
 	function formatDate(dateStr: string) {
 		const date = new Date(dateStr);
-		return date.toLocaleDateString('en-US', { 
-			month: 'short', 
+		return date.toLocaleDateString('en-US', {
+			month: 'short',
 			day: 'numeric',
 			hour: '2-digit',
 			minute: '2-digit'
@@ -426,7 +427,7 @@
 	function truncateId(id: string) {
 		return id.length > 20 ? id.slice(0, 20) + '...' : id;
 	}
-	
+
 	function getPlanDisplayName(plan: string) {
 		if (plan === 'hobby') return 'Free';
 		return plan.charAt(0).toUpperCase() + plan.slice(1);
@@ -480,1074 +481,338 @@
 	<title>Dashboard - InferenceBrake</title>
 </svelte:head>
 
-<div class="dashboard">
-	<div class="container">
-		<header class="dashboard-header">
-			<h1>Dashboard</h1>
-			<p class="subtitle">Monitor your AI agent sessions and loop detections</p>
-		</header>
+<div class="dashboard-brutal bg-base-100 text-base-content">
+	<!-- Header -->
+	<section class="border-b-2 border-black">
+		<div class="mx-auto w-full max-w-6xl px-4 pt-12 pb-10 md:px-8 md:pt-16">
+			<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">Console</p>
+			<h1 class="text-4xl font-extrabold tracking-tight md:text-5xl">Dashboard</h1>
+			<p class="nb-muted mt-4 max-w-2xl font-medium">Monitor your AI agent sessions and loop detections</p>
+		</div>
+	</section>
 
-		<!-- User Info & Plan Section -->
-		<section class="user-section">
-			<div class="user-info">
-				<div class="user-email">{userEmail}</div>
-				<div class="plan-badge" class:pro={userPlan === 'pro'}>
-					{getPlanDisplayName(userPlan)} Plan
-				</div>
-			</div>
-			
-			<!-- Usage Meter -->
-			<div class="usage-meter">
-				<div class="usage-header">
-					<span>This Month's Usage</span>
-					<span>{checksThisMonth.toLocaleString()} / {userMonthlyLimit.toLocaleString()}</span>
-				</div>
-				<div class="usage-bar">
-					<div class="usage-fill" style="width: {Math.min(100, (checksThisMonth / userMonthlyLimit) * 100)}%"></div>
-				</div>
-			</div>
-			
-			<div class="waitlist-prompt">
-				<div class="waitlist-content">
-					<span class="waitlist-title">{getPlanDisplayName(userPlan)} plan</span>
-					<span class="waitlist-desc">
-						{userMonthlyLimit.toLocaleString()} checks/month
-						{#if subscriptionStatus === 'past_due'} · Payment past due{/if}
+	<div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-12 md:gap-8 md:px-8 md:py-16">
+		<!-- Account -->
+		<section class="nb-card nb-brutal bg-base-100">
+			<div class="nb-card-body gap-5 p-6 md:p-8">
+				<div class="flex flex-wrap items-center gap-3">
+					<span class="font-bold">{userEmail}</span>
+					<span class="nb-badge font-mono text-xs font-bold {userPlan === 'hobby' ? 'nb-badge-neutral' : 'nb-badge-primary'}">
+						{getPlanDisplayName(userPlan)} Plan
 					</span>
 				</div>
-				{#if subscriptionStatus === 'past_due'}
-					<div class="billing-warning">Update your payment method to avoid interruption.</div>
-				{/if}
-				<div class="plan-actions">
-					{#if userPlan === 'hobby'}
-						<button class="btn btn-secondary upgrade-btn" onclick={() => upgradePlan('growth')} disabled={upgradeProcessing !== null}>
-							{upgradeProcessing === 'growth' ? 'Redirecting...' : 'Upgrade to Growth - $49/mo'}
-						</button>
-						<button class="btn btn-primary upgrade-btn" onclick={() => upgradePlan('pro')} disabled={upgradeProcessing !== null}>
-							{upgradeProcessing === 'pro' ? 'Redirecting...' : 'Upgrade to Pro - $199/mo'}
-						</button>
-					{:else}
-						<button class="btn btn-secondary upgrade-btn" onclick={manageBilling} disabled={upgradeProcessing !== null}>
-							{upgradeProcessing === 'portal' ? 'Opening...' : 'Manage billing'}
-						</button>
+
+				<div>
+					<div class="nb-muted mb-2 flex items-center justify-between font-mono text-xs font-bold tracking-widest uppercase">
+						<span>This month's usage</span>
+						<span>{checksThisMonth.toLocaleString()} / {userMonthlyLimit.toLocaleString()}</span>
+					</div>
+					<progress class="nb-progress nb-progress-primary w-full" value={checksThisMonth} max={userMonthlyLimit}></progress>
+				</div>
+
+				<div class="border-2 border-black bg-base-200 p-4 md:p-5">
+					<p class="font-extrabold">{getPlanDisplayName(userPlan)} plan</p>
+					<p class="nb-muted text-sm font-medium">
+						{userMonthlyLimit.toLocaleString()} checks/month
+						{#if subscriptionStatus === 'past_due'} · Payment past due{/if}
+					</p>
+					{#if subscriptionStatus === 'past_due'}
+						<div role="alert" class="nb-alert nb-alert-error nb-brutal-sm mt-4">
+							<span class="font-bold">Update your payment method to avoid interruption.</span>
+						</div>
+					{/if}
+					<div class="mt-4 flex flex-col gap-3">
+						{#if userPlan === 'hobby'}
+							<button class="nb-btn nb-btn-secondary nb-brutal-sm nb-brutal-press w-full" onclick={() => upgradePlan('growth')} disabled={upgradeProcessing !== null}>
+								{upgradeProcessing === 'growth' ? 'Redirecting...' : 'Upgrade to Growth - $49/mo'}
+							</button>
+							<button class="nb-btn nb-btn-primary nb-brutal-sm nb-brutal-press w-full" onclick={() => upgradePlan('pro')} disabled={upgradeProcessing !== null}>
+								{upgradeProcessing === 'pro' ? 'Redirecting...' : 'Upgrade to Pro - $199/mo'}
+							</button>
+						{:else}
+							<button class="nb-btn nb-btn-secondary nb-brutal-sm nb-brutal-press w-full" onclick={manageBilling} disabled={upgradeProcessing !== null}>
+								{upgradeProcessing === 'portal' ? 'Opening...' : 'Manage billing'}
+							</button>
+						{/if}
+					</div>
+					{#if billingMessage}
+						<p class="mt-3 text-sm font-bold" class:text-error={billingMessage.includes('Failed') || billingMessage.includes('past due')} class:text-success={!billingMessage.includes('Failed') && !billingMessage.includes('past due')}>
+							{billingMessage}
+						</p>
 					{/if}
 				</div>
-				{#if billingMessage}
-					<div class="waitlist-message" class:error={billingMessage.includes('Failed') || billingMessage.includes('past due')}>
-						{billingMessage}
-					</div>
-				{/if}
 			</div>
 		</section>
-		
-		<!-- API Key Section -->
-		<section class="api-key-section">
-			<h3>API Key</h3>
-			<div class="api-key-row">
-				<code class="api-key-display">
-					{showApiKey ? apiKey : apiKey.slice(0, 8) + '...' + apiKey.slice(-4)}
-				</code>
-				<button class="btn btn-secondary" onclick={() => showApiKey = !showApiKey}>
-					{showApiKey ? 'Hide' : 'Show'}
-				</button>
-				<button class="btn btn-secondary" onclick={copyApiKey}>
-					Copy
-				</button>
-				<button class="btn btn-secondary danger" onclick={regenerateApiKey}>
-					Regenerate
-				</button>
+
+		<!-- API key -->
+		<section class="nb-card nb-brutal bg-base-100">
+			<div class="nb-card-body gap-4 p-6 md:p-8">
+				<h3 class="text-lg font-extrabold">API Key</h3>
+				<div class="flex flex-wrap items-center gap-3">
+					<code class="block min-w-52 flex-1 border-2 border-black bg-base-200 p-3 font-mono text-sm break-all">
+						{showApiKey ? apiKey : apiKey.slice(0, 8) + '...' + apiKey.slice(-4)}
+					</code>
+					<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={() => showApiKey = !showApiKey}>
+						{showApiKey ? 'Hide' : 'Show'}
+					</button>
+					<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={copyApiKey}>
+						Copy
+					</button>
+					<button class="nb-btn nb-btn-error nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={regenerateApiKey}>
+						Regenerate
+					</button>
+				</div>
+				<p class="nb-muted text-sm font-medium">Keep this key secret. It grants access to your account.</p>
 			</div>
-			<p class="api-key-hint">Keep this key secret. It grants access to your account.</p>
 		</section>
 
 		{#if loading}
-			<div class="loading">
-				<div class="spinner"></div>
-				<p>Loading your data...</p>
+			<div class="flex flex-col items-center gap-4 py-16">
+				<span class="nb-loading nb-loading-spinner nb-loading-lg"></span>
+				<p class="nb-muted font-medium">Loading your data...</p>
 			</div>
 		{:else}
-			<div class="stats-grid stagger-children">
-				<div class="stat-card">
-					<div class="stat-icon total">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-					</div>
-					<div class="stat-content">
-						<span class="stat-label">Total Checks</span>
-						<span class="stat-value">{(analytics?.total_checks ?? stats.total_checks).toLocaleString()}</span>
-					</div>
-				</div>
-
-				<div class="stat-card">
-					<div class="stat-icon loops">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 8-8 8 8 0 0 1 8 8"/><path d="M12 4v16"/><path d="M20 12a8 8 0 0 1-8 8 8 8 0 0 1-8-8 8 8 0 0 1 8-8"/></svg>
-					</div>
-					<div class="stat-content">
-						<span class="stat-label">Loops Detected</span>
-						<span class="stat-value">{(analytics?.loops_blocked ?? stats.loops_detected).toLocaleString()}</span>
-					</div>
-				</div>
-
-				<div class="stat-card" title="Estimated cost of reasoning steps avoided by halting detected loops (step tokens x 10 assumed steps x $10/1M output tokens).">
-					<div class="stat-icon saved">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
-					</div>
-					<div class="stat-content">
-						<span class="stat-label">Est. $ Saved</span>
-						<span class="stat-value">{formatUSD(analytics?.estimated_usd_saved ?? stats.dollars_saved)}</span>
-					</div>
-				</div>
-
-				<div class="stat-card">
-					<div class="stat-icon">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-					</div>
-					<div class="stat-content">
-						<span class="stat-label">Checks Today</span>
-						<span class="stat-value">{checksToday.toLocaleString()}</span>
-					</div>
-				</div>
+			<div class="grid gap-5 md:grid-cols-2 md:gap-8 lg:grid-cols-4 stagger-children">
+				<StatCard label="Total checks" value={(analytics?.total_checks ?? stats.total_checks).toLocaleString()} desc="All time" tone="primary">
+					{#snippet icon()}
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+					{/snippet}
+				</StatCard>
+				<StatCard label="Loops detected" value={(analytics?.loops_blocked ?? stats.loops_detected).toLocaleString()} desc="Blocked" tone="secondary">
+					{#snippet icon()}
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 8-8 8 8 0 0 1 8 8"/><path d="M12 4v16"/><path d="M20 12a8 8 0 0 1-8 8 8 8 0 0 1-8-8 8 8 0 0 1 8-8"/></svg>
+					{/snippet}
+				</StatCard>
+				<StatCard label="Est. $ saved" value={formatUSD(analytics?.estimated_usd_saved ?? stats.dollars_saved)} desc="Wasted tokens avoided" tone="success">
+					{#snippet icon()}
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+					{/snippet}
+				</StatCard>
+				<StatCard label="Checks today" value={checksToday.toLocaleString()} desc="Since midnight" tone="neutral">
+					{#snippet icon()}
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+					{/snippet}
+				</StatCard>
 			</div>
 
 			{#if analytics && analytics.loops_blocked > 0}
-				<section class="analytics-section">
-					<div class="analytics-header">
-						<h2>Loop Analytics</h2>
-						<span class="analytics-period">Last 30 days</span>
+				<section>
+					<div class="mb-6 flex flex-wrap items-baseline justify-between gap-2">
+						<h2 class="text-2xl font-extrabold md:text-3xl">Loop Analytics</h2>
+						<span class="nb-muted font-mono text-xs font-bold tracking-widest uppercase">Last 30 days</span>
 					</div>
 
-					<div class="analytics-grid">
-						<div class="analytics-card">
-							<h3>Loops by model</h3>
-							<ul class="breakdown">
-								{#each analytics.by_model as row}
-									<li>
-										<span class="breakdown-label">{row.model}</span>
-										<span class="breakdown-value">{row.loops} / {row.checks}</span>
-									</li>
-								{:else}
-									<li class="analytics-empty">No data</li>
-								{/each}
-							</ul>
-						</div>
-
-						<div class="analytics-card">
-							<h3>Top looping tools</h3>
-							<ul class="breakdown">
-								{#each analytics.by_action as row}
-									<li>
-										<span class="breakdown-label">{row.action}</span>
-										<span class="breakdown-value">{row.loops} / {row.checks}</span>
-									</li>
-								{:else}
-									<li class="analytics-empty">No data</li>
-								{/each}
-							</ul>
-						</div>
-
-						<div class="analytics-card">
-							<h3>Detectors that fired</h3>
-							<ul class="breakdown">
-								{#each analytics.by_detector as row}
-									<li>
-										<span class="breakdown-label">{row.detector}</span>
-										<span class="breakdown-value">{row.loops}</span>
-									</li>
-								{:else}
-									<li class="analytics-empty">No data</li>
-								{/each}
-							</ul>
-						</div>
-					</div>
-
-					<div class="analytics-card wide">
-						<h3>Recent loops</h3>
-						<div class="loop-table-wrap">
-							<table class="loop-table">
-								<thead>
-									<tr>
-										<th>When</th>
-										<th>Model</th>
-										<th>Tool</th>
-										<th>Detectors</th>
-										<th>Conf</th>
-										<th>Saved</th>
-									</tr>
-								</thead>
-								<tbody>
-									{#each analytics.recent_loops as loop}
-										<tr>
-											<td>{formatDate(loop.created_at)}</td>
-											<td>{loop.model || '-'}</td>
-											<td>{loop.action || '-'}</td>
-											<td>{Object.entries(loop.detectors || {}).filter(([, v]) => v).map(([k]) => k).join(', ') || '-'}</td>
-											<td>{(loop.confidence * 100).toFixed(0)}%</td>
-											<td>{formatUSD(loop.saved)}</td>
-										</tr>
+					<div class="grid gap-5 md:gap-8 lg:grid-cols-3">
+						<div class="nb-card nb-brutal bg-base-100">
+							<div class="nb-card-body gap-3 p-6">
+								<h3 class="nb-muted text-xs font-bold tracking-widest uppercase">Loops by model</h3>
+								<ul class="flex flex-col gap-2">
+									{#each analytics.by_model as row}
+										<li class="flex items-center justify-between gap-4 text-sm">
+											<span class="truncate font-bold">{row.model}</span>
+											<span class="nb-muted shrink-0 font-mono text-xs">{row.loops} / {row.checks}</span>
+										</li>
 									{:else}
-										<tr><td colspan="6" class="analytics-empty">No loops yet</td></tr>
+										<li class="nb-muted text-sm">No data</li>
 									{/each}
-								</tbody>
-							</table>
+								</ul>
+							</div>
+						</div>
+
+						<div class="nb-card nb-brutal bg-base-100">
+							<div class="nb-card-body gap-3 p-6">
+								<h3 class="nb-muted text-xs font-bold tracking-widest uppercase">Top looping tools</h3>
+								<ul class="flex flex-col gap-2">
+									{#each analytics.by_action as row}
+										<li class="flex items-center justify-between gap-4 text-sm">
+											<span class="truncate font-bold">{row.action}</span>
+											<span class="nb-muted shrink-0 font-mono text-xs">{row.loops} / {row.checks}</span>
+										</li>
+									{:else}
+										<li class="nb-muted text-sm">No data</li>
+									{/each}
+								</ul>
+							</div>
+						</div>
+
+						<div class="nb-card nb-brutal bg-base-100">
+							<div class="nb-card-body gap-3 p-6">
+								<h3 class="nb-muted text-xs font-bold tracking-widest uppercase">Detectors that fired</h3>
+								<ul class="flex flex-col gap-2">
+									{#each analytics.by_detector as row}
+										<li class="flex items-center justify-between gap-4 text-sm">
+											<span class="truncate font-bold">{row.detector}</span>
+											<span class="nb-muted shrink-0 font-mono text-xs">{row.loops}</span>
+										</li>
+									{:else}
+										<li class="nb-muted text-sm">No data</li>
+									{/each}
+								</ul>
+							</div>
+						</div>
+					</div>
+
+					<div class="nb-card nb-brutal mt-5 bg-base-100 md:mt-8">
+						<div class="nb-card-body gap-4 p-6 md:p-8">
+							<h3 class="nb-muted text-xs font-bold tracking-widest uppercase">Recent loops</h3>
+							<div class="overflow-x-auto">
+								<table class="nb-table font-mono text-xs">
+									<thead class="font-bold">
+										<tr>
+											<th>When</th>
+											<th>Model</th>
+											<th>Tool</th>
+											<th>Detectors</th>
+											<th>Conf</th>
+											<th>Saved</th>
+										</tr>
+									</thead>
+									<tbody class="nb-muted">
+										{#each analytics.recent_loops as loop}
+											<tr>
+												<td>{formatDate(loop.created_at)}</td>
+												<td>{loop.model || '-'}</td>
+												<td>{loop.action || '-'}</td>
+												<td>{Object.entries(loop.detectors || {}).filter(([, v]) => v).map(([k]) => k).join(', ') || '-'}</td>
+												<td>{(loop.confidence * 100).toFixed(0)}%</td>
+												<td>{formatUSD(loop.saved)}</td>
+											</tr>
+										{:else}
+											<tr><td colspan="6">No loops yet</td></tr>
+										{/each}
+									</tbody>
+								</table>
+							</div>
 						</div>
 					</div>
 				</section>
 			{/if}
 
-			<section class="sessions-section">
-				<div class="sessions-header">
-					<h2>Recent Sessions</h2>
+			<section>
+				<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+					<h2 class="text-2xl font-extrabold md:text-3xl">Recent Sessions</h2>
 					{#if sessions.length > 0}
-						<button class="btn btn-secondary" onclick={exportToCSV}>
+						<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={exportToCSV}>
 							Export CSV
 						</button>
 					{/if}
 				</div>
 
-				<div class="date-filters">
-					<label>
-						From:
-						<input type="date" bind:value={dateFrom} onchange={applyDateFilter} />
+				<div class="mb-6 flex flex-wrap items-end gap-4">
+					<label class="nb-muted flex flex-col gap-2 text-xs font-bold tracking-widest uppercase">
+						From
+						<input type="date" class="nb-input nb-input-bordered font-mono" bind:value={dateFrom} onchange={applyDateFilter} />
 					</label>
-					<label>
-						To:
-						<input type="date" bind:value={dateTo} onchange={applyDateFilter} />
+					<label class="nb-muted flex flex-col gap-2 text-xs font-bold tracking-widest uppercase">
+						To
+						<input type="date" class="nb-input nb-input-bordered font-mono" bind:value={dateTo} onchange={applyDateFilter} />
 					</label>
 					{#if dateFrom || dateTo}
-						<button class="btn btn-secondary btn-sm" onclick={clearDateFilter}>
+						<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={clearDateFilter}>
 							Clear
 						</button>
 					{/if}
 				</div>
-				
-				<div class="sessions-table">
-						<div class="table-header">
-							<span>Session ID</span>
-							<span>Steps</span>
-							<span>Loops</span>
-							<span>Last Activity</span>
-						</div>
-						
-						{#each sessions as session}
-							<div class="table-row" onclick={() => openSessionDetail(session.session_id)} role="button" tabindex="0" onkeydown={(e) => e.key === 'Enter' && openSessionDetail(session.session_id)}>
-								<span class="session-id mono">{truncateId(session.session_id)}</span>
-								<span class="step-count">{session.step_count}</span>
-								<span class="loop-badge" class:detected={session.loops_detected > 0}>
-									{session.loops_detected > 0 ? `${session.loops_detected} detected` : 'None'}
-								</span>
-								<span class="timestamp">{formatDate(session.created_at)}</span>
+
+				<div class="nb-brutal overflow-x-auto bg-base-100">
+					<table class="nb-table">
+						<thead class="font-bold">
+							<tr>
+								<th>Session ID</th>
+								<th>Steps</th>
+								<th>Loops</th>
+								<th>Last Activity</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each sessions as session}
+								<tr onclick={() => openSessionDetail(session.session_id)} role="button" tabindex="0" onkeydown={(e) => e.key === 'Enter' && openSessionDetail(session.session_id)} class="cursor-pointer hover:bg-base-200">
+									<td class="font-mono text-sm font-bold">{truncateId(session.session_id)}</td>
+									<td class="font-mono text-sm">{session.step_count}</td>
+									<td>
+										{#if session.loops_detected > 0}
+											<span class="nb-badge nb-badge-error font-mono text-xs font-bold">{session.loops_detected} detected</span>
+										{:else}
+											<span class="nb-badge nb-badge-neutral font-mono text-xs font-bold">None</span>
+										{/if}
+									</td>
+									<td class="nb-muted text-sm">{formatDate(session.created_at)}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			</section>
+		{/if}
+	</div>
+
+	<!-- Session detail modal -->
+	{#if selectedSession}
+		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onclick={closeSessionDetail} role="button" tabindex="0" onkeydown={(e) => e.key === 'Escape' && closeSessionDetail()}>
+			<div class="nb-modal-box nb-brutal max-h-[80vh] w-full max-w-2xl overflow-y-auto bg-base-100 p-6 md:p-8" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabindex="-1">
+				<div class="mb-6 flex items-center justify-between gap-4">
+					<h2 class="text-xl font-extrabold">Session Details</h2>
+					<div class="flex items-center gap-3">
+						<button class="nb-btn nb-btn-error nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={deleteSession}>Delete</button>
+						<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={closeSessionDetail}>Close</button>
+					</div>
+				</div>
+				<p class="mb-6 border-2 border-black bg-base-200 p-3 font-mono text-xs break-all">{selectedSession}</p>
+
+				{#if sessionSteps.length === 0}
+					<div class="flex flex-col items-center gap-4 py-12">
+						<span class="nb-loading nb-loading-spinner nb-loading-lg"></span>
+						<p class="nb-muted font-medium">Loading steps...</p>
+					</div>
+				{:else}
+					<div class="flex flex-col gap-4">
+						{#each sessionSteps as step}
+							<div class="border-2 p-4 {step.loop_detected ? 'border-error bg-error/10' : 'border-black bg-base-100'}">
+								<div class="mb-2 flex flex-wrap items-center gap-3 text-sm">
+									<span class="font-extrabold">Step {step.step_number}</span>
+									{#if step.loop_detected}
+										<span class="nb-badge nb-badge-error font-mono text-xs font-bold">Loop Detected</span>
+									{/if}
+									{#if step.similarity !== null}
+										<span class="nb-muted ml-auto font-mono text-xs">{(step.similarity * 100).toFixed(1)}%</span>
+									{/if}
+								</div>
+								{#if step.metadata}
+									<div class="mb-2 flex flex-wrap items-center gap-2">
+										<span class="nb-badge font-mono text-xs font-bold {step.metadata.semantic_vote ? 'nb-badge-warning' : 'nb-badge-ghost'}" title="Semantic detector">
+											Semantic {step.metadata.semantic_vote ? 'ON' : 'off'}
+										</span>
+										<span class="nb-badge font-mono text-xs font-bold {step.metadata.action_vote ? 'nb-badge-warning' : 'nb-badge-ghost'}" title="Action repeat detector">
+											Action {step.metadata.action_vote ? 'ON' : 'off'}
+										</span>
+										<span class="nb-badge font-mono text-xs font-bold {step.metadata.ngram_vote ? 'nb-badge-warning' : 'nb-badge-ghost'}" title="N-gram detector">
+											N-gram {step.metadata.ngram_vote ? 'ON' : 'off'}
+										</span>
+										{#if step.metadata.confidence > 0}
+											<span class="nb-muted ml-auto text-xs font-medium" title="Confidence score">
+												Confidence: {(step.metadata.confidence * 100).toFixed(0)}%
+											</span>
+										{/if}
+									</div>
+								{/if}
+								<div class="max-h-36 overflow-y-auto text-sm whitespace-pre-wrap break-words">{step.reasoning}</div>
 							</div>
 						{/each}
 					</div>
-			</section>
-		{/if}
-
-		<!-- Session Detail Modal -->
-		{#if selectedSession}
-			<div class="modal-overlay" onclick={closeSessionDetail} role="button" tabindex="0" onkeydown={(e) => e.key === 'Escape' && closeSessionDetail()}>
-				<div class="modal-content" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabindex="-1">
-					<div class="modal-header">
-						<h2>Session Details</h2>
-						<div class="modal-actions">
-							<button class="btn btn-danger btn-sm" onclick={deleteSession}>Delete</button>
-							<button class="modal-close" onclick={closeSessionDetail}>&times;</button>
-						</div>
-					</div>
-					<div class="modal-body">
-						<div class="session-meta">
-							<span class="mono">{selectedSession}</span>
-						</div>
-						
-						{#if sessionSteps.length === 0}
-							<div class="loading-steps">
-								<div class="spinner"></div>
-								<p>Loading steps...</p>
-							</div>
-						{:else}
-							<div class="steps-timeline">
-								{#each sessionSteps as step}
-									<div class="step-item" class:loop-detected={step.loop_detected}>
-										<div class="step-header">
-											<span class="step-number">Step {step.step_number}</span>
-											{#if step.loop_detected}
-												<span class="loop-flag">Loop Detected</span>
-											{/if}
-											{#if step.similarity !== null}
-												<span class="similarity">{(step.similarity * 100).toFixed(1)}%</span>
-											{/if}
-										</div>
-										{#if step.metadata}
-											<div class="detector-badges">
-												<span class="detector" class:fired={step.metadata.semantic_vote} title="Semantic detector">
-													Semantic {step.metadata.semantic_vote ? 'ON' : 'off'}
-												</span>
-												<span class="detector" class:fired={step.metadata.action_vote} title="Action repeat detector">
-													Action {step.metadata.action_vote ? 'ON' : 'off'}
-												</span>
-												<span class="detector" class:fired={step.metadata.ngram_vote} title="N-gram detector">
-													N-gram {step.metadata.ngram_vote ? 'ON' : 'off'}
-												</span>
-												{#if step.metadata.confidence > 0}
-													<span class="confidence" title="Confidence score">
-														Confidence: {(step.metadata.confidence * 100).toFixed(0)}%
-													</span>
-												{/if}
-											</div>
-										{/if}
-										<div class="step-reasoning">{step.reasoning}</div>
-									</div>
-								{/each}
-							</div>
-						{/if}
-					</div>
-				</div>
+				{/if}
 			</div>
-		{/if}
-	</div>
+		</div>
+	{/if}
 </div>
 
 <style>
-	.dashboard {
-		min-height: 100vh;
-		padding: var(--space-2xl) 0;
-		background: var(--gradient-dark);
+	.dashboard-brutal {
+		font-family: 'Outfit', sans-serif;
 	}
 
-	.dashboard-header {
-		margin-bottom: var(--space-2xl);
-	}
-
-	.dashboard-header h1 {
-		font-size: 2.5rem;
-		margin-bottom: var(--space-sm);
-	}
-
-	.subtitle {
-		font-size: 1.1rem;
-		color: var(--text-secondary);
-	}
-
-	.user-section {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		padding: var(--space-xl);
-		margin-bottom: var(--space-xl);
-	}
-
-	.user-info {
-		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-		margin-bottom: var(--space-lg);
-	}
-
-	.user-email {
-		font-size: 1rem;
-		color: var(--text-primary);
-	}
-
-	.plan-badge {
-		background: var(--bg-tertiary);
-		color: var(--text-secondary);
-		padding: var(--space-xs) var(--space-sm);
-		border-radius: var(--radius-full);
-		font-size: 0.8rem;
-		font-weight: 500;
-	}
-
-	.plan-badge.pro {
-		background: rgba(249, 115, 22, 0.15);
-		color: var(--accent);
-	}
-
-	.usage-meter {
-		margin-bottom: var(--space-lg);
-	}
-
-	.usage-header {
-		display: flex;
-		justify-content: space-between;
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-		margin-bottom: var(--space-sm);
-	}
-
-	.usage-bar {
-		height: 8px;
-		background: var(--bg-tertiary);
-		border-radius: var(--radius-full);
-		overflow: hidden;
-	}
-
-	.usage-fill {
-		height: 100%;
-		background: var(--gradient-accent);
-		border-radius: var(--radius-full);
-		transition: width 0.3s ease;
-	}
-
-	.upgrade-btn {
-		width: 100%;
-	}
-
-	.api-key-section {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		padding: var(--space-xl);
-		margin-bottom: var(--space-xl);
-	}
-
-	.api-key-section h3 {
-		font-size: 1rem;
-		margin-bottom: var(--space-md);
-	}
-
-	.api-key-row {
-		display: flex;
-		gap: var(--space-sm);
-		align-items: center;
-		flex-wrap: wrap;
-	}
-
-	.api-key-display {
-		flex: 1;
-		min-width: 200px;
-		padding: var(--space-sm) var(--space-md);
-		background: var(--bg-primary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		font-family: var(--font-mono);
-		font-size: 0.85rem;
-		word-break: break-all;
-	}
-
-	.api-key-hint {
-		font-size: 0.8rem;
-		color: var(--text-tertiary);
-		margin-top: var(--space-sm);
-	}
-
-	.limit-alert {
-		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-		background: rgba(239, 68, 68, 0.15);
-		border: 1px solid rgba(239, 68, 68, 0.4);
-		border-radius: var(--radius-md);
-		padding: var(--space-md) var(--space-lg);
-		color: #ef4444;
-		font-size: 0.9rem;
-	}
-
-	.limit-alert-content {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.alert-icon {
-		font-size: 1.2rem;
-	}
-
-	.limit-alert .upgrade-btn {
-		background: var(--gradient-accent);
-		box-shadow: 0 0 20px rgba(249, 115, 22, 0.4);
-		white-space: nowrap;
-		width: auto;
-		flex-shrink: 0;
-	}
-
-	.waitlist-prompt {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		padding: var(--space-lg);
-	}
-
-	.waitlist-content {
-		margin-bottom: var(--space-md);
-	}
-
-	.waitlist-title {
-		display: block;
-		font-weight: 600;
-		color: var(--text-primary);
-		margin-bottom: var(--space-xs);
-	}
-
-	.waitlist-desc {
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-	}
-
-	.plan-actions {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-sm);
-	}
-
-	.billing-warning {
-		margin-bottom: var(--space-sm);
-		font-size: 0.85rem;
-		color: var(--danger);
-	}
-
-	.waitlist-message {
-		margin-top: var(--space-sm);
-		font-size: 0.85rem;
-		color: var(--success);
-	}
-
-	.waitlist-message.error {
-		color: var(--danger);
-	}
-
-	.btn.danger {
-		border-color: var(--danger);
-		color: var(--danger);
-	}
-
-	.btn.danger:hover {
-		background: rgba(239, 68, 68, 0.1);
-	}
-
-	.loading {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 300px;
-		gap: var(--space-lg);
-	}
-
-	.spinner {
-		width: 40px;
-		height: 40px;
-		border: 3px solid var(--border);
-		border-top-color: var(--accent);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		to { transform: rotate(360deg); }
-	}
-
-	.stats-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: var(--space-xl);
-		margin-bottom: var(--space-3xl);
-	}
-
-	@media (max-width: 768px) {
-		.stats-grid {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.stat-card {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		padding: var(--space-xl);
-		display: flex;
-		align-items: center;
-		gap: var(--space-lg);
-		transition: all 0.3s ease;
-	}
-
-	.stat-card:hover {
-		border-color: var(--accent);
-		transform: translateY(-2px);
-	}
-
-	.stat-icon {
-		width: 56px;
-		height: 56px;
-		border-radius: var(--radius-md);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.stat-icon.total {
-		background: rgba(99, 102, 241, 0.15);
-		color: #818cf8;
-	}
-
-	.stat-icon.loops {
-		background: rgba(249, 115, 22, 0.15);
-		color: var(--accent);
-	}
-
-	.stat-icon.saved {
-		background: rgba(34, 197, 94, 0.15);
-		color: var(--success);
-	}
-
-	.stat-content {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.stat-label {
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-		margin-bottom: var(--space-xs);
-	}
-
-	.stat-value {
-		font-size: 2rem;
-		font-weight: 700;
-		font-family: var(--font-mono);
-	}
-
-	/* Analytics */
-	.analytics-section {
-		margin-bottom: 3rem;
-	}
-
-	.analytics-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		margin-bottom: var(--space-lg);
-	}
-
-	.analytics-header h2 {
-		font-size: 1.5rem;
-	}
-
-	.analytics-period {
-		font-size: 0.85rem;
-		color: var(--text-tertiary);
-	}
-
-	.analytics-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: var(--space-lg);
-		margin-bottom: var(--space-lg);
-	}
-
-	.analytics-card {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		padding: var(--space-lg);
-	}
-
-	.analytics-card.wide {
-		overflow: hidden;
-	}
-
-	.analytics-card h3 {
-		font-size: 0.9rem;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: var(--text-tertiary);
-		margin-bottom: var(--space-md);
-	}
-
-	.breakdown {
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-sm);
-	}
-
-	.breakdown li {
-		display: flex;
-		justify-content: space-between;
-		gap: var(--space-md);
-		font-size: 0.9rem;
-	}
-
-	.breakdown-label {
-		color: var(--text-primary);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.breakdown-value {
-		color: var(--text-secondary);
-		font-family: var(--font-mono);
-		font-size: 0.8rem;
-		flex-shrink: 0;
-	}
-
-	.analytics-empty {
-		color: var(--text-tertiary);
-		font-size: 0.85rem;
-	}
-
-	.loop-table-wrap {
-		overflow-x: auto;
-	}
-
-	.loop-table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.85rem;
-	}
-
-	.loop-table th {
-		text-align: left;
-		padding: 0.5rem 0.75rem;
-		color: var(--text-tertiary);
-		font-weight: 500;
-		border-bottom: 1px solid var(--border);
-		white-space: nowrap;
-	}
-
-	.loop-table td {
-		padding: 0.6rem 0.75rem;
-		border-bottom: 1px solid var(--border);
-		color: var(--text-secondary);
-		white-space: nowrap;
-	}
-
-	@media (max-width: 900px) {
-		.analytics-grid {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.sessions-section h2 {
-		font-size: 1.5rem;
-		margin-bottom: var(--space-xl);
-	}
-
-	.sessions-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: var(--space-xl);
-	}
-
-	.sessions-header h2 {
-		margin-bottom: 0;
-	}
-
-	.date-filters {
-		display: flex;
-		gap: var(--space-md);
-		align-items: center;
-		margin-bottom: var(--space-xl);
-		flex-wrap: wrap;
-	}
-
-	.date-filters label {
-		display: flex;
-		align-items: center;
-		gap: var(--space-sm);
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-	}
-
-	.date-filters input[type="date"] {
-		padding: var(--space-sm) var(--space-md);
-		background: var(--bg-primary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		color: var(--text-primary);
-		font-size: 0.85rem;
-	}
-
-	.date-filters input[type="date"]:focus {
-		outline: none;
-		border-color: var(--accent);
-	}
-
-	.btn-sm {
-		padding: var(--space-xs) var(--space-md);
-		font-size: 0.8rem;
-	}
-
-	.empty-state {
-		background: var(--bg-secondary);
-		border: 1px dashed var(--border);
-		border-radius: var(--radius-lg);
-		padding: var(--space-3xl);
-		text-align: center;
-	}
-
-	.empty-icon {
-		margin-bottom: var(--space-lg);
-		color: var(--text-tertiary);
-	}
-
-	.empty-state h3 {
-		font-size: 1.25rem;
-		margin-bottom: var(--space-sm);
-	}
-
-	.empty-state p {
-		margin-bottom: var(--space-xl);
-	}
-
-	.sessions-table {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-	}
-
-	.table-header {
-		display: grid;
-		grid-template-columns: 2fr 1fr 1fr 1fr;
-		padding: var(--space-lg);
-		background: var(--bg-tertiary);
-		font-size: 0.85rem;
-		font-weight: 600;
-		color: var(--text-secondary);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-
-	.table-row {
-		display: grid;
-		grid-template-columns: 2fr 1fr 1fr 1fr;
-		padding: var(--space-lg);
-		border-top: 1px solid var(--border);
-		align-items: center;
-		transition: background 0.2s;
-	}
-
-	.table-row:hover {
-		background: var(--bg-tertiary);
-	}
-
-	.session-id {
-		color: var(--text-primary);
-		font-size: 0.9rem;
-	}
-
-	.step-count {
-		font-family: var(--font-mono);
-		color: var(--text-secondary);
-	}
-
-	.loop-badge {
-		display: inline-flex;
-		padding: var(--space-xs) var(--space-sm);
-		border-radius: var(--radius-full);
-		font-size: 0.8rem;
-		font-weight: 500;
-		background: var(--bg-tertiary);
-		color: var(--text-tertiary);
-		width: fit-content;
-	}
-
-	.loop-badge.detected {
-		background: rgba(239, 68, 68, 0.15);
-		color: var(--danger);
-	}
-
-	.timestamp {
-		color: var(--text-tertiary);
-		font-size: 0.85rem;
-	}
-
-	@media (max-width: 640px) {
-		.table-header,
-		.table-row {
-			grid-template-columns: 1fr 1fr;
-			gap: var(--space-sm);
-		}
-
-		.table-header span:nth-child(3),
-		.table-header span:nth-child(4),
-		.table-row span:nth-child(3),
-		.table-row span:nth-child(4) {
-			display: none;
-		}
-	}
-
-	.modal-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: rgba(0, 0, 0, 0.8);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 1000;
-		padding: var(--space-lg);
-	}
-
-	.modal-content {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		width: 100%;
-		max-width: 700px;
-		max-height: 80vh;
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-	}
-
-	.modal-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: var(--space-lg) var(--space-xl);
-		border-bottom: 1px solid var(--border);
-	}
-
-	.modal-header h2 {
-		font-size: 1.25rem;
-		margin: 0;
-	}
-
-	.modal-close {
-		background: none;
-		border: none;
-		font-size: 1.5rem;
-		color: var(--text-secondary);
-		cursor: pointer;
-		padding: 0;
-		line-height: 1;
-	}
-
-	.modal-close:hover {
-		color: var(--text-primary);
-	}
-
-	.modal-actions {
-		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-	}
-
-	.btn-danger {
-		background: transparent;
-		border: 1px solid var(--danger);
-		color: var(--danger);
-	}
-
-	.btn-danger:hover {
-		background: rgba(239, 68, 68, 0.1);
-	}
-
-	.modal-close:hover {
-		color: var(--text-primary);
-	}
-
-	.modal-body {
-		padding: var(--space-xl);
-		overflow-y: auto;
-		flex: 1;
-	}
-
-	.session-meta {
-		margin-bottom: var(--space-lg);
-		padding: var(--space-sm) var(--space-md);
-		background: var(--bg-tertiary);
-		border-radius: var(--radius-md);
-		font-size: 0.85rem;
-		word-break: break-all;
-	}
-
-	.loading-steps {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: var(--space-2xl);
-		gap: var(--space-md);
-		color: var(--text-secondary);
-	}
-
-	.steps-timeline {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-md);
-	}
-
-	.step-item {
-		padding: var(--space-md);
-		background: var(--bg-primary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-	}
-
-	.step-item.loop-detected {
-		border-color: rgba(239, 68, 68, 0.5);
-		background: rgba(239, 68, 68, 0.05);
-	}
-
-	.step-header {
-		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-		margin-bottom: var(--space-sm);
-		font-size: 0.85rem;
-		flex-wrap: wrap;
-	}
-
-	.step-number {
-		font-weight: 600;
-		color: var(--text-primary);
-	}
-
-	.loop-flag {
-		background: rgba(239, 68, 68, 0.2);
-		color: var(--danger);
-		padding: 2px var(--space-sm);
-		border-radius: var(--radius-full);
-		font-size: 0.75rem;
-		font-weight: 500;
-	}
-
-	.similarity {
-		color: var(--text-tertiary);
-		margin-left: auto;
-	}
-
-	.step-reasoning {
-		font-size: 0.9rem;
-		color: var(--text-secondary);
-		white-space: pre-wrap;
-		word-break: break-word;
-		max-height: 150px;
-		overflow-y: auto;
-	}
-
-	.table-row {
-		cursor: pointer;
-	}
-
-	.detector-badges {
-		display: flex;
-		gap: var(--space-sm);
-		margin-bottom: var(--space-sm);
-		flex-wrap: wrap;
-	}
-
-	.detector {
-		font-size: 0.7rem;
-		padding: 2px 6px;
-		border-radius: var(--radius-sm);
-		background: var(--bg-tertiary);
-		color: var(--text-tertiary);
-		font-weight: 500;
-	}
-
-	.detector.fired {
-		background: rgba(249, 115, 22, 0.2);
-		color: var(--accent);
-	}
-
-	.confidence {
-		font-size: 0.7rem;
-		color: var(--text-tertiary);
-		margin-left: auto;
+	.dashboard-brutal h1,
+	.dashboard-brutal h2,
+	.dashboard-brutal h3 {
+		color: #171310;
 	}
 </style>

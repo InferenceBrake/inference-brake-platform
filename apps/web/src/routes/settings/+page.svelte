@@ -27,22 +27,22 @@
 	async function loadData() {
 		try {
 			const { supabase } = await import('$lib/supabase');
-			
+
 			const { data: { user: authUser } } = await supabase.auth.getUser();
 			if (!authUser) {
 				window.location.href = '/login';
 				return;
 			}
-			
+
 			userEmail = authUser.email || '';
-			
+
 			// Try direct query first (subject to RLS)
 			const { data: userData } = await supabase
 				.from('users')
 				.select('api_key, test_mode_api_key, plan, monthly_limit, subscription_status, subscription_current_period_end, alert_email, webhook_url')
 				.eq('id', authUser.id)
 				.single();
-			
+
 			if (userData) {
 				apiKey = userData.api_key || '';
 				testApiKey = userData.test_mode_api_key || '';
@@ -72,31 +72,31 @@
 		if (!confirm('Are you sure you want to delete your account? This will permanently remove all your data including session history and usage metrics.')) return;
 		if (!confirm('This action is IRREVERSIBLE. All your data will be lost forever. Continue?')) return;
 		if (!confirm('Final warning: Type DELETE to confirm')) return;
-		
+
 		const input = prompt('Type DELETE to confirm account deletion');
 		if (input !== 'DELETE') return;
-		
+
 		processing = true;
 		message = '';
-		
+
 		try {
 			const { supabase } = await import('$lib/supabase');
 			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
-			
+
 			if (!storedApiKey) {
 				throw new Error('No API key found');
 			}
-			
+
 			const response = await supabase.functions.invoke('account-delete', {
 				headers: {
 					Authorization: `Bearer ${storedApiKey}`
 				}
 			});
-			
+
 			if (response.error) {
 				throw new Error(response.error);
 			}
-			
+
 			await supabase.auth.signOut();
 			localStorage.removeItem('inferencebrake_api_key');
 			window.location.href = '/';
@@ -109,28 +109,28 @@
 
 	async function generateTestKey() {
 		if (!confirm('Generate a test mode API key? Test mode requests will not count against your daily limit.')) return;
-		
+
 		processing = true;
 		message = '';
-		
+
 		try {
 			const { supabase } = await import('$lib/supabase');
 			const storedApiKey = localStorage.getItem('inferencebrake_api_key');
-			
+
 			if (!storedApiKey) {
 				throw new Error('No API key found');
 			}
-			
+
 			const response = await supabase.functions.invoke('generate-test-key', {
 				headers: {
 					Authorization: `Bearer ${storedApiKey}`
 				}
 			});
-			
+
 			if (response.error) {
 				throw new Error(response.error);
 			}
-			
+
 			testApiKey = response.data.test_api_key;
 			showMessage('Test mode key generated successfully!', 'success');
 		} catch (e: any) {
@@ -322,78 +322,87 @@
 	<title>Settings - InferenceBrake</title>
 </svelte:head>
 
-<div class="settings-page">
-	<div class="container">
-		<header class="page-header">
-			<h1>Settings</h1>
-			<p class="subtitle">Manage your account, subscription, and preferences</p>
-		</header>
+<div class="settings-brutal bg-base-100 text-base-content">
+	<section class="border-b-2 border-black">
+		<div class="mx-auto w-full max-w-3xl px-4 pt-12 pb-10 md:px-8 md:pt-16">
+			<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">Account</p>
+			<h1 class="text-4xl font-extrabold tracking-tight md:text-5xl">Settings</h1>
+			<p class="nb-muted mt-4 font-medium">Manage your account, subscription, and preferences</p>
+		</div>
+	</section>
 
+	<div class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-12 md:gap-8 md:px-8 md:py-16">
 		{#if message}
-			<div class="message" class:error={messageType === 'error'} class:success={messageType === 'success'}>
+			<div role="alert" class="nb-alert nb-brutal-sm text-sm font-bold {messageType === 'error' ? 'nb-alert-error' : 'nb-alert-success'}">
 				{message}
 			</div>
 		{/if}
 
 		{#if loading}
-			<div class="loading">
-				<div class="spinner"></div>
-				<p>Loading settings...</p>
+			<div class="flex flex-col items-center gap-4 py-16">
+				<span class="nb-loading nb-loading-spinner nb-loading-lg"></span>
+				<p class="nb-muted font-medium">Loading settings...</p>
 			</div>
 		{:else}
-			<div class="settings-grid">
-				<section class="settings-card">
-					<h2>Profile</h2>
-					<p class="card-description">Your account information</p>
-					
-					<div class="field">
-						<label>Email</label>
-						<div class="value">{userEmail}</div>
-					</div>
-					
-					<div class="field">
-						<label>Account Status</label>
-						<div class="value">
-							<span class="badge" class:active={subscriptionStatus === 'active'}>
+			<div class="flex flex-col gap-6 md:gap-8">
+				<section class="nb-card nb-brutal bg-base-100">
+					<div class="nb-card-body gap-4 p-6 md:p-8">
+						<div>
+							<h2 class="text-xl font-extrabold">Profile</h2>
+							<p class="nb-muted text-sm font-medium">Your account information</p>
+						</div>
+
+						<div>
+							<p class="nb-muted mb-1 font-mono text-xs font-bold tracking-widest uppercase">Email</p>
+							<p class="font-bold">{userEmail}</p>
+						</div>
+
+						<div>
+							<p class="nb-muted mb-1 font-mono text-xs font-bold tracking-widest uppercase">Account Status</p>
+							<span class="nb-badge font-mono text-xs font-bold {subscriptionStatus === 'active' ? 'nb-badge-success' : subscriptionStatus === 'past_due' ? 'nb-badge-error' : 'nb-badge-neutral'}">
 								{subscriptionStatus}
 							</span>
 						</div>
 					</div>
 				</section>
 
-				<section class="settings-card">
-					<h2>API Key</h2>
-					<p class="card-description">Your API key for integrating InferenceBrake</p>
+				<section class="nb-card nb-brutal bg-base-100">
+					<div class="nb-card-body gap-4 p-6 md:p-8">
+						<div>
+							<h2 class="text-xl font-extrabold">API Key</h2>
+							<p class="nb-muted text-sm font-medium">Your API key for integrating InferenceBrake</p>
+						</div>
 
-					{#if apiKey}
-						<div class="api-key-display">
-							<code>{showApiKey ? apiKey : apiKey.slice(0, 12) + '...' + apiKey.slice(-4)}</code>
-							<button class="btn btn-secondary btn-sm" onclick={() => showApiKey = !showApiKey}>
-								{showApiKey ? 'Hide' : 'Show'}
-							</button>
-							<button class="btn btn-secondary btn-sm" onclick={copyApiKey}>
-								Copy
-							</button>
-							<button class="btn btn-secondary btn-sm" onclick={regenerateKey} disabled={processing}>
-								{processing ? 'Generating...' : 'Regenerate'}
-							</button>
-						</div>
-						<p class="hint">Keep this key secret. It provides full access to your account.</p>
-					{:else}
-						<div class="api-key-empty">
-							<p>No API key found for your account.</p>
-							<button class="btn btn-secondary btn-sm" onclick={regenerateKey} disabled={processing}>
-								{processing ? 'Generating...' : 'Generate API Key'}
-							</button>
-						</div>
-					{/if}
+						{#if apiKey}
+							<div class="flex flex-wrap items-center gap-3">
+								<code class="block min-w-52 flex-1 border-2 border-black bg-base-200 p-3 font-mono text-sm break-all">{showApiKey ? apiKey : apiKey.slice(0, 12) + '...' + apiKey.slice(-4)}</code>
+								<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={() => showApiKey = !showApiKey}>
+									{showApiKey ? 'Hide' : 'Show'}
+								</button>
+								<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={copyApiKey}>
+									Copy
+								</button>
+								<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={regenerateKey} disabled={processing}>
+									{processing ? 'Generating...' : 'Regenerate'}
+								</button>
+							</div>
+							<p class="nb-muted text-sm font-medium">Keep this key secret. It provides full access to your account.</p>
+						{:else}
+							<div class="flex flex-col items-start gap-3">
+								<p class="font-medium">No API key found for your account.</p>
+								<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={regenerateKey} disabled={processing}>
+									{processing ? 'Generating...' : 'Generate API Key'}
+								</button>
+							</div>
+						{/if}
+					</div>
 				</section>
 
 				<!-- Hidden during beta - re-enable when paid plans launch
 			<section class="settings-card">
 					<h2>Test Mode API Key</h2>
 					<p class="card-description">Use this key for testing - requests won't count against your daily limit</p>
-					
+
 					{#if testApiKey}
 						<div class="api-key-display">
 							<code>{showTestApiKey ? testApiKey : testApiKey.slice(0, 12) + '...' + testApiKey.slice(-4)}</code>
@@ -407,8 +416,8 @@
 						<p class="hint test-mode-badge">Test mode active - requests are unlimited</p>
 					{:else}
 						<p class="hint">No test mode key generated yet.</p>
-						<button 
-							class="btn btn-secondary" 
+						<button
+							class="btn btn-secondary"
 							onclick={generateTestKey}
 							disabled={processing}
 						>
@@ -418,119 +427,135 @@
 				</section>
 			-->
 
-				<section class="settings-card">
-					<h2>Plan</h2>
-					<p class="card-description">Your subscription and usage limits</p>
-					
-					<div class="current-plan">
-						<div class="plan-info">
-							<span class="plan-name" class:pro={userPlan === 'pro'}>
-								{getPlanDisplayName(userPlan)}
-							</span>
-							<span class="badge" class:active={subscriptionStatus === 'active'}>
-								{subscriptionStatus}
-							</span>
+				<section class="nb-card nb-brutal bg-base-100">
+					<div class="nb-card-body gap-4 p-6 md:p-8">
+						<div>
+							<h2 class="text-xl font-extrabold">Plan</h2>
+							<p class="nb-muted text-sm font-medium">Your subscription and usage limits</p>
 						</div>
-						<div class="plan-details">
-							<span>{userMonthlyLimit.toLocaleString()} checks/month</span>
-							{#if subscriptionPeriodEnd && userPlan !== 'hobby'}
-								<span class="period-end">Renews {formatDate(subscriptionPeriodEnd)}</span>
+
+						<div class="border-2 border-black bg-base-200 p-4 md:p-5">
+							<div class="flex flex-wrap items-center gap-3">
+								<span class="text-lg font-extrabold">
+									{getPlanDisplayName(userPlan)}
+								</span>
+								<span class="nb-badge font-mono text-xs font-bold {subscriptionStatus === 'active' ? 'nb-badge-success' : subscriptionStatus === 'past_due' ? 'nb-badge-error' : 'nb-badge-neutral'}">
+									{subscriptionStatus}
+								</span>
+							</div>
+							<p class="nb-muted mt-2 text-sm font-medium">
+								{userMonthlyLimit.toLocaleString()} checks/month
+								{#if subscriptionPeriodEnd && userPlan !== 'hobby'}
+									· Renews {formatDate(subscriptionPeriodEnd)}
+								{:else}
+									· No billing
+								{/if}
+							</p>
+						</div>
+
+						<div class="flex flex-col gap-3">
+							{#if userPlan === 'hobby'}
+								<button class="nb-btn nb-btn-secondary nb-brutal-sm nb-brutal-press w-full" onclick={() => upgradePlan('growth')} disabled={billingProcessing !== null}>
+									{billingProcessing === 'growth' ? 'Redirecting...' : 'Upgrade to Growth - $49/mo'}
+								</button>
+								<button class="nb-btn nb-btn-primary nb-brutal-sm nb-brutal-press w-full" onclick={() => upgradePlan('pro')} disabled={billingProcessing !== null}>
+									{billingProcessing === 'pro' ? 'Redirecting...' : 'Upgrade to Pro - $199/mo'}
+								</button>
 							{:else}
-								<span class="period-end">No billing</span>
+								<button class="nb-btn nb-btn-secondary nb-brutal-sm nb-brutal-press w-full" onclick={manageBilling} disabled={billingProcessing !== null}>
+									{billingProcessing === 'portal' ? 'Opening...' : 'Manage billing'}
+								</button>
 							{/if}
 						</div>
-					</div>
 
-					<div class="plan-options">
-						{#if userPlan === 'hobby'}
-							<button class="btn btn-secondary" onclick={() => upgradePlan('growth')} disabled={billingProcessing !== null}>
-								{billingProcessing === 'growth' ? 'Redirecting...' : 'Upgrade to Growth - $49/mo'}
-							</button>
-							<button class="btn btn-primary" onclick={() => upgradePlan('pro')} disabled={billingProcessing !== null}>
-								{billingProcessing === 'pro' ? 'Redirecting...' : 'Upgrade to Pro - $199/mo'}
-							</button>
-						{:else}
-							<button class="btn btn-secondary" onclick={manageBilling} disabled={billingProcessing !== null}>
-								{billingProcessing === 'portal' ? 'Opening...' : 'Manage billing'}
-							</button>
+						{#if userPlan !== 'hobby' && subscriptionStatus !== 'canceled'}
+							<div class="flex flex-col items-start gap-2">
+								<button class="nb-btn nb-btn-error nb-brutal-sm nb-brutal-press" onclick={cancelSubscription} disabled={billingProcessing !== null}>
+									{billingProcessing === 'cancel' ? 'Canceling...' : 'Cancel subscription'}
+								</button>
+								<p class="nb-muted text-sm font-medium">You will be downgraded to the Free plan at the end of the billing period.</p>
+							</div>
 						{/if}
 					</div>
+				</section>
 
-					{#if userPlan !== 'hobby' && subscriptionStatus !== 'canceled'}
-						<div class="cancel-section">
-							<button class="btn btn-danger-outline" onclick={cancelSubscription} disabled={billingProcessing !== null}>
-								{billingProcessing === 'cancel' ? 'Canceling...' : 'Cancel subscription'}
+				<section class="nb-card nb-brutal bg-base-100">
+					<div class="nb-card-body gap-4 p-6 md:p-8">
+						<div>
+							<h2 class="text-xl font-extrabold">Alerts</h2>
+							<p class="nb-muted text-sm font-medium">Get notified when a loop is detected and halted</p>
+						</div>
+
+						<label class="nb-muted flex flex-col gap-2 text-xs font-bold tracking-widest uppercase">
+							Email
+							<input
+								type="email"
+								bind:value={alertEmail}
+								placeholder="ops@yourcompany.com"
+								class="nb-input nb-input-bordered w-full font-medium normal-case"
+							/>
+						</label>
+
+						<label class="nb-muted flex flex-col gap-2 text-xs font-bold tracking-widest uppercase">
+							Webhook URL
+							<input
+								type="url"
+								bind:value={webhookUrl}
+								placeholder="https://hooks.slack.com/services/..."
+								class="nb-input nb-input-bordered w-full font-medium normal-case"
+							/>
+						</label>
+
+						<button class="nb-btn nb-btn-primary nb-brutal-sm nb-brutal-press" onclick={saveAlerts} disabled={savingAlerts}>
+							{savingAlerts ? 'Saving...' : 'Save alerts'}
+						</button>
+						<p class="nb-muted text-sm font-medium">Alerts fire once per session, on the first detected loop.</p>
+					</div>
+				</section>
+
+				<section class="nb-card nb-brutal bg-base-100">
+					<div class="nb-card-body gap-4 p-6 md:p-8">
+						<div>
+							<h2 class="text-xl font-extrabold">Security</h2>
+							<p class="nb-muted text-sm font-medium">Manage your account security</p>
+						</div>
+
+						<div class="flex flex-wrap items-center justify-between gap-4">
+							<div>
+								<p class="font-extrabold">Reset Password</p>
+								<p class="nb-muted text-sm font-medium">Send a password reset link to {userEmail}</p>
+							</div>
+							<button
+								class="nb-btn nb-btn-secondary nb-brutal-sm nb-brutal-press"
+								onclick={resetPassword}
+								disabled={processing}
+							>
+								{processing ? 'Sending...' : 'Send Reset Email'}
 							</button>
-							<p class="cancel-hint">You will be downgraded to the Free plan at the end of the billing period.</p>
 						</div>
-					{/if}
-				</section>
-
-				<section class="settings-card">
-					<h2>Alerts</h2>
-					<p class="card-description">Get notified when a loop is detected and halted</p>
-
-					<div class="field">
-						<label for="alert-email">Email</label>
-						<input
-							id="alert-email"
-							type="email"
-							bind:value={alertEmail}
-							placeholder="ops@yourcompany.com"
-						/>
-					</div>
-
-					<div class="field">
-						<label for="alert-webhook">Webhook URL</label>
-						<input
-							id="alert-webhook"
-							type="url"
-							bind:value={webhookUrl}
-							placeholder="https://hooks.slack.com/services/..."
-						/>
-					</div>
-
-					<button class="btn btn-primary" onclick={saveAlerts} disabled={savingAlerts}>
-						{savingAlerts ? 'Saving...' : 'Save alerts'}
-					</button>
-					<p class="hint">Alerts fire once per session, on the first detected loop.</p>
-				</section>
-
-				<section class="settings-card">
-					<h2>Security</h2>
-					<p class="card-description">Manage your account security</p>
-
-					<div class="reset-password">
-						<div class="reset-info">
-							<strong>Reset Password</strong>
-							<p>Send a password reset link to {userEmail}</p>
-						</div>
-						<button
-							class="btn btn-secondary"
-							onclick={resetPassword}
-							disabled={processing}
-						>
-							{processing ? 'Sending...' : 'Send Reset Email'}
-						</button>
 					</div>
 				</section>
 
-				<section class="settings-card danger-zone">
-					<h2>Danger Zone</h2>
-					<p class="card-description">Irreversible account actions</p>
-					
-					<div class="delete-account">
-						<div class="delete-info">
-							<strong>Delete Account</strong>
-							<p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+				<section class="nb-card nb-brutal bg-error/10">
+					<div class="nb-card-body gap-4 p-6 md:p-8">
+						<div>
+							<h2 class="text-xl font-extrabold">Danger Zone</h2>
+							<p class="nb-muted text-sm font-medium">Irreversible account actions</p>
 						</div>
-						<button 
-							class="btn btn-danger" 
-							onclick={deleteAccount}
-							disabled={processing}
-						>
-							Delete My Account
-						</button>
+
+						<div class="flex flex-wrap items-center justify-between gap-4">
+							<div>
+								<p class="font-extrabold">Delete Account</p>
+								<p class="nb-muted text-sm font-medium">Permanently delete your account and all associated data. This action cannot be undone.</p>
+							</div>
+							<button
+								class="nb-btn nb-btn-error nb-brutal-sm nb-brutal-press"
+								onclick={deleteAccount}
+								disabled={processing}
+							>
+								Delete My Account
+							</button>
+						</div>
 					</div>
 				</section>
 			</div>
@@ -539,356 +564,12 @@
 </div>
 
 <style>
-	.settings-page {
-		min-height: 100vh;
-		padding: var(--space-2xl) 0;
-		background: var(--gradient-dark);
+	.settings-brutal {
+		font-family: 'Outfit', sans-serif;
 	}
 
-	.page-header {
-		margin-bottom: var(--space-2xl);
-	}
-
-	.page-header h1 {
-		font-size: 2rem;
-		margin-bottom: var(--space-sm);
-	}
-
-	.subtitle {
-		color: var(--text-secondary);
-	}
-
-	.container {
-		max-width: 800px;
-		margin: 0 auto;
-		padding: 0 var(--space-lg);
-	}
-
-	.message {
-		padding: var(--space-md) var(--space-lg);
-		border-radius: var(--radius-md);
-		margin-bottom: var(--space-xl);
-		font-size: 0.9rem;
-	}
-
-	.message.success {
-		background: rgba(34, 197, 94, 0.15);
-		border: 1px solid rgba(34, 197, 94, 0.3);
-		color: var(--success);
-	}
-
-	.message.error {
-		background: rgba(239, 68, 68, 0.15);
-		border: 1px solid rgba(239, 68, 68, 0.3);
-		color: var(--danger);
-	}
-
-	.loading {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 300px;
-		gap: var(--space-lg);
-	}
-
-	.spinner {
-		width: 40px;
-		height: 40px;
-		border: 3px solid var(--border);
-		border-top-color: var(--accent);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		to { transform: rotate(360deg); }
-	}
-
-	.settings-grid {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-xl);
-	}
-
-	.settings-card {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		padding: var(--space-xl);
-	}
-
-	.settings-card h2 {
-		font-size: 1.25rem;
-		margin-bottom: var(--space-xs);
-	}
-
-	.card-description {
-		color: var(--text-secondary);
-		font-size: 0.9rem;
-		margin-bottom: var(--space-xl);
-	}
-
-	.field {
-		margin-bottom: var(--space-lg);
-	}
-
-	.field label {
-		display: block;
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-		margin-bottom: var(--space-xs);
-	}
-
-	.field input {
-		width: 100%;
-		padding: var(--space-sm) var(--space-md);
-		background: var(--bg-primary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		color: var(--text-primary);
-		font-size: 0.9rem;
-	}
-
-	.field input:focus {
-		outline: none;
-		border-color: var(--accent);
-	}
-
-	.value {
-		color: var(--text-primary);
-		font-size: 1rem;
-	}
-
-	.badge {
-		display: inline-block;
-		padding: var(--space-xs) var(--space-sm);
-		border-radius: var(--radius-full);
-		font-size: 0.8rem;
-		font-weight: 500;
-		background: var(--bg-tertiary);
-		color: var(--text-secondary);
-	}
-
-	.badge.active {
-		background: rgba(34, 197, 94, 0.15);
-		color: var(--success);
-	}
-
-	.api-key-display {
-		display: flex;
-		gap: var(--space-sm);
-		align-items: center;
-		margin-bottom: var(--space-sm);
-	}
-
-	.api-key-empty {
-		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-		margin-bottom: var(--space-sm);
-	}
-
-	.api-key-empty p {
-		color: var(--text-tertiary);
-		font-size: 0.9rem;
-		margin: 0;
-	}
-
-	.api-key-display code {
-		flex: 1;
-		padding: var(--space-sm) var(--space-md);
-		background: var(--bg-primary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		font-family: var(--font-mono);
-		font-size: 0.85rem;
-		word-break: break-all;
-	}
-
-	.hint {
-		font-size: 0.8rem;
-		color: var(--text-tertiary);
-	}
-
-	.test-mode-badge {
-		color: var(--success);
-		font-weight: 500;
-	}
-
-	.current-plan {
-		background: var(--bg-primary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		padding: var(--space-lg);
-		margin-bottom: var(--space-lg);
-	}
-
-	.plan-info {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--space-sm);
-	}
-
-	.plan-name {
-		font-size: 1.25rem;
-		font-weight: 600;
-	}
-
-	.plan-name.pro {
-		color: var(--accent);
-	}
-
-	.plan-price {
-		font-size: 1.1rem;
-		font-weight: 600;
-	}
-
-	.plan-details {
-		display: flex;
-		justify-content: space-between;
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-	}
-
-	.period-end {
-		color: var(--text-tertiary);
-	}
-
-	.plan-options {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-sm);
-		margin-bottom: var(--space-lg);
-	}
-
-	.plan-options .btn {
-		width: 100%;
-	}
-
-	.cancel-section {
-		border-top: 1px solid var(--border);
-		padding-top: var(--space-lg);
-	}
-
-	.cancel-hint {
-		font-size: 0.8rem;
-		color: var(--text-tertiary);
-		margin-top: var(--space-sm);
-	}
-
-	.reset-password {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: var(--space-lg);
-	}
-
-	.reset-info {
-		flex: 1;
-	}
-
-	.reset-info strong {
-		display: block;
-		margin-bottom: var(--space-xs);
-	}
-
-	.reset-info p {
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-		margin: 0;
-	}
-
-	.danger-zone {
-		border-color: rgba(239, 68, 68, 0.3);
-	}
-
-	.danger-zone h2 {
-		color: var(--danger);
-	}
-
-	.delete-account {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: var(--space-lg);
-	}
-
-	.delete-info {
-		flex: 1;
-	}
-
-	.delete-info strong {
-		display: block;
-		margin-bottom: var(--space-xs);
-	}
-
-	.delete-info p {
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-		margin: 0;
-	}
-
-	.btn {
-		padding: var(--space-sm) var(--space-lg);
-		border-radius: var(--radius-md);
-		font-size: 0.9rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.2s;
-		border: 1px solid transparent;
-	}
-
-	.btn:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	.btn-primary {
-		background: var(--gradient-accent);
-		color: white;
-		border: none;
-	}
-
-	.btn-primary:hover:not(:disabled) {
-		transform: translateY(-1px);
-		box-shadow: 0 4px 20px rgba(249, 115, 22, 0.3);
-	}
-
-	.btn-secondary {
-		background: transparent;
-		color: var(--text-primary);
-		border: 1px solid var(--border);
-	}
-
-	.btn-secondary:hover:not(:disabled) {
-		border-color: var(--accent);
-	}
-
-	.btn-danger {
-		background: var(--danger);
-		color: white;
-		border: none;
-	}
-
-	.btn-danger:hover:not(:disabled) {
-		background: #dc2626;
-	}
-
-	.btn-danger-outline {
-		background: transparent;
-		color: var(--danger);
-		border: 1px solid var(--danger);
-	}
-
-	.btn-danger-outline:hover:not(:disabled) {
-		background: rgba(239, 68, 68, 0.1);
-	}
-
-	.btn-sm {
-		padding: var(--space-xs) var(--space-md);
-		font-size: 0.8rem;
-		white-space: nowrap;
+	.settings-brutal h1,
+	.settings-brutal h2 {
+		color: #171310;
 	}
 </style>

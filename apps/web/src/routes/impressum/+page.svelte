@@ -5,14 +5,14 @@
 	<title>Impressum - InferenceBrake</title>
 </svelte:head>
 
-<div class="legal-page">
-	<div class="legal-content">
+<div class="legal-brutal bg-base-100 text-base-content">
+	<div class="mx-auto w-full max-w-3xl px-4 py-12 md:px-8 md:py-16">
 		<h1>Impressum</h1>
 
-		<p class="last-updated">Legal disclosure pursuant to § 5 TMG (German Telemedia Act)</p>
+		<p class="last-updated nb-muted font-mono text-xs font-bold tracking-widest uppercase">Legal disclosure pursuant to § 5 TMG (German Telemedia Act)</p>
 
 		<h2>Service Operator</h2>
-		<div class="contact-info">
+		<div class="nb-brutal my-6 bg-base-200 p-5">
 			<p><strong>Name:</strong> Vincent Mathis</p>
 			<p><strong>Address:</strong> Loni-Franz-Straße 14</p>
 			<p><strong>Postal Code & City:</strong> 65510 Idstein</p>
@@ -70,58 +70,46 @@
 </div>
 
 <style>
-	.legal-page {
-		min-height: 100vh;
-		padding: 4rem 2rem;
-		background: var(--bg-primary);
+	.legal-brutal {
+		font-family: 'Outfit', sans-serif;
 	}
 
-	.legal-content {
-		max-width: 800px;
-		margin: 0 auto;
-	}
-
-	h1 {
-		font-size: 2rem;
-		margin-bottom: 1rem;
-	}
-
-	h2 {
-		font-size: 1.25rem;
-		margin-top: 2rem;
-		margin-bottom: 1rem;
-		color: var(--text-primary);
-	}
-
-	.last-updated {
-		color: var(--text-secondary);
-		margin-bottom: 2rem;
-		font-size: 0.9rem;
-	}
-
-	.contact-info {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		padding: 1.5rem;
-		margin: 1.5rem 0;
-	}
-
-	.contact-info p {
+	.legal-brutal h1 {
+		font-size: 2.25rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		color: #171310;
 		margin-bottom: 0.5rem;
 	}
 
-	p {
-		line-height: 1.7;
-		color: var(--text-secondary);
+	.legal-brutal h2 {
+		font-size: 1.5rem;
+		font-weight: 800;
+		color: #171310;
+		margin-top: 2.5rem;
 		margin-bottom: 1rem;
 	}
 
-	a {
-		color: var(--accent);
+	.legal-brutal .last-updated {
+		margin-bottom: 2.5rem;
 	}
 
-	a:hover {
+	.legal-brutal p {
+		line-height: 1.7;
+		margin-bottom: 1rem;
+	}
+
+	.legal-brutal .nb-brutal p:last-child {
+		margin-bottom: 0;
+	}
+
+	.legal-brutal strong {
+		color: #171310;
+	}
+
+	.legal-brutal a {
+		font-weight: 700;
 		text-decoration: underline;
+		text-underline-offset: 3px;
 	}
 </style>

@@ -200,618 +200,267 @@ def call_model(prompt):
 	<meta name="description" content="Integrate InferenceBrake loop detection with Python, JavaScript, or REST API." />
 </svelte:head>
 
-<div class="docs-layout">
-	<aside class="sidebar">
-		<nav class="sidebar-nav">
-			<h3>Documentation</h3>
-			{#each sections as section}
-				<button
-					class="sidebar-link"
-					class:active={activeSection === section.id}
-					onclick={() => scrollTo(section.id)}
-				>
-					{section.label}
-				</button>
-			{/each}
-		</nav>
-	</aside>
+{#snippet codeblock(label: string, copyLabel: string, lang: string, code: string)}
+	<div class="nb-brutal overflow-x-auto bg-neutral p-4 text-neutral-content md:p-5">
+		<div class="mb-3 flex items-center justify-between gap-4">
+			<span class="font-mono text-xs font-bold tracking-widest uppercase opacity-70">{label}</span>
+			<button class="nb-btn nb-btn-secondary nb-btn-xs" onclick={() => copyCode(code, copyLabel)}>
+				{copyFeedback === copyLabel ? 'Copied' : 'Copy'}
+			</button>
+		</div>
+		<pre class="overflow-x-auto font-mono text-sm"><code class="language-{lang}">{code}</code></pre>
+	</div>
+{/snippet}
 
-	<main class="docs-content">
-		<section id="quickstart">
-			<h1 class="text-gradient">Integration Documentation</h1>
-			<p class="lead">Connect InferenceBrake to your AI agents in minutes. The Free plan includes 5,000 checks/month; paid plans scale to 100k and 500k per month.</p>
-			<p>Runnable examples: <a href="https://github.com/InferenceBrake/inferencebrake-examples" target="_blank" rel="noopener">InferenceBrake/inferencebrake-examples</a>.</p>
+<div class="docs-brutal bg-base-100 text-base-content">
+	<section class="border-b-2 border-black">
+		<div class="mx-auto w-full max-w-6xl px-4 pt-12 pb-10 md:px-8 md:pt-16">
+			<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">Documentation</p>
+			<h1 class="text-4xl font-extrabold tracking-tight md:text-5xl">Integration Documentation</h1>
+			<p class="nb-muted mt-4 max-w-3xl text-lg font-medium">Connect InferenceBrake to your AI agents in minutes. The Free plan includes 5,000 checks/month; paid plans scale to 100k and 500k per month.</p>
+			<p class="mt-2 font-medium">Runnable examples: <a href="https://github.com/InferenceBrake/inferencebrake-examples" target="_blank" rel="noopener">InferenceBrake/inferencebrake-examples</a>.</p>
+		</div>
+	</section>
 
-			<div class="card highlight-card">
-				<h4>Before You Start</h4>
-				<ol class="steps-list">
-					<li><strong>Sign up</strong> at <a href="https://inferencebrake.dev">inferencebrake.dev</a></li>
-					<li><strong>Get your API key</strong> from the Dashboard</li>
-				</ol>
-			</div>
-		</section>
-
-		<section id="python">
-			<h2>Python SDK</h2>
-			<p>Install the <code>inferencebrake</code> package and start monitoring your agents.</p>
-
-			<div class="code-block">
-				<div class="code-header">
-					<span>Install</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.pip, 'pip install')}>
-						{copyFeedback === 'pip install' ? 'Copied' : 'Copy'}
-					</button>
+	<div class="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 md:px-8 md:py-16 lg:grid-cols-[240px_minmax(0,1fr)]">
+		<aside class="h-fit lg:sticky lg:top-24">
+			<div class="nb-card nb-brutal bg-base-100">
+				<div class="nb-card-body gap-2 p-4">
+					<p class="nb-muted px-2 font-mono text-xs font-bold tracking-widest uppercase">Contents</p>
+					<ul class="nb-menu w-full">
+						{#each sections as section}
+							<li>
+								<button
+									class="font-medium"
+									class:nb-menu-active={activeSection === section.id}
+									onclick={() => scrollTo(section.id)}
+								>
+									{section.label}
+								</button>
+							</li>
+						{/each}
+					</ul>
 				</div>
-				<pre><code class="language-bash">{codes.pip}</code></pre>
 			</div>
+		</aside>
 
-			<h3>Basic Usage</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>Python</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.pythonBasic, 'basic usage')}>
-						{copyFeedback === 'basic usage' ? 'Copied' : 'Copy'}
-					</button>
+		<main class="docs-content flex min-w-0 flex-col gap-12">
+			<section id="quickstart" class="flex scroll-mt-24 flex-col gap-5">
+				<div class="nb-card nb-brutal bg-base-100">
+					<div class="nb-card-body gap-3 p-6">
+						<h2 class="text-xl font-extrabold">Before You Start</h2>
+						<ol class="flex list-decimal flex-col gap-2 pl-6 font-medium">
+							<li><strong>Sign up</strong> at <a href="https://inferencebrake.dev">inferencebrake.dev</a></li>
+							<li><strong>Get your API key</strong> from the Dashboard</li>
+						</ol>
+					</div>
 				</div>
-				<pre><code class="language-python">{codes.pythonBasic}</code></pre>
-			</div>
+			</section>
 
-			<h3>Batch Check</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>Python</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.pythonBatch, 'batch')}>
-						{copyFeedback === 'batch' ? 'Copied' : 'Copy'}
-					</button>
+			<section id="python" class="flex scroll-mt-24 flex-col gap-5">
+				<h2 class="text-2xl font-extrabold md:text-3xl">Python SDK</h2>
+				<p class="nb-muted font-medium">Install the <code>inferencebrake</code> package and start monitoring your agents.</p>
+
+				{@render codeblock('Install', 'pip install', 'bash', codes.pip)}
+
+				<h3 class="text-lg font-extrabold">Basic Usage</h3>
+				{@render codeblock('Python', 'basic usage', 'python', codes.pythonBasic)}
+
+				<h3 class="text-lg font-extrabold">Batch Check</h3>
+				{@render codeblock('Python', 'batch', 'python', codes.pythonBatch)}
+
+				<h3 class="text-lg font-extrabold">Session History</h3>
+				{@render codeblock('Python', 'history', 'python', codes.pythonHistory)}
+
+				<h3 class="text-lg font-extrabold">Configuration</h3>
+				{@render codeblock('Python', 'config', 'python', codes.pythonConfig)}
+			</section>
+
+			<section id="javascript" class="flex scroll-mt-24 flex-col gap-5">
+				<h2 class="text-2xl font-extrabold md:text-3xl">JavaScript / Node.js SDK</h2>
+				<p class="nb-muted font-medium">Built-in resilience: retry logic, circuit breaker, and offline queue.</p>
+
+				{@render codeblock('Install', 'npm', 'bash', codes.npm)}
+
+				<h3 class="text-lg font-extrabold">Basic Usage</h3>
+				{@render codeblock('JavaScript', 'js basic', 'javascript', codes.jsBasic)}
+
+				<h3 class="text-lg font-extrabold">Resilience Configuration</h3>
+				{@render codeblock('JavaScript', 'js config', 'javascript', codes.jsConfig)}
+
+				<h3 class="text-lg font-extrabold">Monitor Helper</h3>
+				{@render codeblock('JavaScript', 'js monitor', 'javascript', codes.jsMonitor)}
+			</section>
+
+			<section id="rest" class="flex scroll-mt-24 flex-col gap-5">
+				<h2 class="text-2xl font-extrabold md:text-3xl">REST API</h2>
+				<p class="nb-muted font-medium">Use directly from any language or framework via HTTP.</p>
+
+				<h3 class="text-lg font-extrabold">Health Check</h3>
+				{@render codeblock('Shell', 'health', 'bash', codes.curlHealth)}
+
+				<h3 class="text-lg font-extrabold">Check Reasoning</h3>
+				{@render codeblock('Shell', 'curl', 'bash', codes.curlCheck)}
+
+				<h3 class="text-lg font-extrabold">Response</h3>
+				{@render codeblock('JSON', 'response', 'json', codes.responseJson)}
+			</section>
+
+			<section id="reference" class="flex scroll-mt-24 flex-col gap-5">
+				<h2 class="text-2xl font-extrabold md:text-3xl">API Reference</h2>
+
+				<h3 class="text-lg font-extrabold">CheckStatus Fields</h3>
+				<div class="nb-brutal overflow-x-auto bg-base-100">
+					<table class="nb-table text-sm">
+						<thead class="font-bold">
+							<tr>
+								<th>Field</th>
+								<th>Type</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr><td><code>action</code></td><td>string</td><td><code>"KILL"</code> if loop detected, <code>"PROCEED"</code> otherwise</td></tr>
+							<tr><td><code>loop_detected</code></td><td>boolean</td><td>Whether a reasoning loop was detected</td></tr>
+							<tr><td><code>similarity</code></td><td>float</td><td>Max cosine similarity against recent steps (0.0 - 1.0)</td></tr>
+							<tr><td><code>action_repeat_count</code></td><td>int</td><td>Number of consecutive identical actions</td></tr>
+							<tr><td><code>ngram_overlap</code></td><td>float</td><td>N-gram overlap ratio with recent steps</td></tr>
+							<tr><td><code>confidence</code></td><td>float</td><td>Weighted voting confidence (0.0 - 1.0)</td></tr>
+							<tr><td><code>status</code></td><td>string</td><td><code>"safe"</code>, <code>"warning"</code>, or <code>"danger"</code></td></tr>
+							<tr><td><code>message</code></td><td>string</td><td>Human-readable status message</td></tr>
+							<tr><td><code>test_mode</code></td><td>boolean</td><td>Whether request used test mode API key</td></tr>
+						</tbody>
+					</table>
 				</div>
-				<pre><code class="language-python">{codes.pythonBatch}</code></pre>
-			</div>
 
-			<h3>Session History</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>Python</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.pythonHistory, 'history')}>
-						{copyFeedback === 'history' ? 'Copied' : 'Copy'}
-					</button>
+				<h3 class="text-lg font-extrabold">Detector Fields</h3>
+				<div class="nb-brutal overflow-x-auto bg-base-100">
+					<table class="nb-table text-sm">
+						<thead class="font-bold">
+							<tr>
+								<th>Detector</th>
+								<th>Method</th>
+								<th>Best For</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr><td><code>semantic</code></td><td>Embedding cosine similarity</td><td>Paraphrased repetition</td></tr>
+							<tr><td><code>token_repeat</code></td><td>Exact repeated token spans</td><td>Verbatim loops (Antidoom / OpenRouter failure mode)</td></tr>
+							<tr><td><code>action</code></td><td>Tool call patterns</td><td>Repeated tool invocations</td></tr>
+							<tr><td><code>ngram</code></td><td>Text overlap</td><td>Phrase-level repetition</td></tr>
+							<tr><td><code>editdist</code></td><td>Normalized Levenshtein</td><td>Near-identical mirror loops</td></tr>
+							<tr><td><code>compression</code></td><td>Normalized Compression Distance</td><td>Structural / information theory</td></tr>
+						</tbody>
+					</table>
 				</div>
-				<pre><code class="language-python">{codes.pythonHistory}</code></pre>
-			</div>
 
-			<h3>Configuration</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>Python</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.pythonConfig, 'config')}>
-						{copyFeedback === 'config' ? 'Copied' : 'Copy'}
-					</button>
+				<h3 class="text-lg font-extrabold">Rate Limits</h3>
+				<div role="note" class="nb-alert nb-alert-info nb-brutal-sm flex-col items-start gap-3">
+					<p class="text-sm font-bold">Free plan: 5,000 checks per month per account. Paid plans raise the limit. Counters reset on the 1st.</p>
+					<p class="text-sm font-medium">Rate limit headers are returned with every response:</p>
+					<ul class="flex list-disc flex-col gap-1 pl-6 text-sm font-medium">
+						<li><code>X-RateLimit-Limit</code> - Monthly limit</li>
+						<li><code>X-RateLimit-Remaining</code> - Checks remaining this month</li>
+						<li><code>X-RateLimit-Period</code> - <code>month</code></li>
+						<li><code>X-RateLimit-Reset</code> - Unix timestamp when the quota resets</li>
+					</ul>
 				</div>
-				<pre><code class="language-python">{codes.pythonConfig}</code></pre>
-			</div>
-		</section>
 
-		<section id="javascript">
-			<h2>JavaScript / Node.js SDK</h2>
-			<p>Built-in resilience: retry logic, circuit breaker, and offline queue.</p>
-
-			<div class="code-block">
-				<div class="code-header">
-					<span>Install</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.npm, 'npm')}>
-						{copyFeedback === 'npm' ? 'Copied' : 'Copy'}
-					</button>
+				<h3 class="text-lg font-extrabold">Error Codes</h3>
+				<div class="nb-brutal overflow-x-auto bg-base-100">
+					<table class="nb-table text-sm">
+						<thead class="font-bold">
+							<tr>
+								<th>Status</th>
+								<th>Error</th>
+								<th>Cause</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr><td>401</td><td><code>Invalid API Key</code></td><td>Missing or invalid <code>Authorization</code> header</td></tr>
+							<tr><td>402</td><td><code>Subscription past due</code></td><td>Payment required</td></tr>
+							<tr><td>429</td><td><code>Rate limit exceeded</code></td><td>Daily check limit reached</td></tr>
+							<tr><td>500</td><td><code>Internal error</code></td><td>Server-side failure, retry with backoff</td></tr>
+						</tbody>
+					</table>
 				</div>
-				<pre><code class="language-bash">{codes.npm}</code></pre>
-			</div>
+			</section>
 
-			<h3>Basic Usage</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>JavaScript</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.jsBasic, 'js basic')}>
-						{copyFeedback === 'js basic' ? 'Copied' : 'Copy'}
-					</button>
+			<section id="integrations" class="flex scroll-mt-24 flex-col gap-5">
+				<h2 class="text-2xl font-extrabold md:text-3xl">Framework Integrations</h2>
+
+				<h3 class="text-lg font-extrabold">LangChain (Python)</h3>
+				{@render codeblock('Python', 'langchain', 'python', codes.langchain)}
+
+				<h3 class="text-lg font-extrabold">CrewAI (Python)</h3>
+				{@render codeblock('Python', 'crewai', 'python', codes.crewai)}
+
+				<h3 class="text-lg font-extrabold">Python Decorator</h3>
+				{@render codeblock('Python', 'decorator', 'python', codes.decorator)}
+
+				<h3 class="text-lg font-extrabold">JavaScript Monitor</h3>
+				{@render codeblock('JavaScript', 'js monitor full', 'javascript', codes.jsMonitorFull)}
+			</section>
+
+			<section id="escalation" class="flex scroll-mt-24 flex-col gap-5">
+				<h2 class="text-2xl font-extrabold md:text-3xl">Escalation</h2>
+				<p class="nb-muted font-medium">Instead of stopping on the first loop, give the agent a chance to recover on a stronger model, then stop if it still loops. The SDK does not pick models; you provide the hook.</p>
+
+				{@render codeblock('Python', 'escalation', 'python', codes.escalation)}
+
+				<div role="note" class="nb-alert nb-alert-info nb-brutal-sm flex-col items-start gap-3">
+					<p class="text-sm font-bold">Order of precedence on detection:</p>
+					<ol class="flex list-decimal flex-col gap-1 pl-6 text-sm font-medium">
+						<li><code>escalate(status, attempt)</code> while under <code>max_escalations</code></li>
+						<li><code>on_loop(status)</code></li>
+						<li>raise <code>LoopDetectedError</code> when <code>auto_stop</code> is set</li>
+					</ol>
+					<p class="text-sm font-medium">Use <code>steering_message(status)</code> for a ready-to-inject nudge, and <code>LoopPolicy</code> to apply the same behavior outside a decorator.</p>
 				</div>
-				<pre><code class="language-javascript">{codes.jsBasic}</code></pre>
-			</div>
+			</section>
 
-			<h3>Resilience Configuration</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>JavaScript</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.jsConfig, 'js config')}>
-						{copyFeedback === 'js config' ? 'Copied' : 'Copy'}
-					</button>
+			<section id="analytics" class="flex scroll-mt-24 flex-col gap-5">
+				<h2 class="text-2xl font-extrabold md:text-3xl">Analytics</h2>
+				<p class="nb-muted font-medium">Attribute loops to the model, tool, and prompt that produced them, not just a total count.</p>
+
+				{@render codeblock('cURL', 'analytics curl', 'bash', codes.analyticsCurl)}
+				{@render codeblock('Response', 'analytics json', 'json', codes.analyticsJson)}
+
+				<div role="note" class="nb-alert nb-alert-info nb-brutal-sm">
+					<p class="text-sm font-medium">Attribution comes from the <code>model</code>, <code>action</code>, and <code>prompt</code> you pass to <code>check()</code>. Totals reflect retained metrics, so the window is bounded by your plan's retention.</p>
 				</div>
-				<pre><code class="language-javascript">{codes.jsConfig}</code></pre>
-			</div>
-
-			<h3>Monitor Helper</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>JavaScript</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.jsMonitor, 'js monitor')}>
-						{copyFeedback === 'js monitor' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-javascript">{codes.jsMonitor}</code></pre>
-			</div>
-		</section>
-
-		<section id="rest">
-			<h2>REST API</h2>
-			<p>Use directly from any language or framework via HTTP.</p>
-
-			<h3>Health Check</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>Shell</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.curlHealth, 'health')}>
-						{copyFeedback === 'health' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-bash">{codes.curlHealth}</code></pre>
-			</div>
-
-			<h3>Check Reasoning</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>Shell</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.curlCheck, 'curl')}>
-						{copyFeedback === 'curl' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-bash">{codes.curlCheck}</code></pre>
-			</div>
-
-			<h3>Response</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>JSON</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.responseJson, 'response')}>
-						{copyFeedback === 'response' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-json">{codes.responseJson}</code></pre>
-			</div>
-		</section>
-
-		<section id="reference">
-			<h2>API Reference</h2>
-
-			<h3>CheckStatus Fields</h3>
-			<div class="table-wrap">
-				<table>
-					<thead>
-						<tr>
-							<th>Field</th>
-							<th>Type</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr><td><code>action</code></td><td>string</td><td><code>"KILL"</code> if loop detected, <code>"PROCEED"</code> otherwise</td></tr>
-						<tr><td><code>loop_detected</code></td><td>boolean</td><td>Whether a reasoning loop was detected</td></tr>
-						<tr><td><code>similarity</code></td><td>float</td><td>Max cosine similarity against recent steps (0.0 - 1.0)</td></tr>
-						<tr><td><code>action_repeat_count</code></td><td>int</td><td>Number of consecutive identical actions</td></tr>
-						<tr><td><code>ngram_overlap</code></td><td>float</td><td>N-gram overlap ratio with recent steps</td></tr>
-						<tr><td><code>confidence</code></td><td>float</td><td>Weighted voting confidence (0.0 - 1.0)</td></tr>
-						<tr><td><code>status</code></td><td>string</td><td><code>"safe"</code>, <code>"warning"</code>, or <code>"danger"</code></td></tr>
-						<tr><td><code>message</code></td><td>string</td><td>Human-readable status message</td></tr>
-						<tr><td><code>test_mode</code></td><td>boolean</td><td>Whether request used test mode API key</td></tr>
-					</tbody>
-				</table>
-			</div>
-
-			<h3>Detector Fields</h3>
-			<div class="table-wrap">
-				<table>
-					<thead>
-						<tr>
-							<th>Detector</th>
-							<th>Method</th>
-							<th>Best For</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr><td><code>semantic</code></td><td>Embedding cosine similarity</td><td>Paraphrased repetition</td></tr>
-						<tr><td><code>token_repeat</code></td><td>Exact repeated token spans</td><td>Verbatim loops (Antidoom / OpenRouter failure mode)</td></tr>
-						<tr><td><code>action</code></td><td>Tool call patterns</td><td>Repeated tool invocations</td></tr>
-						<tr><td><code>ngram</code></td><td>Text overlap</td><td>Phrase-level repetition</td></tr>
-						<tr><td><code>editdist</code></td><td>Normalized Levenshtein</td><td>Near-identical mirror loops</td></tr>
-						<tr><td><code>compression</code></td><td>Normalized Compression Distance</td><td>Structural / information theory</td></tr>
-					</tbody>
-				</table>
-			</div>
-
-			<h3>Rate Limits</h3>
-			<div class="card info-card">
-				<p><strong>Free plan:</strong> 5,000 checks per month per account. Paid plans raise the limit. Counters reset on the 1st.</p>
-				<p>Rate limit headers are returned with every response:</p>
-				<ul class="header-list">
-					<li><code>X-RateLimit-Limit</code> - Monthly limit</li>
-					<li><code>X-RateLimit-Remaining</code> - Checks remaining this month</li>
-					<li><code>X-RateLimit-Period</code> - <code>month</code></li>
-					<li><code>X-RateLimit-Reset</code> - Unix timestamp when the quota resets</li>
-				</ul>
-			</div>
-
-			<h3>Error Codes</h3>
-			<div class="table-wrap">
-				<table>
-					<thead>
-						<tr>
-							<th>Status</th>
-							<th>Error</th>
-							<th>Cause</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr><td>401</td><td><code>Invalid API Key</code></td><td>Missing or invalid <code>Authorization</code> header</td></tr>
-						<tr><td>402</td><td><code>Subscription past due</code></td><td>Payment required</td></tr>
-						<tr><td>429</td><td><code>Rate limit exceeded</code></td><td>Daily check limit reached</td></tr>
-						<tr><td>500</td><td><code>Internal error</code></td><td>Server-side failure, retry with backoff</td></tr>
-					</tbody>
-				</table>
-			</div>
-		</section>
-
-		<section id="integrations">
-			<h2>Framework Integrations</h2>
-
-			<h3>LangChain (Python)</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>Python</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.langchain, 'langchain')}>
-						{copyFeedback === 'langchain' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-python">{codes.langchain}</code></pre>
-			</div>
-
-			<h3>CrewAI (Python)</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>Python</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.crewai, 'crewai')}>
-						{copyFeedback === 'crewai' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-python">{codes.crewai}</code></pre>
-			</div>
-
-			<h3>Python Decorator</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>Python</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.decorator, 'decorator')}>
-						{copyFeedback === 'decorator' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-python">{codes.decorator}</code></pre>
-			</div>
-
-			<h3>JavaScript Monitor</h3>
-			<div class="code-block">
-				<div class="code-header">
-					<span>JavaScript</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.jsMonitorFull, 'js monitor full')}>
-						{copyFeedback === 'js monitor full' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-javascript">{codes.jsMonitorFull}</code></pre>
-			</div>
-		</section>
-
-		<section id="escalation">
-			<h2>Escalation</h2>
-			<p class="lead">Instead of stopping on the first loop, give the agent a chance to recover on a stronger model, then stop if it still loops. The SDK does not pick models; you provide the hook.</p>
-
-			<div class="code-block">
-				<div class="code-header">
-					<span>Python</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.escalation, 'escalation')}>
-						{copyFeedback === 'escalation' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-python">{codes.escalation}</code></pre>
-			</div>
-
-			<div class="card info-card">
-				<p>Order of precedence on detection:</p>
-				<ol class="header-list">
-					<li><code>escalate(status, attempt)</code> while under <code>max_escalations</code></li>
-					<li><code>on_loop(status)</code></li>
-					<li>raise <code>LoopDetectedError</code> when <code>auto_stop</code> is set</li>
-				</ol>
-				<p>Use <code>steering_message(status)</code> for a ready-to-inject nudge, and <code>LoopPolicy</code> to apply the same behavior outside a decorator.</p>
-			</div>
-		</section>
-
-		<section id="analytics">
-			<h2>Analytics</h2>
-			<p class="lead">Attribute loops to the model, tool, and prompt that produced them, not just a total count.</p>
-
-			<div class="code-block">
-				<div class="code-header">
-					<span>cURL</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.analyticsCurl, 'analytics curl')}>
-						{copyFeedback === 'analytics curl' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-bash">{codes.analyticsCurl}</code></pre>
-			</div>
-
-			<div class="code-block">
-				<div class="code-header">
-					<span>Response</span>
-					<button class="copy-btn" onclick={() => copyCode(codes.analyticsJson, 'analytics json')}>
-						{copyFeedback === 'analytics json' ? 'Copied' : 'Copy'}
-					</button>
-				</div>
-				<pre><code class="language-json">{codes.analyticsJson}</code></pre>
-			</div>
-
-			<div class="card info-card">
-				<p>Attribution comes from the <code>model</code>, <code>action</code>, and <code>prompt</code> you pass to <code>check()</code>. Totals reflect retained metrics, so the window is bounded by your plan's retention.</p>
-			</div>
-		</section>
-	</main>
+			</section>
+		</main>
+	</div>
 </div>
 
 <style>
-	.docs-layout {
-		display: grid;
-		grid-template-columns: 240px 1fr;
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 2rem;
-		gap: 2rem;
-		min-height: calc(100vh - 72px);
+	.docs-brutal {
+		font-family: 'Outfit', sans-serif;
 	}
 
-	.sidebar {
-		position: sticky;
-		top: 88px;
-		height: fit-content;
-		max-height: calc(100vh - 104px);
-		overflow-y: auto;
-		padding-right: 1rem;
+	.docs-brutal h1,
+	.docs-brutal h2,
+	.docs-brutal h3 {
+		color: #171310;
 	}
 
-	.sidebar-nav h3 {
-		font-size: 0.75rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--text-tertiary);
-		margin-bottom: 1rem;
+	.docs-brutal .docs-content a {
+		font-weight: 700;
+		text-decoration: underline;
+		text-underline-offset: 3px;
 	}
 
-	.sidebar-link {
-		display: block;
-		width: 100%;
-		text-align: left;
-		padding: 0.5rem 0.75rem;
-		margin-bottom: 0.25rem;
-		background: none;
-		border: none;
-		color: var(--text-secondary);
-		font-family: var(--font-display);
-		font-size: 0.9rem;
-		font-weight: 500;
-		cursor: pointer;
-		border-radius: var(--radius-sm);
-		transition: all 0.15s;
-	}
-
-	.sidebar-link:hover {
-		color: var(--text-primary);
-		background: var(--bg-tertiary);
-	}
-
-	.sidebar-link.active {
-		color: var(--accent);
-		background: var(--accent-muted);
-	}
-
-	.docs-content {
-		min-width: 0;
-	}
-
-	.docs-content section {
-		margin-bottom: 4rem;
-		scroll-margin-top: 88px;
-	}
-
-	.lead {
-		font-size: 1.1rem;
-		color: var(--text-secondary);
-		margin: 0.5rem 0 2rem;
-		max-width: 640px;
-	}
-
-	.highlight-card {
-		background: var(--bg-secondary);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		padding: 1.5rem 2rem;
-		margin-bottom: 2rem;
-	}
-
-	.highlight-card h4 {
-		margin-bottom: 1rem;
-	}
-
-	.steps-list {
-		margin: 0;
-		padding: 0 0 0 1.25rem;
-	}
-
-	.steps-list li {
-		margin-bottom: 0.5rem;
-		color: var(--text-secondary);
-		line-height: 1.5;
-	}
-
-	.steps-list li strong {
-		color: var(--text-primary);
-	}
-
-	h2 {
-		margin-bottom: 1rem;
-	}
-
-	h3 {
-		font-size: 1.1rem;
-		margin: 1.5rem 0 0.75rem;
-		color: var(--text-primary);
-	}
-
-	.docs-content p {
-		color: var(--text-secondary);
-		margin-bottom: 1rem;
-		line-height: 1.6;
-	}
-
-	.code-block {
-		background: #0d0d0d;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		margin-bottom: 1.5rem;
-		overflow: hidden;
-	}
-
-	.code-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.5rem 1rem;
-		background: var(--bg-tertiary);
-		border-bottom: 1px solid var(--border);
-	}
-
-	.code-header span {
-		font-family: var(--font-mono);
-		font-size: 0.75rem;
-		color: var(--text-tertiary);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-
-	.copy-btn {
-		background: none;
-		border: 1px solid var(--border);
-		color: var(--text-tertiary);
-		font-family: var(--font-display);
-		font-size: 0.75rem;
-		padding: 0.2rem 0.6rem;
-		border-radius: var(--radius-sm);
-		cursor: pointer;
-		transition: all 0.15s;
-	}
-
-	.copy-btn:hover {
-		color: var(--text-primary);
-		border-color: var(--border-hover);
-		background: var(--bg-elevated);
-	}
-
-	.code-block pre {
-		padding: 1rem;
-		margin: 0;
-		overflow-x: auto;
-		background: transparent;
-	}
-
-	.code-block code {
-		font-family: var(--font-mono);
-		font-size: 0.85rem;
-		line-height: 1.5;
-		white-space: pre;
-	}
-
-	code:not(.code-block code) {
-		font-family: var(--font-mono);
-		font-size: 0.85rem;
-		background: var(--bg-tertiary);
-		padding: 0.1em 0.3em;
-		border-radius: var(--radius-sm);
-		color: var(--accent);
-	}
-
-	.table-wrap {
-		overflow-x: auto;
-		margin-bottom: 1.5rem;
-	}
-
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.9rem;
-	}
-
-	thead {
-		background: var(--bg-tertiary);
-	}
-
-	th {
-		text-align: left;
-		padding: 0.75rem 1rem;
-		font-weight: 600;
-		font-size: 0.8rem;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: var(--text-tertiary);
-		border-bottom: 1px solid var(--border);
-	}
-
-	td {
-		padding: 0.75rem 1rem;
-		border-bottom: 1px solid var(--border);
-		color: var(--text-secondary);
-	}
-
-	td:first-child {
-		font-family: var(--font-mono);
-		font-size: 0.8rem;
-		color: var(--accent);
+	.docs-brutal .docs-content :not(pre) > code {
+		border: 1px solid #171310;
+		background: #f6ecd4;
+		padding: 0.1rem 0.35rem;
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 0.85em;
 		white-space: nowrap;
 	}
 
-	.info-card {
-		background: rgba(249, 115, 22, 0.05);
-		border: 1px solid rgba(249, 115, 22, 0.2);
-		border-radius: var(--radius-md);
-		padding: 1.25rem 1.5rem;
-		margin-bottom: 1.5rem;
-	}
-
-	.info-card p {
-		margin-bottom: 0.5rem;
-	}
-
-	.header-list {
-		margin: 0.75rem 0 0;
-		padding: 0 0 0 1.25rem;
-	}
-
-	.header-list li {
-		margin-bottom: 0.25rem;
-		font-family: var(--font-mono);
-		font-size: 0.8rem;
-		color: var(--text-secondary);
-	}
-
-	@media (max-width: 768px) {
-		.docs-layout {
-			grid-template-columns: 1fr;
-			padding: 1.5rem;
-		}
-
-		.sidebar {
-			display: none;
-		}
+	.docs-brutal pre code.hljs {
+		background: transparent;
 	}
 </style>

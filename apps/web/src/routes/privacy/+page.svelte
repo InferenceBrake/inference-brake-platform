@@ -5,11 +5,11 @@
 	<title>Privacy Policy - InferenceBrake</title>
 </svelte:head>
 
-<div class="legal-page">
-	<div class="legal-content">
+<div class="legal-brutal bg-base-100 text-base-content">
+	<div class="mx-auto w-full max-w-3xl px-4 py-12 md:px-8 md:py-16">
 		<h1>Privacy Policy</h1>
 
-		<p class="last-updated">Last updated: March 2026</p>
+		<p class="last-updated nb-muted font-mono text-xs font-bold tracking-widest uppercase">Last updated: March 2026</p>
 
 		<h2>1. Introduction</h2>
 		<p>
@@ -47,16 +47,16 @@
 			or 90 days (Pro plan).
 		</p>
 		<p>Legal basis: Art. 6(1)(b) GDPR — necessary to perform the contract with you.</p>
-		<div class="note">
-			<strong>Note:</strong> Do not submit personal data of end users as reasoning traces.
+		<div role="note" class="nb-alert nb-alert-info nb-brutal-sm my-6 text-sm font-medium">
+			<span><strong>Note:</strong> Do not submit personal data of end users as reasoning traces.
 			InferenceBrake is designed to monitor AI agent outputs, not to process end-user
-			personal information.
+			personal information.</span>
 		</div>
 
 		<h3>Payment Data</h3>
-		<div class="note">
-			<strong>Note:</strong> Payments are not currently active. Paid plans will be
-			introduced in the future.
+		<div role="note" class="nb-alert nb-alert-info nb-brutal-sm my-6 text-sm font-medium">
+			<span><strong>Note:</strong> Payments are not currently active. Paid plans will be
+			introduced in the future.</span>
 		</div>
 		<p>Payments are processed exclusively by Stripe. We only store:</p>
 		<ul>
@@ -166,80 +166,63 @@
 </div>
 
 <style>
-	.legal-page {
-		min-height: 100vh;
-		padding: 4rem 2rem;
-		background: var(--bg-primary);
+	.legal-brutal {
+		font-family: 'Outfit', sans-serif;
 	}
 
-	.legal-content {
-		max-width: 800px;
-		margin: 0 auto;
-	}
-
-	h1 {
-		font-size: 2rem;
-		margin-bottom: 1rem;
-	}
-
-	h2 {
-		font-size: 1.25rem;
-		margin-top: 2rem;
-		margin-bottom: 1rem;
-		color: var(--text-primary);
-	}
-
-	h3 {
-		font-size: 1.1rem;
-		margin-top: 1.5rem;
-		margin-bottom: 0.75rem;
-		color: var(--text-primary);
-	}
-
-	.last-updated {
-		color: var(--text-secondary);
-		margin-bottom: 2rem;
-		font-size: 0.9rem;
-	}
-
-	p {
-		line-height: 1.7;
-		color: var(--text-secondary);
-		margin-bottom: 1rem;
-	}
-
-	ul {
-		margin-left: 1.5rem;
-		margin-bottom: 1rem;
-	}
-
-	li {
-		line-height: 1.7;
-		color: var(--text-secondary);
+	.legal-brutal h1 {
+		font-size: 2.25rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		color: #171310;
 		margin-bottom: 0.5rem;
 	}
 
-	a {
-		color: var(--accent);
+	.legal-brutal h2 {
+		font-size: 1.5rem;
+		font-weight: 800;
+		color: #171310;
+		margin-top: 2.5rem;
+		margin-bottom: 1rem;
 	}
 
-	a:hover {
-		text-decoration: underline;
+	.legal-brutal h3 {
+		font-size: 1.1rem;
+		font-weight: 800;
+		color: #171310;
+		margin-top: 1.5rem;
+		margin-bottom: 0.75rem;
 	}
 
-	strong {
-		color: var(--text-primary);
+	.legal-brutal .last-updated {
+		margin-bottom: 2.5rem;
 	}
 
-	.note {
-		margin-top: 0.5rem;
-		padding: 1rem;
-		background: rgba(249, 115, 22, 0.1);
-		border: 1px solid rgba(249, 115, 22, 0.3);
-		border-radius: var(--radius-md);
-		font-size: 0.9rem;
-		color: var(--text-secondary);
+	.legal-brutal p {
 		line-height: 1.7;
 		margin-bottom: 1rem;
+	}
+
+	.legal-brutal ul {
+		list-style: disc;
+		padding-left: 1.5rem;
+		margin-bottom: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.legal-brutal li {
+		line-height: 1.7;
+	}
+
+	.legal-brutal strong {
+		color: #171310;
+	}
+
+	.legal-brutal a {
+		font-weight: 700;
+		text-decoration: underline;
+		text-underline-offset: 3px;
 	}
 </style>

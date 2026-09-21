@@ -6,13 +6,13 @@
 	import { onNavigate } from '$app/navigation';
 
 	let { children } = $props();
-	
+
 	let user = $state<{ email: string } | null>(null);
 	let currentPath = $state(typeof window !== 'undefined' ? window.location.pathname : '/');
 	let isAuthPage = $derived(currentPath === '/login' || currentPath === '/register');
 	let isDashboard = $derived(currentPath === '/dashboard');
 	let isLanding = $derived(currentPath === '/' || currentPath === '');
-	
+
 	// Handle navigation - scroll to top
 	onNavigate((navigation) => {
 		if (!document) return;
@@ -23,12 +23,12 @@
 			document.documentElement.scrollTop = 0;
 		});
 	});
-	
+
 	// Subscribe to page changes
 	$effect(() => {
 		currentPath = $page.url.pathname;
 	});
-	
+
 	onMount(async () => {
 		try {
 			const { supabase } = await import('$lib/supabase');
@@ -36,7 +36,7 @@
 			if (session?.user) {
 				user = { email: session.user.email || '' };
 			}
-					
+
 			supabase.auth.onAuthStateChange((_event, session) => {
 				if (!session?.user) {
 					localStorage.removeItem('inferencebrake_api_key');
@@ -47,7 +47,7 @@
 			console.log('Supabase not configured');
 		}
 	});
-	
+
 	async function handleSignOut() {
 		if (!confirm('Are you sure you want to sign out?')) return;
 		const { supabase } = await import('$lib/supabase');
@@ -64,226 +64,82 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-	<meta name="theme-color" content="#f97316" />
+	<meta name="theme-color" content="#c4b5fd" />
 	<title>InferenceBrake - Detect Reasoning Loops in AI Agents</title>
 	<meta name="description" content="Multi-detector loop detection for AI agents." />
 </svelte:head>
 
-<div class="app">
+<div class="flex min-h-screen flex-col bg-base-100 text-base-content">
 	{#if !isAuthPage}
-	<nav class="nav">
-		<div class="nav-inner container">
-			<a href="/" class="logo">
-				<img src={favicon} alt="" class="logo-icon" />
+	<nav class="fixed inset-x-0 top-0 z-50 border-b-2 border-black bg-base-100">
+		<div class="mx-auto flex h-18 w-full max-w-6xl items-center justify-between gap-4 px-4 md:px-8">
+			<a href="/" class="flex items-center gap-2 text-xl font-extrabold">
+				<img src={favicon} alt="" class="nb-brutal-sm size-7" />
 				InferenceBrake
 			</a>
-			
-			<div class="nav-links">
+
+			<div class="hidden items-center gap-6 md:flex">
 				{#if isLanding}
-					<a href="#detection" class="nav-link">Detection</a>
-					<a href="#demo" class="nav-link">Demo</a>
-					<a href="#pricing" class="nav-link">Pricing</a>
+					<a href="#detection" class="text-sm font-bold hover:underline hover:underline-offset-4">Detection</a>
+					<a href="#demo" class="text-sm font-bold hover:underline hover:underline-offset-4">Demo</a>
+					<a href="#pricing" class="text-sm font-bold hover:underline hover:underline-offset-4">Pricing</a>
 				{:else}
-					<a href="/" class="nav-link">Home</a>
-					<a href="/docs" class="nav-link">Docs</a>
+					<a href="/" class="text-sm font-bold hover:underline hover:underline-offset-4">Home</a>
+					<a href="/docs" class="text-sm font-bold hover:underline hover:underline-offset-4">Docs</a>
 				{/if}
 			</div>
-			
-			<div class="nav-actions">
+
+			<div class="flex items-center gap-3">
 				{#if user}
-					<span class="user-email">{user.email}</span>
-					<a href="/dashboard" class="nav-link">Dashboard</a>
-					<a href="/settings" class="nav-link">Settings</a>
-					<button class="btn btn-secondary" onclick={handleSignOut}>Sign Out</button>
+					<span class="nb-muted hidden font-mono text-xs lg:block">{user.email}</span>
+					<a href="/dashboard" class="hidden text-sm font-bold hover:underline hover:underline-offset-4 sm:block">Dashboard</a>
+					<a href="/settings" class="hidden text-sm font-bold hover:underline hover:underline-offset-4 sm:block">Settings</a>
+					<button class="nb-btn nb-btn-neutral nb-btn-sm nb-brutal-sm" onclick={handleSignOut}>Sign Out</button>
 				{:else}
-					<a href="/login" class="nav-link">Sign In</a>
-					<a href="/register" class="btn btn-secondary">Get Started</a>
+					<a href="/login" class="text-sm font-bold hover:underline hover:underline-offset-4">Sign In</a>
+					<a href="/register" class="nb-btn nb-btn-primary nb-btn-sm nb-brutal-sm">Get Started</a>
 				{/if}
 			</div>
 		</div>
 	</nav>
 	{/if}
 
-	<main class:with-nav={!isAuthPage}>
+	<main class="flex-1" class:pt-18={!isAuthPage}>
 		{@render children()}
 	</main>
 
 	{#if !isAuthPage}
-	<footer class="footer">
-		<div class="container">
-			<div class="footer-grid">
-				<div class="footer-brand">
-					<img src={favicon} alt="" class="logo-icon" />
-					<span class="logo-text">InferenceBrake</span>
-					<p>Multi-detector loop detection for AI agents.</p>
+	<footer class="border-t-2 border-black bg-neutral text-neutral-content">
+		<div class="mx-auto w-full max-w-6xl px-4 py-12 md:px-8">
+			<div class="grid gap-10 md:grid-cols-[2fr_1fr_1fr]">
+				<div>
+					<p class="flex items-center gap-2 text-xl font-extrabold">
+						<img src={favicon} alt="" class="size-7 border-2 border-black bg-base-100 p-0.5" />
+						InferenceBrake
+					</p>
+					<p class="mt-4 max-w-xs text-sm font-medium opacity-70">Multi-detector loop detection for AI agents.</p>
 				</div>
-				
-				<div class="footer-col">
-					<h4>Product</h4>
-					<a href="#pricing">Pricing</a>
-					<a href="/docs">Docs</a>
-					<a href="/dashboard">Dashboard</a>
-					<a href="/settings">Settings</a>
+
+				<div>
+					<h4 class="mb-4 font-mono text-xs font-bold tracking-widest uppercase">Product</h4>
+					<a href="#pricing" class="block py-1 text-sm font-medium opacity-70 hover:opacity-100 hover:underline hover:underline-offset-4">Pricing</a>
+					<a href="/docs" class="block py-1 text-sm font-medium opacity-70 hover:opacity-100 hover:underline hover:underline-offset-4">Docs</a>
+					<a href="/dashboard" class="block py-1 text-sm font-medium opacity-70 hover:opacity-100 hover:underline hover:underline-offset-4">Dashboard</a>
+					<a href="/settings" class="block py-1 text-sm font-medium opacity-70 hover:opacity-100 hover:underline hover:underline-offset-4">Settings</a>
 				</div>
-				
-				<div class="footer-col">
-					<h4>Legal</h4>
-					<a href="/impressum">Impressum</a>
-					<a href="/privacy">Privacy</a>
-					<a href="/terms">Terms</a>
+
+				<div>
+					<h4 class="mb-4 font-mono text-xs font-bold tracking-widest uppercase">Legal</h4>
+					<a href="/impressum" class="block py-1 text-sm font-medium opacity-70 hover:opacity-100 hover:underline hover:underline-offset-4">Impressum</a>
+					<a href="/privacy" class="block py-1 text-sm font-medium opacity-70 hover:opacity-100 hover:underline hover:underline-offset-4">Privacy</a>
+					<a href="/terms" class="block py-1 text-sm font-medium opacity-70 hover:opacity-100 hover:underline hover:underline-offset-4">Terms</a>
 				</div>
 			</div>
-			
-			<div class="footer-bottom">
-				<p>© 2026 InferenceBrake.</p>
+
+			<div class="mt-10 border-t border-neutral-content/20 pt-6 text-center">
+				<p class="font-mono text-xs opacity-70">© 2026 InferenceBrake.</p>
 			</div>
 		</div>
 	</footer>
 	{/if}
 </div>
-
-<style>
-	.app {
-		min-height: 100vh;
-		display: flex;
-		flex-direction: column;
-	}
-	
-	.nav {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		z-index: 1000;
-		background: rgba(8, 8, 8, 0.85);
-		backdrop-filter: blur(20px);
-		border-bottom: 1px solid var(--border);
-	}
-	
-	.nav-inner {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		height: 72px;
-	}
-	
-	.container {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0 2rem;
-		width: 100%;
-	}
-	
-	.logo {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-weight: 700;
-		font-size: 1.25rem;
-		text-decoration: none;
-		color: inherit;
-	}
-	
-	.logo-icon {
-		display: block;
-		width: 28px;
-		height: 28px;
-	}
-	
-	.nav-links {
-		display: flex;
-		gap: 2rem;
-	}
-	
-	.nav-link {
-		color: var(--text-secondary);
-		font-weight: 500;
-		font-size: 0.9rem;
-		transition: color 0.2s;
-		text-decoration: none;
-	}
-	
-	.nav-link:hover {
-		color: var(--text-primary);
-	}
-	
-	.nav-actions {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-	}
-	
-	.user-email {
-		color: var(--text-secondary);
-		font-size: 0.85rem;
-	}
-	
-	main {
-		flex: 1;
-	}
-	
-	main.with-nav {
-		padding-top: 72px;
-	}
-	
-	.footer {
-		margin-top: auto;
-		padding: 4rem 0 2rem;
-		background: var(--bg-secondary);
-		border-top: 1px solid var(--border);
-	}
-	
-	.footer-grid {
-		display: grid;
-		grid-template-columns: 2fr 1fr 1fr;
-		gap: 4rem;
-	}
-	
-	.footer-brand {
-		max-width: 300px;
-	}
-	
-	.footer-brand .logo-text {
-		font-weight: 700;
-		font-size: 1.25rem;
-		display: block;
-		margin-bottom: 1rem;
-	}
-	
-	.footer-brand p {
-		font-size: 0.9rem;
-		line-height: 1.6;
-	}
-	
-	.footer-col h4 {
-		font-size: 0.85rem;
-		font-weight: 600;
-		margin-bottom: 1rem;
-		color: var(--text-primary);
-	}
-	
-	.footer-col a {
-		display: block;
-		color: var(--text-secondary);
-		font-size: 0.9rem;
-		padding: 0.35rem 0;
-		text-decoration: none;
-		transition: color 0.2s;
-	}
-	
-	.footer-col a:hover {
-		color: var(--accent);
-	}
-	
-	.footer-bottom {
-		margin-top: 3rem;
-		padding-top: 2rem;
-		border-top: 1px solid var(--border);
-		text-align: center;
-	}
-	
-	.footer-bottom p {
-		font-size: 0.85rem;
-		color: var(--text-tertiary);
-	}
-</style>
