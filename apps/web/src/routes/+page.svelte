@@ -250,22 +250,43 @@ let activeTab = $state("python");
 		<h2 class="mb-2 text-3xl font-extrabold md:text-4xl">Doom Loops Happen in Your Editor</h2>
 		<p class="nb-muted mb-10 font-medium md:mb-12">A coding agent stuck repeating the same constraint. Every step re-billed, no progress.</p>
 
-		<div class="nb-brutal mx-auto w-full max-w-2xl overflow-hidden bg-base-100">
-			<video
-				autoplay
-				loop
-				muted
-				playsinline
-				preload="metadata"
-				poster="/vscode-doomloop-poster.jpg"
-				aria-label="A coding agent repeating the same sentence in a loop"
-				class="block w-full"
-			>
-				<source src="/vscode-doomloop.webm" type="video/webm" />
-				<source src="/vscode-doomloop.mp4" type="video/mp4" />
-			</video>
+<div class="grid gap-8 md:grid-cols-2">
+			<!-- OpenCode Loop -->
+			<div class="nb-brutal overflow-hidden bg-base-100">
+				<video
+					autoplay
+					loop
+					muted
+					playsinline
+					preload="metadata"
+					poster="/opencode-doomloop-poster.jpg"
+					aria-label="OpenCode getting stuck in a doom loop"
+					class="block w-full"
+				>
+					<source src="/opencode-doomloop.webm" type="video/webm" />
+					<source src="/opencode-doomloop.mp4" type="video/mp4" />
+				</video>
+				<p class="nb-muted p-4 text-center text-sm font-medium">OpenCode AI assistant in a doom loop</p>
+			</div>
+
+			<!-- VSCode Loop -->
+			<div class="nb-brutal overflow-hidden bg-base-100">
+				<video
+					autoplay
+					loop
+					muted
+					playsinline
+					preload="metadata"
+					poster="/vscode-doomloop-poster.jpg"
+					aria-label="A coding agent repeating the same sentence in a loop"
+					class="block w-full"
+				>
+					<source src="/vscode-doomloop.webm" type="video/webm" />
+					<source src="/vscode-doomloop.mp4" type="video/mp4" />
+				</video>
+				<p class="nb-muted p-4 text-center text-sm font-medium">Recorded from a real agent session. InferenceBrake halts this at the first repeat, not the hundredth.</p>
+			</div>
 		</div>
-		<p class="nb-muted mt-6 text-center text-sm font-medium">Recorded from a real agent session. InferenceBrake halts this at the first repeat, not the hundredth.</p>
 	</div>
 </section>
 
