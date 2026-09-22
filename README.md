@@ -57,6 +57,13 @@ A real OpenRouter agent is given one tool that always fails. The agent retries t
 
 [Watch the full recording on asciinema](https://asciinema.org/a/tlLRb0bXAfIu0otq)
 
+Two raw editor clips of the failure mode, captured from real sessions with no inference involved:
+
+- [OpenCode doom loop](apps/web/static/opencode-doomloop.mp4)
+- [VS Code doom loop](apps/web/static/vscode-doomloop.mp4)
+
+Try the hosted detector at https://inferencebrake.dev.
+
 ---
 
 ## Quick Start
