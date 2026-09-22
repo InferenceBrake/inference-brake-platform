@@ -15,7 +15,8 @@ const model = new Supabase.ai.Session("gte-small");
 // reasoning steps had it not been halted. Each step's output token count is
 // estimated with words * TOKENS_PER_WORD (same convention as the Python
 // engine, pipeline.py). Priced at OUTPUT_PRICE_PER_TOKEN (USD), defaulting to
-// $10 / 1M tokens (GPT-4o-class output). Override via env vars.
+// a conservative blended $10 / 1M output tokens. Set OUTPUT_PRICE_PER_TOKEN to
+// your provider's actual output rate for accurate dashboard estimates.
 const TOKENS_PER_WORD = 1.3;
 const LOOP_STEPS_AVOIDED = Number(Deno.env.get("LOOP_STEPS_AVOIDED") ?? 10);
 const OUTPUT_PRICE_PER_TOKEN = Number(
@@ -163,21 +164,44 @@ Deno.serve(async (req) => {
 
 	try {
 		// 1. AUTH
-		const authHeader = req.headers.get("Authorization");
-		const apiKey = authHeader?.replace("Bearer ", "");
-		if (!apiKey) throw new Error("Missing API Key");
+		const authHeader = req.headers.get("Authorization") ?? "";
+		const apiKey = authHeader.replace(/^Bearer\s+/i, "").trim();
+		if (!apiKey) {
+			return new Response(JSON.stringify({ error: "Missing API Key" }), {
+				status: 401,
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+			});
+		}
 
-		const { data: user, error: authError } = await supabase
-			.from("users")
-			.select("*")
-			.or(`api_key.eq.${apiKey},test_mode_api_key.eq.${apiKey}`)
-			.single();
+		// Look the key up with parameterized equality filters. Do NOT build a
+		// PostgREST `.or()` string from the raw header value: that filter has its
+		// own comma/paren syntax, so interpolating attacker-controlled input is
+		// injectable. Two encoded .eq() queries are equivalent and safe.
+		const [byApiKey, byTestKey] = await Promise.all([
+			supabase.from("users").select("*").eq("api_key", apiKey).maybeSingle(),
+			supabase
+				.from("users")
+				.select("*")
+				.eq("test_mode_api_key", apiKey)
+				.maybeSingle(),
+		]);
 
-		if (authError || !user)
+		const user = byApiKey.data ?? byTestKey.data ?? null;
+		const lookupError = byApiKey.error ?? byTestKey.error;
+
+		if (!user) {
+			if (lookupError) {
+				console.error("Auth lookup failed:", lookupError.message);
+				return new Response(JSON.stringify({ error: "Internal server error" }), {
+					status: 500,
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+				});
+			}
 			return new Response(JSON.stringify({ error: "Invalid API Key" }), {
 				status: 401,
 				headers: { ...corsHeaders, "Content-Type": "application/json" },
 			});
+		}
 
 		const isTestMode = user.test_mode === true || user.test_mode_api_key === apiKey;
 
@@ -465,7 +489,8 @@ Deno.serve(async (req) => {
 			},
 		);
 	} catch (err) {
-		return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
+		console.error("check handler error:", err);
+		return new Response(JSON.stringify({ error: "Internal server error" }), {
 			status: 500,
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
 		});
