@@ -78,14 +78,14 @@
 		font-size: 2.25rem;
 		font-weight: 800;
 		letter-spacing: -0.02em;
-		color: #171310;
+		color: var(--color-base-content);
 		margin-bottom: 0.5rem;
 	}
 
 	.legal-brutal h2 {
 		font-size: 1.5rem;
 		font-weight: 800;
-		color: #171310;
+		color: var(--color-base-content);
 		margin-top: 2.5rem;
 		margin-bottom: 1rem;
 	}
@@ -104,7 +104,7 @@
 	}
 
 	.legal-brutal strong {
-		color: #171310;
+		color: var(--color-base-content);
 	}
 
 	.legal-brutal a {

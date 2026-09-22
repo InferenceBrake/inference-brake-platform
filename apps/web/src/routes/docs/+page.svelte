@@ -201,21 +201,23 @@ def call_model(prompt):
 </svelte:head>
 
 {#snippet codeblock(label: string, copyLabel: string, lang: string, code: string)}
-	<div class="nb-brutal overflow-x-auto bg-neutral p-4 text-neutral-content md:p-5">
-		<div class="mb-3 flex items-center justify-between gap-4">
-			<span class="font-mono text-xs font-bold tracking-widest uppercase opacity-70">{label}</span>
+	<div class="nb-window overflow-hidden">
+		<div class="nb-window-bar">
+			<span>{label}</span>
 			<button class="nb-btn nb-btn-secondary nb-btn-xs" onclick={() => copyCode(code, copyLabel)}>
 				{copyFeedback === copyLabel ? 'Copied' : 'Copy'}
 			</button>
 		</div>
-		<pre class="overflow-x-auto font-mono text-sm"><code class="language-{lang}">{code}</code></pre>
+		<div class="nb-terminal overflow-x-auto p-4 md:p-5">
+			<pre class="overflow-x-auto font-mono text-sm"><code class="language-{lang}">{code}</code></pre>
+		</div>
 	</div>
 {/snippet}
 
 <div class="docs-brutal bg-base-100 text-base-content">
-	<section class="border-b-2 border-black">
+	<section class="border-b-2 border-base-content">
 		<div class="mx-auto w-full max-w-6xl px-4 pt-12 pb-10 md:px-8 md:pt-16">
-			<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">Documentation</p>
+			<p class="mb-3"><span class="nb-tag">Documentation</span></p>
 			<h1 class="text-4xl font-extrabold tracking-tight md:text-5xl">Integration Documentation</h1>
 			<p class="nb-muted mt-4 max-w-3xl text-lg font-medium">Connect InferenceBrake to your AI agents in minutes. The Free plan includes 5,000 checks/month; paid plans scale to 100k and 500k per month.</p>
 			<p class="mt-2 font-medium">Runnable examples: <a href="https://github.com/InferenceBrake/inferencebrake-examples" target="_blank" rel="noopener">InferenceBrake/inferencebrake-examples</a>.</p>
@@ -442,7 +444,7 @@ def call_model(prompt):
 	.docs-brutal h1,
 	.docs-brutal h2,
 	.docs-brutal h3 {
-		color: #171310;
+		color: var(--color-base-content);
 	}
 
 	.docs-brutal .docs-content a {
@@ -452,8 +454,8 @@ def call_model(prompt):
 	}
 
 	.docs-brutal .docs-content :not(pre) > code {
-		border: 1px solid #171310;
-		background: #f6ecd4;
+		border: 1px solid var(--color-base-content);
+		background: var(--color-base-300);
 		padding: 0.1rem 0.35rem;
 		font-family: 'JetBrains Mono', monospace;
 		font-size: 0.85em;

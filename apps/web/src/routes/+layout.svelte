@@ -1,5 +1,6 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -64,19 +65,20 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-	<meta name="theme-color" content="#c4b5fd" />
+	<meta name="theme-color" content="#f5efe3" />
 	<title>InferenceBrake - Detect Reasoning Loops in AI Agents</title>
 	<meta name="description" content="Multi-detector loop detection for AI agents." />
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-base-100 text-base-content">
+	<div class="nb-ticks" aria-hidden="true"></div>
 	{#if !isAuthPage}
-	<nav class="fixed inset-x-0 top-0 z-50 border-b-2 border-black bg-base-100">
-		<div class="mx-auto flex h-18 w-full max-w-6xl items-center justify-between gap-4 px-4 md:px-8">
-			<a href="/" class="flex items-center gap-2 text-xl font-extrabold">
-				<img src={favicon} alt="" class="nb-brutal-sm size-7" />
-				InferenceBrake
-			</a>
+		<nav class="fixed inset-x-0 top-0 z-50 border-b-2 border-base-content bg-base-100">
+			<div class="mx-auto flex h-18 w-full max-w-6xl items-center justify-between gap-4 px-4 md:px-8">
+				<a href="/" class="flex items-center gap-2 text-xl font-extrabold">
+					<img src={favicon} alt="" class="nb-brutal-sm size-7" />
+					InferenceBrake
+				</a>
 
 			<div class="hidden items-center gap-6 md:flex">
 				{#if isLanding}
@@ -90,6 +92,7 @@
 			</div>
 
 			<div class="flex items-center gap-3">
+				<ThemeToggle />
 				{#if user}
 					<span class="nb-muted hidden font-mono text-xs lg:block">{user.email}</span>
 					<a href="/dashboard" class="hidden text-sm font-bold hover:underline hover:underline-offset-4 sm:block">Dashboard</a>
@@ -97,7 +100,7 @@
 					<button class="nb-btn nb-btn-neutral nb-btn-sm nb-brutal-sm" onclick={handleSignOut}>Sign Out</button>
 				{:else}
 					<a href="/login" class="text-sm font-bold hover:underline hover:underline-offset-4">Sign In</a>
-					<a href="/register" class="nb-btn nb-btn-primary nb-btn-sm nb-brutal-sm">Get Started</a>
+					<a href="/register" class="nb-btn nb-btn-primary nb-btn-sm nb-brutal-sm nb-pop">Get Started</a>
 				{/if}
 			</div>
 		</div>
@@ -109,12 +112,12 @@
 	</main>
 
 	{#if !isAuthPage}
-	<footer class="border-t-2 border-black bg-neutral text-neutral-content">
+	<footer class="border-t-2 border-base-content bg-neutral text-neutral-content">
 		<div class="mx-auto w-full max-w-6xl px-4 py-12 md:px-8">
 			<div class="grid gap-10 md:grid-cols-[2fr_1fr_1fr]">
 				<div>
 					<p class="flex items-center gap-2 text-xl font-extrabold">
-						<img src={favicon} alt="" class="size-7 border-2 border-black bg-base-100 p-0.5" />
+						<img src={favicon} alt="" class="size-7 border-2 border-base-content bg-base-100 p-0.5" />
 						InferenceBrake
 					</p>
 					<p class="mt-4 max-w-xs text-sm font-medium opacity-70">Multi-detector loop detection for AI agents.</p>

@@ -323,7 +323,7 @@
 </svelte:head>
 
 <div class="settings-brutal bg-base-100 text-base-content">
-	<section class="border-b-2 border-black">
+	<section class="border-b-2 border-base-content">
 		<div class="mx-auto w-full max-w-3xl px-4 pt-12 pb-10 md:px-8 md:pt-16">
 			<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">Account</p>
 			<h1 class="text-4xl font-extrabold tracking-tight md:text-5xl">Settings</h1>
@@ -333,14 +333,14 @@
 
 	<div class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-12 md:gap-8 md:px-8 md:py-16">
 		{#if message}
-			<div role="alert" class="nb-alert nb-brutal-sm text-sm font-bold {messageType === 'error' ? 'nb-alert-error' : 'nb-alert-success'}">
+			<div role="alert" class="nb-alert nb-brutal-sm text-sm font-bold nb-slide-in {messageType === 'error' ? 'nb-alert-error' : 'nb-alert-success'}">
 				{message}
 			</div>
 		{/if}
 
 		{#if loading}
 			<div class="flex flex-col items-center gap-4 py-16">
-				<span class="nb-loading nb-loading-spinner nb-loading-lg"></span>
+				<span class="nb-loading nb-loading-spinner nb-loading-lg nb-spin"></span>
 				<p class="nb-muted font-medium">Loading settings...</p>
 			</div>
 		{:else}
@@ -375,7 +375,7 @@
 
 						{#if apiKey}
 							<div class="flex flex-wrap items-center gap-3">
-								<code class="block min-w-52 flex-1 border-2 border-black bg-base-200 p-3 font-mono text-sm break-all">{showApiKey ? apiKey : apiKey.slice(0, 12) + '...' + apiKey.slice(-4)}</code>
+								<code class="block min-w-52 flex-1 border-2 border-base-content bg-base-200 p-3 font-mono text-sm break-all">{showApiKey ? apiKey : apiKey.slice(0, 12) + '...' + apiKey.slice(-4)}</code>
 								<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={() => showApiKey = !showApiKey}>
 									{showApiKey ? 'Hide' : 'Show'}
 								</button>
@@ -434,7 +434,7 @@
 							<p class="nb-muted text-sm font-medium">Your subscription and usage limits</p>
 						</div>
 
-						<div class="border-2 border-black bg-base-200 p-4 md:p-5">
+						<div class="border-2 border-base-content bg-base-200 p-4 md:p-5">
 							<div class="flex flex-wrap items-center gap-3">
 								<span class="text-lg font-extrabold">
 									{getPlanDisplayName(userPlan)}
@@ -570,6 +570,6 @@
 
 	.settings-brutal h1,
 	.settings-brutal h2 {
-		color: #171310;
+		color: var(--color-base-content);
 	}
 </style>

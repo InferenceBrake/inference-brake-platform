@@ -483,7 +483,7 @@
 
 <div class="dashboard-brutal bg-base-100 text-base-content">
 	<!-- Header -->
-	<section class="border-b-2 border-black">
+	<section class="border-b-2 border-base-content">
 		<div class="mx-auto w-full max-w-6xl px-4 pt-12 pb-10 md:px-8 md:pt-16">
 			<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">Console</p>
 			<h1 class="text-4xl font-extrabold tracking-tight md:text-5xl">Dashboard</h1>
@@ -510,7 +510,7 @@
 					<progress class="nb-progress nb-progress-primary w-full" value={checksThisMonth} max={userMonthlyLimit}></progress>
 				</div>
 
-				<div class="border-2 border-black bg-base-200 p-4 md:p-5">
+				<div class="border-2 border-base-content bg-base-200 p-4 md:p-5">
 					<p class="font-extrabold">{getPlanDisplayName(userPlan)} plan</p>
 					<p class="nb-muted text-sm font-medium">
 						{userMonthlyLimit.toLocaleString()} checks/month
@@ -549,7 +549,7 @@
 			<div class="nb-card-body gap-4 p-6 md:p-8">
 				<h3 class="text-lg font-extrabold">API Key</h3>
 				<div class="flex flex-wrap items-center gap-3">
-					<code class="block min-w-52 flex-1 border-2 border-black bg-base-200 p-3 font-mono text-sm break-all">
+					<code class="block min-w-52 flex-1 border-2 border-base-content bg-base-200 p-3 font-mono text-sm break-all">
 						{showApiKey ? apiKey : apiKey.slice(0, 8) + '...' + apiKey.slice(-4)}
 					</code>
 					<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={() => showApiKey = !showApiKey}>
@@ -757,7 +757,7 @@
 						<button class="nb-btn nb-btn-secondary nb-btn-sm nb-brutal-sm nb-brutal-press" onclick={closeSessionDetail}>Close</button>
 					</div>
 				</div>
-				<p class="mb-6 border-2 border-black bg-base-200 p-3 font-mono text-xs break-all">{selectedSession}</p>
+				<p class="mb-6 border-2 border-base-content bg-base-200 p-3 font-mono text-xs break-all">{selectedSession}</p>
 
 				{#if sessionSteps.length === 0}
 					<div class="flex flex-col items-center gap-4 py-12">
@@ -767,7 +767,7 @@
 				{:else}
 					<div class="flex flex-col gap-4">
 						{#each sessionSteps as step}
-							<div class="border-2 p-4 {step.loop_detected ? 'border-error bg-error/10' : 'border-black bg-base-100'}">
+							<div class="border-2 p-4 {step.loop_detected ? 'border-error bg-error/10' : 'border-base-content bg-base-100'}">
 								<div class="mb-2 flex flex-wrap items-center gap-3 text-sm">
 									<span class="font-extrabold">Step {step.step_number}</span>
 									{#if step.loop_detected}
@@ -813,6 +813,6 @@
 	.dashboard-brutal h1,
 	.dashboard-brutal h2,
 	.dashboard-brutal h3 {
-		color: #171310;
+		color: var(--color-base-content);
 	}
 </style>

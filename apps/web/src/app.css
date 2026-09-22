@@ -1,46 +1,90 @@
 /* InferenceBrake global styles: fonts, Tailwind v4, daisyUI v5 */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap');
 
 /* Tailwind v4 + daisyUI v5. daisyUI components are prefixed (nb-btn,
    nb-card). Everything custom in this file is unlayered, so it wins over
    Tailwind's layered output by design. */
 @import "tailwindcss";
 
+/* Disable daisyUI's built-in themes. Only the two custom themes below apply. */
 @plugin "daisyui" {
   prefix: "nb-";
   logs: false;
-  themes: light, dark, brutal --default;
+  themes: false;
 }
 
-/* Neobrutalism theme: light beige paper, black ink, lilac primary. Applied on :root
-   via `default: true` but only affects daisyUI `nb-*` components/variables. */
+/* Light neobrutalism theme (default). Slightly beige paper, soft warm ink. */
 @plugin "daisyui/theme" {
   name: "brutal";
   default: true;
   color-scheme: light;
 
-  --color-base-100: #fffef8;
-  --color-base-200: #fdf8ec;
-  --color-base-300: #f6ecd4;
-  --color-base-content: #171310;
+  --color-base-100: #f5efe3;
+  --color-base-200: #ece2d0;
+  --color-base-300: #ddcfb4;
+  --color-base-content: #36302b;
 
   --color-primary: #c4b5fd;
-  --color-primary-content: #171310;
+  --color-primary-content: #36302b;
   --color-secondary: #ffc800;
-  --color-secondary-content: #171310;
+  --color-secondary-content: #36302b;
   --color-accent: #ff90e8;
-  --color-accent-content: #171310;
-  --color-neutral: #171310;
-  --color-neutral-content: #fff9ec;
+  --color-accent-content: #36302b;
+  --color-neutral: #36302b;
+  --color-neutral-content: #f5efe3;
 
   --color-info: #38bdf8;
-  --color-info-content: #171310;
+  --color-info-content: #36302b;
   --color-success: #34d399;
-  --color-success-content: #171310;
+  --color-success-content: #36302b;
   --color-warning: #facc15;
-  --color-warning-content: #171310;
+  --color-warning-content: #36302b;
   --color-error: #ff5d5d;
-  --color-error-content: #171310;
+  --color-error-content: #36302b;
+
+  --nb-muted: #7b7263;
+
+  --radius-selector: 0;
+  --radius-field: 0;
+  --radius-box: 0;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* Dark neobrutalism theme. Neutral charcoal, not warm brown. Applies
+   automatically when the OS prefers dark and no explicit choice is stored. */
+@plugin "daisyui/theme" {
+  name: "brutal-dark";
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #141312;
+  --color-base-200: #1b1a18;
+  --color-base-300: #262421;
+  --color-base-content: #e6e1d7;
+
+  --color-primary: #c4b5fd;
+  --color-primary-content: #1e1d1b;
+  --color-secondary: #ffc800;
+  --color-secondary-content: #1e1d1b;
+  --color-accent: #ff90e8;
+  --color-accent-content: #1e1d1b;
+  --color-neutral: #ece8e0;
+  --color-neutral-content: #1e1d1b;
+
+  --color-info: #38bdf8;
+  --color-info-content: #1e1d1b;
+  --color-success: #34d399;
+  --color-success-content: #1e1d1b;
+  --color-warning: #facc15;
+  --color-warning-content: #1e1d1b;
+  --color-error: #ff5d5d;
+  --color-error-content: #1e1d1b;
+
+  --nb-muted: #9a9384;
 
   --radius-selector: 0;
   --radius-field: 0;
@@ -66,8 +110,8 @@ html {
 
 body {
   font-family: 'Outfit', sans-serif;
-  background: #fffef8;
-  color: #171310;
+  background: var(--color-base-100);
+  color: var(--color-base-content);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -127,32 +171,32 @@ a:not([class*='nb-']) {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f6ecd4;
+  background: var(--color-base-300);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #171310;
+  background: var(--color-base-content);
 }
 
 /* Selection */
 ::selection {
-  background: #c4b5fd;
-  color: #171310;
+  background: var(--color-primary);
+  color: var(--color-primary-content);
 }
 
 /* ------------------------------------------------------------------
-   Neobrutalism helpers for daisyUI `nb-*` components ("brutal" theme).
-   Hard borders + offset solid shadows. Unlayered on purpose so they
-   win over Tailwind/daisyUI layered output.
+   Neobrutalism helpers for daisyUI `nb-*` components. Hard borders +
+   offset solid shadows, driven by the active theme's content color.
+   Unlayered on purpose so they win over Tailwind/daisyUI layered output.
 ------------------------------------------------------------------- */
 .nb-brutal {
-  border: 2px solid #171310;
-  box-shadow: 5px 5px 0 #171310;
+  border: 2px solid var(--color-base-content);
+  box-shadow: 5px 5px 0 var(--color-base-content);
 }
 
 .nb-brutal-sm {
-  border: 2px solid #171310;
-  box-shadow: 3px 3px 0 #171310;
+  border: 2px solid var(--color-base-content);
+  box-shadow: 3px 3px 0 var(--color-base-content);
 }
 
 .nb-brutal-press {
@@ -161,12 +205,12 @@ a:not([class*='nb-']) {
 
 .nb-brutal-press:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 7px 7px 0 #171310;
+  box-shadow: 7px 7px 0 var(--color-base-content);
 }
 
 .nb-brutal-press:active {
   transform: translate(3px, 3px);
-  box-shadow: 1px 1px 0 #171310;
+  box-shadow: 1px 1px 0 var(--color-base-content);
 }
 
 .nb-sticker {
@@ -182,7 +226,201 @@ a:not([class*='nb-']) {
 /* Small type in warm gray (typesafe.ai style). Unlayered so it wins over
    daisyUI's layered component colors. */
 .nb-muted {
-  color: #6f695c;
+  color: var(--nb-muted);
+}
+
+/* ------------------------------------------------------------------
+   Retro-computer accents (typesafe.ai flavour): pixel type, system
+   window chrome, ordered-dither halftone clouds, inverted label chips,
+   registration marks.
+------------------------------------------------------------------- */
+.font-pixel {
+  font-family: 'Silkscreen', 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+/* Inverted label chip: ink plate, paper text. Used for section eyebrows. */
+.nb-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--color-base-content);
+  color: var(--color-base-100);
+  font-family: 'Silkscreen', 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.5rem;
+}
+
+/* Terminal surface: pinned dark in both themes so syntax colors stay legible. */
+.nb-terminal {
+  background: #1a1917;
+  color: #ece8e0;
+}
+
+/* System window: hard frame, offset shadow, black title bar. */
+.nb-window {
+  border: 2px solid var(--color-base-content);
+  box-shadow: 5px 5px 0 var(--color-base-content);
+  background: var(--color-base-100);
+}
+
+.nb-window-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--color-base-content);
+  color: var(--color-base-100);
+  padding: 0.4rem 0.6rem;
+  font-family: 'Silkscreen', 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nb-window-bar-dots {
+  display: inline-flex;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+
+.nb-window-bar-dots i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: var(--color-base-100);
+  opacity: 0.55;
+}
+
+/* Ordered-dither halftone cloud. Self-contained decorative layer:
+   place inside a `relative overflow-hidden` container, before content. */
+.nb-dither {
+  --nb-dither-at: 28% 34%;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--color-primary);
+  opacity: 0.7;
+  background-image: radial-gradient(currentColor 1.3px, transparent 1.4px);
+  background-size: 6px 6px;
+  -webkit-mask-image: radial-gradient(circle at var(--nb-dither-at), #000 0%, rgba(0, 0, 0, 0.5) 20%, transparent 50%);
+  mask-image: radial-gradient(circle at var(--nb-dither-at), #000 0%, rgba(0, 0, 0, 0.5) 20%, transparent 50%);
+}
+
+.nb-dither-tr { --nb-dither-at: 76% 22%; }
+.nb-dither-bl { --nb-dither-at: 24% 76%; }
+
+.nb-dither-pink {
+  color: var(--color-accent);
+  opacity: 0.45;
+}
+
+/* Registration marks in all four corners. */
+.nb-frame::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  pointer-events: none;
+  opacity: 0.35;
+  background:
+    linear-gradient(currentColor, currentColor) left top / 14px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) left top / 1px 14px no-repeat,
+    linear-gradient(currentColor, currentColor) right top / 14px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) right top / 1px 14px no-repeat,
+    linear-gradient(currentColor, currentColor) left bottom / 14px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) left bottom / 1px 14px no-repeat,
+    linear-gradient(currentColor, currentColor) right bottom / 14px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) right bottom / 1px 14px no-repeat;
+}
+
+/* Viewport surround ticks: 1px lines, 10px long, right-angled, one per corner. */
+.nb-ticks {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  color: var(--color-base-content);
+}
+
+.nb-ticks::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  opacity: 0.4;
+  background:
+    linear-gradient(currentColor, currentColor) left top / 10px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) left top / 1px 10px no-repeat,
+    linear-gradient(currentColor, currentColor) right top / 10px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) right top / 1px 10px no-repeat,
+    linear-gradient(currentColor, currentColor) left bottom / 10px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) left bottom / 1px 10px no-repeat,
+    linear-gradient(currentColor, currentColor) right bottom / 10px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) right bottom / 1px 10px no-repeat;
+}
+
+/* ------------------------------------------------------------------
+   Micro-animations
+------------------------------------------------------------------- */
+@keyframes nb-pop {
+  0% { transform: scale(0.85); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes nb-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes nb-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes nb-slide-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes nb-bounce-in {
+  0% { transform: translateY(20px) scale(0.9); opacity: 0; }
+  50% { transform: translateY(-4px) scale(1.03); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes nb-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(196, 181, 253, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(196, 181, 253, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(196, 181, 253, 0); }
+}
+
+.nb-pop { animation: nb-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.nb-shake { animation: nb-shake 0.4s ease both; }
+.nb-spin { animation: nb-spin 0.7s linear infinite; }
+.nb-slide-in { animation: nb-slide-in 0.3s ease both; }
+.nb-bounce-in { animation: nb-bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+.nb-pulse-ring {
+  animation: nb-pulse-ring 1.6s ease-out infinite;
+}
+
+/* Reduced motion: strip all animations globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @keyframes nb-marquee {

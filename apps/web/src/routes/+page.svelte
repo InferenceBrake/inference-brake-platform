@@ -1,6 +1,23 @@
 <script lang="ts">
-// Code tabs
-let activeTab = $state("python");
+	import { onMount } from 'svelte';
+	import DotGlobe from '$lib/components/DotGlobe.svelte';
+	import RetroWindow from '$lib/components/RetroWindow.svelte';
+
+	// Code tabs
+	let activeTab = $state("python");
+
+	// Retro clock window
+	let now = $state(new Date());
+
+	onMount(() => {
+		const id = setInterval(() => (now = new Date()), 1000);
+		return () => clearInterval(id);
+	});
+
+	const dateLabel = $derived(
+		now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
+	);
+	const timeLabel = $derived(now.toLocaleTimeString('en-US', { hour12: false }));
 </script>
 
 <svelte:head>
@@ -9,14 +26,15 @@ let activeTab = $state("python");
 
 <div class="landing-brutal bg-base-100 text-base-content">
 <!-- Hero -->
-<section class="border-b-2 border-black">
-	<div class="mx-auto w-full max-w-6xl px-4 pt-12 pb-12 md:px-8 md:pt-20 md:pb-16">
+<section class="nb-frame relative overflow-hidden border-b-2 border-base-content">
+	<div class="nb-dither nb-dither-bl" aria-hidden="true"></div>
+	<div class="relative z-10 mx-auto w-full max-w-6xl px-4 pt-12 pb-12 md:px-8 md:pt-20 md:pb-16">
 		<div class="grid items-center gap-10 md:gap-14 lg:grid-cols-2">
 			<div>
-				<p class="nb-muted mb-4 font-mono text-xs font-bold tracking-widest uppercase">Multi-detector loop detection</p>
+				<p class="mb-4"><span class="nb-tag">Multi-detector loop detection</span></p>
 				<h1 class="text-4xl font-extrabold tracking-tight md:text-6xl">
 					Detect Reasoning Loops
-					<span class="mt-3 block w-fit border-2 border-black bg-primary px-3 py-1">Before They Burn Your Budget</span>
+					<span class="mt-3 block w-fit border-2 border-base-content bg-primary px-3 py-1">Before They Burn Your Budget</span>
 				</h1>
 
 				<p class="nb-muted mt-6 text-lg font-medium">
@@ -27,17 +45,17 @@ let activeTab = $state("python");
 					Open-source detection system with 6 production detectors and 2 more in development - from embedding similarity and exact token repeats to information theory. Runs on Supabase free tier.
 				</p>
 
-				<div class="mt-8 flex flex-wrap gap-4">
-					<a href="#pricing" class="nb-btn nb-btn-primary nb-brutal nb-brutal-press text-base">Get Started</a>
-					<a href="#demo" class="nb-btn nb-btn-neutral nb-brutal nb-brutal-press text-base">See Demo</a>
-				</div>
+<div class="mt-8 flex flex-wrap gap-4">
+				<a href="#pricing" class="nb-btn nb-btn-primary nb-brutal nb-brutal-press nb-pop text-base">Get Started</a>
+				<a href="#demo" class="nb-btn nb-btn-neutral nb-brutal nb-brutal-press nb-pop text-base">See Demo</a>
+			</div>
 			</div>
 
-			<div class="lg:border-l-2 lg:border-black lg:pl-8">
-				<p class="nb-muted mb-4 font-mono text-xs font-bold tracking-widest uppercase">Real stories from the community:</p>
+			<div class="lg:border-l-2 lg:border-base-content lg:pl-8">
+				<p class="mb-4"><span class="nb-tag">Real stories from the community</span></p>
 
 				<div class="flex flex-col gap-4">
-					<a href="https://www.reddit.com/r/SaaS/comments/1qv8o6v/my_ai_agent_built_a_runaway_ai_retry_loop_that/" target="_blank" rel="noopener" class="nb-card nb-brutal nb-brutal-press bg-base-100">
+					<a href="https://www.reddit.com/r/SaaS/comments/1qv8o6v/my_ai_agent_built_a_runaway_ai_retry_loop_that/" target="_blank" rel="noopener" class="nb-card nb-brutal nb-brutal-press bg-base-100 nb-bounce-in" style="animation-delay: 0ms;">
 						<div class="nb-card-body gap-2 p-5">
 							<div class="flex items-center justify-between gap-2">
 								<span class="nb-muted font-mono text-xs font-bold">r/SaaS</span>
@@ -47,7 +65,7 @@ let activeTab = $state("python");
 						</div>
 					</a>
 
-					<a href="https://www.reddit.com/r/AI_Agents/comments/1pqsvrs/the_30k_agent_loop_implementing_financial_circuit/" target="_blank" rel="noopener" class="nb-card nb-brutal nb-brutal-press bg-base-100">
+					<a href="https://www.reddit.com/r/AI_Agents/comments/1pqsvrs/the_30k_agent_loop_implementing_financial_circuit/" target="_blank" rel="noopener" class="nb-card nb-brutal nb-brutal-press bg-base-100 nb-bounce-in" style="animation-delay: 100ms;">
 						<div class="nb-card-body gap-2 p-5">
 							<div class="flex items-center justify-between gap-2">
 								<span class="nb-muted font-mono text-xs font-bold">r/AI_Agents</span>
@@ -57,7 +75,7 @@ let activeTab = $state("python");
 						</div>
 					</a>
 
-					<a href="https://www.reddit.com/r/Python/comments/1rcqa6b/i_burned_14k_in_6_hours_because_an_ai_agent/" target="_blank" rel="noopener" class="nb-card nb-brutal nb-brutal-press bg-base-100">
+					<a href="https://www.reddit.com/r/Python/comments/1rcqa6b/i_burned_14k_in_6_hours_because_an_ai_agent/" target="_blank" rel="noopener" class="nb-card nb-brutal nb-brutal-press bg-base-100 nb-bounce-in" style="animation-delay: 200ms;">
 						<div class="nb-card-body gap-2 p-5">
 							<div class="flex items-center justify-between gap-2">
 								<span class="nb-muted font-mono text-xs font-bold">r/Python</span>
@@ -67,7 +85,7 @@ let activeTab = $state("python");
 						</div>
 					</a>
 
-					<a href="https://www.reddit.com/r/cursor/comments/1puodrs/experienced_agent_runaway_burnt_all_monthly/" target="_blank" rel="noopener" class="nb-card nb-brutal nb-brutal-press bg-base-100">
+					<a href="https://www.reddit.com/r/cursor/comments/1puodrs/experienced_agent_runaway_burnt_all_monthly/" target="_blank" rel="noopener" class="nb-card nb-brutal nb-brutal-press bg-base-100 nb-bounce-in" style="animation-delay: 300ms;">
 						<div class="nb-card-body gap-2 p-5">
 							<div class="flex items-center justify-between gap-2">
 								<span class="nb-muted font-mono text-xs font-bold">r/cursor</span>
@@ -90,13 +108,14 @@ let activeTab = $state("python");
 </section>
 
 <!-- Detection -->
-<section id="detection" class="border-b-2 border-black bg-base-200">
-	<div class="mx-auto w-full max-w-6xl px-4 py-16 md:px-8 md:py-24">
-		<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">01 / Detection methods</p>
+<section id="detection" class="relative overflow-hidden border-b-2 border-base-content bg-base-200">
+	<div class="nb-dither nb-dither-pink nb-dither-tr" aria-hidden="true"></div>
+	<div class="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-8 md:py-24">
+		<p class="mb-3"><span class="nb-tag">01 / Detection methods</span></p>
 		<h2 class="mb-2 text-3xl font-extrabold md:text-4xl">Science Based Detection Methods</h2>
 		<p class="nb-muted mb-10 font-medium md:mb-12">From embedding similarity and exact repeats to information theory</p>
 
-		<div class="grid gap-5 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+		<div class="grid gap-5 md:grid-cols-2 md:gap-8 lg:grid-cols-4 stagger-children">
 			<a class="nb-card nb-brutal nb-brutal-press bg-base-100" href="https://arxiv.org/abs/2601.11940" target="_blank" rel="noopener noreferrer">
 				<div class="nb-card-body gap-3 p-6">
 					<div class="nb-brutal-sm flex size-12 items-center justify-center bg-primary text-primary-content">
@@ -226,33 +245,56 @@ let activeTab = $state("python");
 </section>
 
 <!-- Demo -->
-<section id="demo" class="border-b-2 border-black">
-	<div class="mx-auto w-full max-w-6xl px-4 py-16 md:px-8 md:py-24">
-		<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">02 / Live demo</p>
+<section id="demo" class="nb-frame relative overflow-hidden border-b-2 border-base-content">
+	<div class="nb-dither nb-dither-tr" aria-hidden="true"></div>
+	<div class="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-8 md:py-24">
+		<p class="mb-3"><span class="nb-tag">02 / Live demo</span></p>
 		<h2 class="mb-2 text-3xl font-extrabold md:text-4xl">See It In Action</h2>
 		<p class="nb-muted mb-10 font-medium md:mb-12">A real agent loop detected and halted in the terminal</p>
 
-		<div class="nb-brutal mx-auto w-full max-w-4xl overflow-hidden bg-base-100">
-			<img
-				src="/demo.gif"
-				alt="InferenceBrake detecting and halting a real agent reasoning loop in a terminal"
-				loading="lazy"
-				class="block w-full"
-			/>
+		<div class="relative">
+			<div class="pointer-events-none absolute -top-6 right-0 z-20 hidden w-52 rotate-[1.5deg] md:block">
+				<RetroWindow title="Clock Tool 1.1" bodyClass="bg-base-100 p-3 font-pixel text-xs leading-relaxed">
+					<p class="text-base-content/70">{dateLabel}</p>
+					<p class="mt-1 text-lg">{timeLabel}</p>
+				</RetroWindow>
+			</div>
+
+			<div class="pointer-events-none absolute -bottom-12 -left-12 z-20 hidden opacity-80 md:block">
+				<DotGlobe size={190} color="var(--color-accent)" />
+			</div>
+
+			<div class="nb-window relative z-10 mx-auto w-full max-w-4xl overflow-hidden">
+				<div class="nb-window-bar">
+					<span>demo — loop halted</span>
+					<span class="nb-window-bar-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+				</div>
+				<img
+					src="/demo.gif"
+					alt="InferenceBrake detecting and halting a real agent reasoning loop in a terminal"
+					loading="lazy"
+					class="block w-full"
+				/>
+			</div>
 		</div>
 	</div>
 </section>
 
 <!-- Wild -->
-<section class="border-b-2 border-black bg-base-200">
-	<div class="mx-auto w-full max-w-6xl px-4 py-16 md:px-8 md:py-24">
-		<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">03 / In the wild</p>
+<section class="relative overflow-hidden border-b-2 border-base-content bg-base-200">
+	<div class="nb-dither nb-dither-bl" aria-hidden="true"></div>
+	<div class="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-8 md:py-24">
+		<p class="mb-3"><span class="nb-tag">03 / In the wild</span></p>
 		<h2 class="mb-2 text-3xl font-extrabold md:text-4xl">Doom Loops Happen in Your Editor</h2>
 		<p class="nb-muted mb-10 font-medium md:mb-12">A coding agent stuck repeating the same constraint. Every step re-billed, no progress.</p>
 
-<div class="grid gap-8 md:grid-cols-2">
+		<div class="grid gap-8 md:grid-cols-2">
 			<!-- OpenCode Loop -->
-			<div class="nb-brutal overflow-hidden bg-base-100">
+			<div class="nb-window overflow-hidden">
+				<div class="nb-window-bar">
+					<span>opencode — doom loop</span>
+					<span class="nb-window-bar-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+				</div>
 				<video
 					autoplay
 					loop
@@ -270,7 +312,11 @@ let activeTab = $state("python");
 			</div>
 
 			<!-- VSCode Loop -->
-			<div class="nb-brutal overflow-hidden bg-base-100">
+			<div class="nb-window overflow-hidden">
+				<div class="nb-window-bar">
+					<span>vs code — doom loop</span>
+					<span class="nb-window-bar-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+				</div>
 				<video
 					autoplay
 					loop
@@ -291,19 +337,24 @@ let activeTab = $state("python");
 </section>
 
 <!-- Code -->
-<section class="border-b-2 border-black">
+<section class="border-b-2 border-base-content">
 	<div class="mx-auto w-full max-w-6xl px-4 py-16 md:px-8 md:py-24">
-		<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">04 / Integration</p>
+		<p class="mb-3"><span class="nb-tag">04 / Integration</span></p>
 		<h2 class="mb-2 text-3xl font-extrabold md:text-4xl">Integrate in Minutes</h2>
 		<p class="nb-muted mb-10 font-medium md:mb-12">Add loop detection to any agent in 3 lines of code</p>
 
-		<div role="tablist" class="nb-tabs nb-tabs-box mb-6 w-fit border-2 border-black">
+		<div role="tablist" class="nb-tabs nb-tabs-box mb-6 w-fit border-2 border-base-content">
 			<button role="tab" class="nb-tab font-mono text-sm font-bold" class:nb-tab-active={activeTab === 'python'} onclick={() => activeTab = 'python'}>Python</button>
 			<button role="tab" class="nb-tab font-mono text-sm font-bold" class:nb-tab-active={activeTab === 'node'} onclick={() => activeTab = 'node'}>Node.js</button>
 			<button role="tab" class="nb-tab font-mono text-sm font-bold" class:nb-tab-active={activeTab === 'curl'} onclick={() => activeTab = 'curl'}>cURL</button>
 		</div>
 
-		<div class="nb-brutal overflow-x-auto bg-neutral p-6 text-neutral-content md:p-8">
+		<div class="nb-window overflow-hidden">
+			<div class="nb-window-bar">
+				<span>integration — {activeTab}</span>
+				<span class="nb-window-bar-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+			</div>
+			<div class="nb-terminal overflow-x-auto p-6 md:p-8">
 			{#if activeTab === 'python'}
 				<pre class="font-mono text-sm leading-relaxed"><code><span class="k">from</span> inferencebrake <span class="k">import</span> InferenceBrake
 
@@ -343,14 +394,16 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
   "confidence": 0.42
 &#125;</code></pre>
 			{/if}
+			</div>
 		</div>
 	</div>
 </section>
 
 <!-- Pricing -->
-<section id="pricing" class="border-b-2 border-black bg-base-200">
-	<div class="mx-auto w-full max-w-6xl px-4 py-16 md:px-8 md:py-24">
-		<p class="nb-muted mb-2 font-mono text-xs font-bold tracking-widest uppercase">05 / Pricing</p>
+<section id="pricing" class="relative overflow-hidden border-b-2 border-base-content bg-base-200">
+	<div class="nb-dither nb-dither-pink nb-dither-tr" aria-hidden="true"></div>
+	<div class="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-8 md:py-24">
+		<p class="mb-3"><span class="nb-tag">05 / Pricing</span></p>
 		<h2 class="mb-2 text-3xl font-extrabold md:text-4xl">Simple, usage-based pricing</h2>
 		<p class="nb-muted mb-10 font-medium md:mb-12">Scale with the number of agent steps you monitor. Cancel anytime.</p>
 
@@ -369,8 +422,7 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 				</div>
 			</div>
 
-			<div class="nb-card nb-brutal relative bg-primary text-primary-content">
-				<span class="nb-badge nb-badge-neutral nb-sticker absolute -top-4 left-1/2 -translate-x-1/2 font-mono text-xs font-bold whitespace-nowrap">Most popular</span>
+			<div class="nb-card nb-brutal bg-primary text-primary-content">
 				<div class="nb-card-body gap-4 p-6 md:p-8">
 					<h3 class="text-xl font-extrabold">Growth</h3>
 					<p class="font-mono text-5xl font-extrabold">$49<span class="text-base font-bold">/mo</span></p>
@@ -414,13 +466,13 @@ guard = InferenceBrake(api_key=<span class="s">"ib_key"</span>)
 	.landing-brutal h1,
 	.landing-brutal h2,
 	.landing-brutal h3 {
-		color: #171310;
+		color: var(--color-base-content);
 	}
 
 	.landing-brutal .k { color: #f97316; }
 	.landing-brutal .s { color: #34d399; }
 	.landing-brutal .c { color: #8a8474; }
 
-	/* Pricing meta text: darker than nb-muted for readable small print */
-	.landing-brutal .price-meta { color: #57503f; }
+	/* Pricing meta text: readable small print */
+	.landing-brutal .price-meta { color: var(--nb-muted); }
 </style>

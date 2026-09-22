@@ -164,7 +164,7 @@
 						<h2 class="text-2xl font-extrabold">Your API Key</h2>
 						<p class="nb-muted font-medium">This key authenticates your requests. Copy it now — you will need it in the next step.</p>
 
-						<code class="block w-full border-2 border-black bg-base-200 p-4 font-mono text-sm break-all">{showApiKey ? apiKey : apiKey.slice(0, 8) + '...' + apiKey.slice(-4)}</code>
+						<code class="block w-full border-2 border-base-content bg-base-200 p-4 font-mono text-sm break-all">{showApiKey ? apiKey : apiKey.slice(0, 8) + '...' + apiKey.slice(-4)}</code>
 
 						<div class="flex w-full flex-wrap gap-3">
 							<button class="nb-btn nb-btn-primary nb-brutal-sm nb-brutal-press flex-1" onclick={handleCopyKey}>
@@ -190,7 +190,7 @@
 						<h2 class="text-2xl font-extrabold">Install the SDK</h2>
 						<p class="nb-muted font-medium">Add InferenceBrake to your project with one command.</p>
 
-						<div role="tablist" class="nb-tabs nb-tabs-box border-2 border-black">
+						<div role="tablist" class="nb-tabs nb-tabs-box border-2 border-base-content">
 							<button
 								role="tab"
 								class="nb-tab font-mono text-sm font-bold"
@@ -268,6 +268,6 @@ for step in agent.run():
 
 	.onboarding-brutal h1,
 	.onboarding-brutal h2 {
-		color: #171310;
+		color: var(--color-base-content);
 	}
 </style>
