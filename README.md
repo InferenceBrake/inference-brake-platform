@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Cost: $0](https://img.shields.io/badge/Cost-$0_embeddings-green.svg)](https://supabase.com)
-[![Detectors](https://img.shields.io/badge/Detectors-7-brightgreen.svg)]()
+[![Detectors](https://img.shields.io/badge/Detectors-8-brightgreen.svg)]()
 
 ---
 
@@ -65,8 +65,8 @@ A real OpenRouter agent is given one tool that always fails. The agent retries t
 
 ```bash
 # Clone repo
-git clone https://github.com/yourusername/inferencebrake
-cd inferencebrake
+git clone https://github.com/InferenceBrake/inference-brake-platform
+cd inference-brake-platform
 
 # Install Supabase CLI
 npm install -g supabase
@@ -85,8 +85,9 @@ supabase secrets set SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ### 2. Setup Database
 
 ```sql
--- Run in Supabase SQL Editor
--- See supabase-schema.sql for complete schema
+-- Apply migrations with the Supabase CLI:
+--   supabase db push
+-- Migrations live in supabase/migrations/
 ```
 
 ### 3. Install SDK & Use
@@ -301,7 +302,7 @@ All plans use Supabase's free gte-small model (no embedding costs!)
 - **Edge Function**: Deno (Supabase) - TypeScript
 - **Database**: Postgres + pgvector
 - **Embeddings**: Supabase AI (gte-small, 384 dims) - **FREE**
-- **Frontend**: SvelteKit (Bun) - Dark industrial design
+- **Frontend**: SvelteKit (Bun) - Neobrutalist UI with light/dark theming
 - **Auth**: Supabase Auth
 - **Payments**: Stripe (subscriptions)
 - **Cost**: ~$0/mo for hobby tier (Supabase free tier)
@@ -448,21 +449,24 @@ console.log('Online:', guard.isOnline());
 
 ```bash
 # Clone repo
-git clone https://github.com/yourusername/inferencebrake
-cd inferencebrake
+git clone https://github.com/InferenceBrake/inference-brake-platform
+cd inference-brake-platform
 
 # Install dependencies (uses bun for web, uv for Python)
-cd web && bun install && cd ..
-cd engine && uv sync && cd ..
+cd apps/web && bun install && cd ../..
+cd packages/engine && uv sync && cd ../..
 
 # Start Supabase locally
 supabase start
 
 # Run web dev server
-cd web && bun run dev
+cd apps/web && bun run dev
 
 # In another terminal, serve edge functions
 supabase functions serve check --no-verify-jwt
+
+# Run the engine test suite
+cd packages/engine && uv run pytest -q
 ```
 
 ### Environment Variables
@@ -522,33 +526,6 @@ inferencebrake/
 ├── tests/                     # Integration tests (Bun)
 └── benchmarks/                # Benchmarking suite
 ```
-inferencebrake/
-├── apps/
-│   ├── web/                    # SvelteKit frontend (Vercel)
-│   │   ├── src/
-│   │   │   └── routes/
-│   │   └── package.json
-│   └── functions/              # Supabase Edge Functions (Deno)
-│       ├── check/
-│       └── stripe-checkout/
-│
-├── packages/
-│   ├── engine/                 # Python detection engine
-│   │   └── inferencebrake/
-│   │       ├── pipeline.py
-│   │       ├── types.py
-│   │       └── detectors/
-│   ├── python-sdk/            # PyPI package
-│   └── js-sdk/                # NPM package
-│
-├── supabase/                   # Database config
-│   ├── migrations/
-│   └── config.toml
-│
-├── tests/                      # Integration tests (Bun)
-├── benchmarks/                 # Benchmarking suite
-└── benchmark_data/             # Test data
-```
 
 ---
 
@@ -556,7 +533,7 @@ inferencebrake/
 
 ### Completed
 
-- [x] Core loop detection (6 detectors: semantic, token repeat, action, n-gram, edit distance, compression)
+- [x] Core loop detection (8 detectors in the engine; 6 live in the hosted API)
 - [x] Supabase Edge Function
 - [x] Python SDK with LangChain & CrewAI integrations
 - [x] Node.js SDK with retry/circuit-breaker/offline queue
@@ -589,14 +566,12 @@ inferencebrake/
 
 We welcome contributions! Areas we need help:
 
-- [ ] Node.js/TypeScript SDK
 - [ ] Go SDK
 - [ ] More framework integrations
 - [ ] Better visualization dashboards
 - [ ] Documentation improvements
-- [ ] Test coverage
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Open an issue or a pull request - all contributions are reviewed.
 
 ---
 
