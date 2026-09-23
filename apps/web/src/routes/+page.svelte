@@ -95,11 +95,10 @@
 					</a>
 				</div>
 
-				<p class="nb-muted mt-8 mb-4 font-mono text-xs font-bold tracking-widest uppercase">The industry is responding:</p>
+				<p class="nb-muted mt-8 mb-4 font-mono text-xs font-bold tracking-widest uppercase">Why built-ins don't save you:</p>
 				<ul class="nb-menu nb-brutal w-full bg-base-100">
-					<li><a href="https://openrouter.ai/docs/agent-sdk/call-model/doom-loop-detection" target="_blank" rel="noopener" class="text-sm font-medium">OpenRouter shipped built-in doom-loop detection</a></li>
-					<li><a href="https://github.com/Liquid4All/antidoom" target="_blank" rel="noopener" class="text-sm font-medium">Liquid AI released Antidoom to train doom loops out of models</a></li>
-					<li><a href="https://nocrash.io/blog/bolt-new-doom-loop" target="_blank" rel="noopener" class="text-sm font-medium">Bolt.new users burn hundreds of thousands of credits in doom loops</a></li>
+					<li><span class="text-sm font-medium">Provider flags only cover their own stack, and users find them after the bill. Common reply: didn't even know the feature existed.</span></li>
+					<li><span class="text-sm font-medium">Training-time fixes don't halt a live agent burning budget tonight.</span></li>
 					<li><a href="https://getunblocked.com/blog/ai-agent-doom-loop/" target="_blank" rel="noopener" class="text-sm font-medium">82% of developers hit repeated AI agent failures</a></li>
 				</ul>
 			</div>
