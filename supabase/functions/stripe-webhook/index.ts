@@ -140,8 +140,11 @@ Deno.serve(async (req) => {
     }
 
     if (!userId) {
-      return new Response(JSON.stringify({ error: "No matching user for event" }), {
-        status: 400,
+      // Test-mode and synthetic events carry customer ids that match no
+      // account. Acknowledge them so Stripe marks the endpoint healthy
+      // instead of reporting delivery failures.
+      console.log(`stripe-webhook: no matching user for event ${event.id} (${event.type})`);
+      return new Response(JSON.stringify({ received: true, unmatched: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -152,15 +155,32 @@ Deno.serve(async (req) => {
       case "checkout.session.completed": {
         const subscriptionId = data.subscription;
         const customerId = data.customer;
-        
+
+        if (!subscriptionId) {
+          // One-off payment or synthetic test event: nothing to provision.
+          console.log(`stripe-webhook: checkout ${data.id} has no subscription, acking`);
+          return new Response(JSON.stringify({ received: true, noop: true }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
         // Get subscription details to determine plan
         const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
           headers: { "Authorization": `Bearer ${stripeKey}` },
         });
+        if (!subRes.ok) {
+          console.error(`stripe-webhook: subscription fetch failed (${subRes.status}), acking to avoid retry storm`);
+          return new Response(JSON.stringify({ received: true, deferred: true }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         const subscription = await subRes.json();
-        
+
         const priceId = subscription.items?.data?.[0]?.price?.id;
         const planConfig = planForPriceId(priceId) ?? PLANS[FREE_PLAN];
+        const periodEnd = typeof subscription.current_period_end === "number"
+          ? new Date(subscription.current_period_end * 1000).toISOString()
+          : null;
 
         updateData = {
           stripe_subscription_id: subscriptionId,
@@ -168,14 +188,16 @@ Deno.serve(async (req) => {
           plan: planConfig.id,
           monthly_limit: planConfig.monthlyLimit,
           subscription_status: "active",
-          subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          subscription_current_period_end: periodEnd,
         };
         break;
       }
 
       case "customer.subscription.updated": {
         const status = data.status;
-        const currentPeriodEnd = new Date(data.current_period_end * 1000).toISOString();
+        const currentPeriodEnd = typeof data.current_period_end === "number"
+          ? new Date(data.current_period_end * 1000).toISOString()
+          : null;
         
         let subscriptionStatus = "active";
         if (status === "past_due" || status === "unpaid") {
