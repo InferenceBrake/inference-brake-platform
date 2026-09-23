@@ -96,6 +96,15 @@ Deno.serve(async (req) => {
 
     const event = JSON.parse(body);
 
+    if (!event?.data?.object) {
+      // Malformed or synthetic payload with nothing to process. Ack so
+      // Stripe does not flag the endpoint.
+      console.log(`stripe-webhook: event ${event?.id} has no data.object, acking`);
+      return new Response(JSON.stringify({ received: true, noop: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Idempotency: claim the event id; a duplicate delivery is ignored.
     if (event.id) {
       const claimRes = await fetch(
